@@ -1,0 +1,31 @@
+FROM php:8.2-cli
+
+# دابەزاندنی پێداویستییە سەرەکییەکان
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    libpq-dev \
+    libzip-dev \
+    zip \
+    && docker-php-ext-install pdo pdo_pgsql pdo_mysql zip \
+    && rm -rf /var/lib/apt/lists/*
+
+# هێنانی Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www
+
+# هێنانی هەموو فایلەکانی پرۆژەکە
+COPY . .
+
+# دابەزاندنی پاکێجەکان بەبێ پشکنینی توندی وەشانی سێرڤەر بۆ ئەوەی هەڵە نەگرێت
+RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
+
+# دانانی مۆڵەتی دەستکاری بۆ فۆڵدەرەکانی لاڕاڤێڵ
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
+
+EXPOSE 8080
+
+# کارپێکردنی سێرڤەر بەبێ کێشە لەسەر پۆرتی ڕێندەر
+CMD php artisan config:clear && php artisan serve --host 0.0.0.0 --port ${PORT:-8080}
