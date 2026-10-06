@@ -73,6 +73,84 @@ class TransactionController extends Controller
         return view('transactions.index', compact('transactions', 'transactionTypes'));
     }
 
+    public function officialPrintIndex(Request $request)
+    {
+        $tab = $request->get('tab', 'pending');
+        $selectedDate = $request->get('date', now()->format('Y-m-d'));
+        $search = $request->get('search');
+
+        // Filter ONLY the 3 allowed transaction categories:
+        // 1. دەرهێنان (Booklet creation / issuing: types 1, 2, 3, 4, 7)
+        // 2. پووچەڵکردنەوە (Cancellation letter: type 5)
+        // 3. پشکنین (Inspection letter: type 8)
+        $allowedTypeIds = [1, 2, 3, 4, 5, 7, 8];
+
+        $baseQuery = Transaction::with(['transactionType', 'trafficDirectorate', 'carMake', 'carColor', 'plateType'])
+            ->whereNull('cancelled_at')
+            ->where('is_paid', true)
+            ->whereIn('transaction_type_id', $allowedTypeIds);
+
+        if ($selectedDate) {
+            $baseQuery->whereDate('paid_at', $selectedDate);
+        }
+
+        if ($search) {
+            $baseQuery->where(function($q) use ($search) {
+                $q->where('barcode', 'like', "%{$search}%")
+                  ->orWhere('visitor_name', 'like', "%{$search}%")
+                  ->orWhere('plate_number', 'like', "%{$search}%")
+                  ->orWhere('chassis_number', 'like', "%{$search}%")
+                  ->orWhere('receipt_37a_number', 'like', "%{$search}%")
+                  ->orWhere('booklet_number', 'like', "%{$search}%");
+            });
+        }
+
+        $pendingCountTotal = (clone $baseQuery)->where(function($q) {
+            $q->where('is_printed', false)
+              ->where('is_submitted', false)
+              ->where('is_booklet_completed', false);
+        })->count();
+
+        $printedCountTotal = (clone $baseQuery)->where(function($q) {
+            $q->where('is_printed', true)
+              ->orWhere('is_submitted', true)
+              ->orWhere('is_booklet_completed', true);
+        })->count();
+
+        $totalPaidToday = Transaction::whereNull('cancelled_at')
+            ->where('is_paid', true)
+            ->whereDate('paid_at', now()->format('Y-m-d'))
+            ->count();
+
+        $query = clone $baseQuery;
+
+        if ($tab === 'printed') {
+            $query->where(function($q) {
+                $q->where('is_printed', true)
+                  ->orWhere('is_submitted', true)
+                  ->orWhere('is_booklet_completed', true);
+            });
+        } else {
+            $query->where(function($q) {
+                $q->where('is_printed', false)
+                  ->where('is_submitted', false)
+                  ->where('is_booklet_completed', false);
+            });
+        }
+
+        $transactions = $query->latest('paid_at')->paginate(15)->withQueryString();
+
+        return view('transactions.official_prints', compact(
+            'transactions',
+            'tab',
+            'selectedDate',
+            'search',
+            'pendingCountTotal',
+            'printedCountTotal',
+            'totalPaidToday'
+        ));
+    }
+
     public function create()
     {
         $directorates = TrafficDirectorate::all();
@@ -463,7 +541,20 @@ class TransactionController extends Controller
 
         $blocked = BlockedReceiptNumber::where('receipt_number', $receiptNum)->first();
         if ($blocked) {
-            return redirect()->back()->with('error', "ئەم ژمارە پسوولەی ۳۷/أ ({$receiptNum}) بلۆککراوە و پووچەڵکراوەتەوە! هۆکاری پووچەڵکردنەوە: {$blocked->cancellation_reason}");
+            $reason = $blocked->cancellation_reason ?? 'دیاری نەکراو';
+            return redirect()->back()->with('error', "ئەم ژمارە پسوولەی ۳۷/أ ({$receiptNum}) پووچەڵکراوەتەوە و بلۆککراوە لە سیستەمدا! ڕێگەپێدراو نییە بەکاربهێنرێتەوە. هۆکاری پووچەڵکردنەوە: {$reason}");
+        }
+
+        $existing = Transaction::with('transactionType')
+            ->where('receipt_37a_number', $receiptNum)
+            ->where('id', '!=', $transaction->id)
+            ->first();
+
+        if ($existing) {
+            $visitorName = $existing->visitor_name ?? 'دیاری نەکراو';
+            $plateNumber = $existing->plate_number ?? 'دیاری نەکراو';
+            $typeName = $existing->transactionType->name_kurdish ?? 'دیاری نەکراو';
+            return redirect()->back()->with('error', "ئەم ژمارەی پسوولەیە ({$receiptNum}) پێشتر دراوە بە مامەڵەی بەناوی ({$visitorName}) و ژمارەی تابلۆی ({$plateNumber}) و جۆری مامەڵەی ({$typeName})!");
         }
 
         $transaction->update([
@@ -496,16 +587,46 @@ class TransactionController extends Controller
             'booklet_number' => 'required|string|max:100',
         ]);
 
+        $bookletNum = trim($request->booklet_number);
+
+        $blocked = BlockedReceiptNumber::where('receipt_number', $bookletNum)->first();
+        if ($blocked) {
+            $reason = $blocked->cancellation_reason ?? 'دیاری نەکراو';
+            return redirect()->back()->with('error', "ئەم ژمارەی دەفتەرە ({$bookletNum}) پووچەڵکراوەتەوە و بلۆککراوە لە سیستەمدا! ڕێگەپێدراو نییە بەکاربهێنرێتەوە. هۆکاری پووچەڵکردنەوە: {$reason}");
+        }
+
+        $existing = Transaction::with('transactionType')
+            ->where('booklet_number', $bookletNum)
+            ->where('id', '!=', $transaction->id)
+            ->first();
+
+        if ($existing) {
+            $visitorName = $existing->visitor_name ?? 'دیاری نەکراو';
+            $plateNumber = $existing->plate_number ?? 'دیاری نەکراو';
+            $typeName = $existing->transactionType->name_kurdish ?? 'دیاری نەکراو';
+            return redirect()->back()->with('error', "ئەم ژمارەی دەفتەرە ({$bookletNum}) پێشتر دراوە بە مامەڵەی بەناوی ({$visitorName}) و ژمارەی تابلۆی ({$plateNumber}) و جۆری مامەڵەی ({$typeName})!");
+        }
+
         $transaction->update([
             'is_booklet_completed' => true,
-            'booklet_number' => $request->booklet_number,
+            'booklet_number' => $bookletNum,
             'booklet_by' => auth()->user()?->name ?? 'کارمەندی دەفتەر',
             'booklet_completed_at' => now(),
         ]);
 
-        AuditLogger::log('تەواوکردنی دەفتەر', Transaction::class, $transaction->id, "ژمارەی سەر دەفتەر: {$request->booklet_number}");
+        AuditLogger::log('تەواوکردنی دەفتەر', Transaction::class, $transaction->id, "ژمارەی سەر دەفتەر: {$bookletNum}");
 
         return redirect()->back()->with('success', 'دەفتەر بە سەرکەوتوویی تەواو کرا و تۆمارکرا.');
+    }
+
+    public function printPaymentReceipt(Transaction $transaction)
+    {
+        if (!$transaction->is_paid) {
+            return redirect()->back()->with('error', 'پسوولەی پارەدان شایەنی چاپکردن نییە چونکە مامەڵەکە پارەدانی بۆ ئەنجام نەدراوە.');
+        }
+
+        $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
+        return view('transactions.print_payment_receipt', compact('transaction'));
     }
 
     public function submitArchive(Transaction $transaction)
@@ -797,6 +918,41 @@ class TransactionController extends Controller
         );
 
         return response()->json($fees);
+    }
+
+    public function markPrinted(Transaction $transaction)
+    {
+        $transaction->update([
+            'is_printed' => true,
+            'is_submitted' => true,
+            'submitted_by' => auth()->user()?->name ?? 'کارمەندی چاپ',
+            'submitted_at' => now(),
+        ]);
+
+        AuditLogger::log('تەواوکردنی چاپی نوسراوی فەرمی', Transaction::class, $transaction->id, "مامەڵەی بارکۆد {$transaction->barcode} گوێزرایەوە بۆ بەشی چاپکراوەکان");
+
+        return redirect()->route('transactions.official_prints', ['tab' => 'printed'])->with('success', 'نووسراوەکە بە سەرکەوتوویی گوێزرایەوە بۆ بەشی چاپکراوەکان (Printed Archive).');
+    }
+
+    public function printCancellation(Transaction $transaction)
+    {
+        $transaction->update(['is_printed' => true]);
+        $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
+        return view('transactions.print_cancellation', compact('transaction'));
+    }
+
+    public function printRestriction(Transaction $transaction)
+    {
+        $transaction->update(['is_printed' => true]);
+        $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
+        return view('transactions.print_restriction', compact('transaction'));
+    }
+
+    public function printInspectionLetter(Transaction $transaction)
+    {
+        $transaction->update(['is_printed' => true]);
+        $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
+        return view('transactions.print_inspection_letter', compact('transaction'));
     }
 }
 

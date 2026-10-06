@@ -69,10 +69,33 @@
                 @endif
             @endif
 
+            <!-- Cashier Payment Receipt Button (Only Payment Receipt print allowed in Payment Section) -->
             @if(!$transaction->is_cancelled && $transaction->is_paid)
-                <a href="{{ route('transactions.print_booklet', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center">
-                    <i class="fa-solid fa-passport ml-1.5"></i> چاپی دەفتەر
+                <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center">
+                    <i class="fa-solid fa-receipt ml-1.5 text-emerald-200"></i> چاپی پسوولەی پارەدان (۳۷/أ)
                 </a>
+
+                @if(auth()->user()->isAdmin() || auth()->user()->role === 'booklet')
+                    @if($transaction->isCancellation())
+                        <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نوسراوی پووچەڵکردنەوە">
+                            <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نوسراوی پووچەڵکردنەوە
+                        </a>
+                    @elseif($transaction->isInspection())
+                        <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نوسراوی پشکنین">
+                            <i class="fa-solid fa-file-circle-check ml-1.5"></i> نوسراوی پشکنین
+                        </a>
+                    @else
+                        <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نوسراوی دانانی نیشانەی ڕەفتارنەکردن">
+                            <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> ڕەفتارنەکردن
+                        </a>
+                    @endif
+
+                    @if($transaction->requiresBooklet())
+                        <a href="{{ route('transactions.print_booklet', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center">
+                            <i class="fa-solid fa-passport ml-1.5"></i> چاپی دەفتەر
+                        </a>
+                    @endif
+                @endif
             @endif
 
             <!-- Admin Soft Delete -->

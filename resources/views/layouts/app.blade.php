@@ -80,6 +80,11 @@
                     <a href="{{ route('transactions.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('transactions.index') ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30' : 'text-slate-300 hover:bg-slate-700 hover:text-white' }}">
                         <i class="fa-solid fa-list-check ml-1.5"></i> مامەڵەکان
                     </a>
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'booklet'))
+                        <a href="{{ route('transactions.official_prints') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('transactions.official_prints') ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30' : 'text-amber-400 hover:bg-slate-700 hover:text-white' }}">
+                            <i class="fa-solid fa-print ml-1.5"></i> چاپی نوسراوەکان
+                        </a>
+                    @endif
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
                         <a href="{{ route('transactions.create') }}" class="px-3 py-2 rounded-lg text-sm font-medium bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 transition">
                             <i class="fa-solid fa-plus-circle ml-1.5"></i> مامەڵەی نوێ
@@ -206,11 +211,61 @@
             </div>
         @endif
 
-        @if (session('error'))
+        @if (session('error') || session('duplicate_error'))
+            <div x-data="{ openErrorModal: true }" 
+                 x-show="openErrorModal" 
+                 x-cloak 
+                 class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 transition-all">
+                
+                <div class="bg-slate-900 border-2 border-rose-500/70 rounded-3xl max-w-lg w-full p-6 shadow-2xl shadow-rose-950/80 space-y-5 text-center relative animate-in fade-in zoom-in duration-200">
+                    
+                    <!-- Close Button X at top left -->
+                    <button type="button" @click="openErrorModal = false" class="absolute left-4 top-4 text-slate-400 hover:text-white transition w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+
+                    <!-- Warning Icon -->
+                    <div class="w-20 h-20 rounded-full bg-rose-500/20 border-2 border-rose-500/50 flex items-center justify-center mx-auto text-rose-400 text-4xl shadow-inner">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+
+                    <!-- Modal Title -->
+                    <div>
+                        <h3 class="text-xl font-black text-rose-400">
+                            ئاگاداری / ئەم ژمارەیە کارپێنەکراوە!
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1">
+                            تکایە بە وردی زانیارییەکانی خوارەوە بخوێنەرەوە
+                        </p>
+                    </div>
+
+                    <!-- Error Message Content Box -->
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-4 text-right text-sm text-slate-200 leading-relaxed font-semibold shadow-inner">
+                        <div class="flex items-start">
+                            <i class="fa-solid fa-circle-info text-rose-400 text-base ml-2.5 mt-0.5 shrink-0"></i>
+                            <div>
+                                {{ session('duplicate_error') ?? session('error') }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Close Action Button (داخستن) -->
+                    <div class="pt-2">
+                        <button type="button" 
+                                @click="openErrorModal = false" 
+                                class="w-full py-3.5 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-rose-600/30 transition flex items-center justify-center space-x-2 space-x-reverse">
+                            <i class="fa-solid fa-xmark text-lg"></i>
+                            <span>داخستن (لابردنی پەیامەکە)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Also show standard banner for fallback -->
             <div class="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-4 py-3 rounded-xl shadow-lg flex items-center justify-between mb-4">
                 <div class="flex items-center">
                     <i class="fa-solid fa-circle-xmark text-xl ml-3"></i>
-                    <span>{{ session('error') }}</span>
+                    <span>{{ session('duplicate_error') ?? session('error') }}</span>
                 </div>
             </div>
         @endif

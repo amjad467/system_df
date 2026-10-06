@@ -34,6 +34,11 @@ class Transaction extends Model
         'is_returned' => 'boolean',
     ];
 
+    public function getIsCancelledAttribute(): bool
+    {
+        return !is_null($this->cancelled_at);
+    }
+
     public function parentTransaction(): BelongsTo
     {
         return $this->belongsTo(Transaction::class, 'parent_transaction_id');

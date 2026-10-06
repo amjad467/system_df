@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
 
     // Transactions
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    Route::get('/transactions/official-prints', [TransactionController::class, 'officialPrintIndex'])->name('transactions.official_prints');
     Route::get('/transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
     Route::get('/transactions/{transaction}/edit', [TransactionController::class, 'edit'])->name('transactions.edit');
@@ -72,11 +73,16 @@ Route::middleware('auth')->group(function () {
         return redirect($notification->link ?? route('dashboard'));
     })->name('notifications.read');
 
-    // Print views
+    // Print views & Official Reports Actions
+    Route::post('/transactions/{transaction}/mark-printed', [TransactionController::class, 'markPrinted'])->name('transactions.mark_printed');
     Route::get('/transactions/{transaction}/print-data-entry', [TransactionController::class, 'printDataEntry'])->name('transactions.print_data_entry');
     Route::get('/transactions/{transaction}/print-receipt', [TransactionController::class, 'printReceipt'])->name('transactions.print_receipt');
+    Route::get('/transactions/{transaction}/print-payment-receipt', [TransactionController::class, 'printPaymentReceipt'])->name('transactions.print_payment_receipt');
     Route::get('/transactions/{transaction}/print-booklet', [TransactionController::class, 'printBooklet'])->name('transactions.print_booklet');
     Route::get('/transactions/{transaction}/print-pledge', [TransactionController::class, 'printPledge'])->name('transactions.print_pledge');
+    Route::get('/transactions/{transaction}/print-cancellation', [TransactionController::class, 'printCancellation'])->name('transactions.print_cancellation');
+    Route::get('/transactions/{transaction}/print-restriction', [TransactionController::class, 'printRestriction'])->name('transactions.print_restriction');
+    Route::get('/transactions/{transaction}/print-inspection-letter', [TransactionController::class, 'printInspectionLetter'])->name('transactions.print_inspection_letter');
 
     // Inline Lookup Additions & Updates
     Route::post('/lookup/directorate', [LookupController::class, 'storeDirectorate'])->name('lookup.directorate');

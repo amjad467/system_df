@@ -12,10 +12,10 @@ class DashboardController extends Controller
     {
         $totalTransactions = Transaction::count();
         $totalIncome = Transaction::where('is_paid', true)->sum('total_pay');
-        $pendingInspection = Transaction::where('is_inspected', false)->where('is_cancelled', false)->count();
-        $pendingAudit = Transaction::where('is_inspected', true)->where('is_audited', false)->where('is_cancelled', false)->count();
-        $pendingPayment = Transaction::where('is_audited', true)->where('is_paid', false)->where('is_cancelled', false)->count();
-        $pendingBooklet = Transaction::where('is_paid', true)->where('is_booklet_completed', false)->where('is_cancelled', false)->count();
+        $pendingInspection = Transaction::where('is_inspected', false)->whereNull('cancelled_at')->count();
+        $pendingAudit = Transaction::where('is_inspected', true)->where('is_audited', false)->whereNull('cancelled_at')->count();
+        $pendingPayment = Transaction::where('is_audited', true)->where('is_paid', false)->whereNull('cancelled_at')->count();
+        $pendingBooklet = Transaction::where('is_paid', true)->where('is_booklet_completed', false)->whereNull('cancelled_at')->count();
         $completedBooklets = Transaction::where('is_booklet_completed', true)->count();
 
         $returnedTransactions = Transaction::where('is_returned', true)->latest()->get();
