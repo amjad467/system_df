@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL; // <-- ١. دڵنیابەرەوە ئەم دێڕە لە سەرەوە زیاد کراوە
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // <-- ٢. لێرە لە ناو کەوانەی boot ئەم دوو دێڕە دابنێ:
+        if (app()->environment('production')) {
+            URL::forceScheme('https');
+        }
     }
 }
