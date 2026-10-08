@@ -241,33 +241,33 @@
         <div id="printableArea" class="printable-content text-black font-bold">
 
             <!-- 1. Top-Right Barcode (بارکۆد لە سەرەوەی لای ڕاستی پەڕەکە) -->
-            <div style="position: absolute; top: 0.8cm; right: 0.8cm; width: 5.2cm; text-align: center;">
+            <div style="position: absolute; top: 0.8cm; right: 0.6cm; width: 4.8cm; text-align: center;">
                 <svg id="paymentBarcodeSvg" style="max-height: 1.1cm; margin: 0 auto;"></svg>
             </div>
 
             <!-- 2. Top-Left Receipt Number (ژمارەی پسوولەکە دووبارە ژمارەکەی خۆی لە ئاستی ژمارە) -->
-            <div style="position: absolute; top: 1.6cm; left: 0.8cm; width: 3.5cm; text-align: right;">
+            <div style="position: absolute; top: 1.6cm; left: 0.6cm; width: 3.5cm; text-align: right;">
                 <span style="font-size: 16px; font-weight: 900; font-family: monospace; color: #000000; letter-spacing: 0.5px;">
                     {{ toKurdishDigits($transaction->receipt_37a_number ?? $transaction->barcode) }}
                 </span>
             </div>
 
             <!-- 3. Top-Left Date (لە ڕێکەوتەکە بەروار بنوسێت بە ڕەنووسی کوردی) -->
-            <div style="position: absolute; top: 2.5cm; left: 0.8cm; width: 3.8cm; text-align: right;">
+            <div style="position: absolute; top: 2.5cm; left: 0.6cm; width: 3.8cm; text-align: right;">
                 <span style="font-size: 13px; font-weight: 800; font-family: monospace; color: #000000;">
                     {{ toKurdishDigits($transaction->paid_at ? $transaction->paid_at->format('Y / m / d') : date('Y / m / d')) }}
                 </span>
             </div>
 
             <!-- 4. Citizen Full Name (لە ئاستی ناوی سیانی ناوی هاوڵاتیەکە بنوسێت) -->
-            <div style="position: absolute; top: 4.4cm; right: 4.2cm; left: 0.8cm; text-align: right;">
+            <div style="position: absolute; top: 4.4cm; right: 3.9cm; left: 0.6cm; text-align: right;">
                 <span style="font-size: 15px; font-weight: 900; color: #000000;">
                     {{ $transaction->visitor_name }}
                 </span>
             </div>
 
             <!-- 5A. Narrow Right Column (بڕی پارە) - ONLY numerical amounts written inside the narrow box -->
-            <div style="position: absolute; top: 6.6cm; right: 0.8cm; width: 4.0cm; text-align: center; line-height: 2.1;">
+            <div style="position: absolute; top: 6.6cm; right: 0.5cm; width: 3.8cm; text-align: center; line-height: 2.1;">
                 
                 <!-- Fee amount -->
                 <div style="font-family: monospace; font-size: 15px; font-weight: 900; color: #000000;">
@@ -294,7 +294,7 @@
             </div>
 
             <!-- 5B. Labels (ڕەسم، سزا، پول، فۆڕم) - Positioned on the left side of the narrow column boundary -->
-            <div style="position: absolute; top: 6.6cm; right: 4.9cm; width: 1.8cm; text-align: right; line-height: 2.1; font-size: 13.5px; font-weight: 900; color: #000000;">
+            <div style="position: absolute; top: 6.6cm; right: 4.4cm; width: 1.7cm; text-align: right; line-height: 2.1; font-size: 13.5px; font-weight: 900; color: #000000;">
                 <div>ڕەسم:</div>
                 @if($hasFine)
                     <div>سزا:</div>
@@ -304,7 +304,7 @@
             </div>
 
             <!-- 6. Left Wide Column (وورده‌كاری) - Transaction details, years, car info -->
-            <div style="position: absolute; top: 6.6cm; right: 6.8cm; left: 0.8cm; text-align: right; line-height: 2.0; font-size: 13.5px;">
+            <div style="position: absolute; top: 6.6cm; right: 6.3cm; left: 0.6cm; text-align: right; line-height: 2.0; font-size: 13.5px;">
                 
                 <!-- Transaction type & years -->
                 <div style="font-weight: 900; color: #000000;">
@@ -335,7 +335,7 @@
             </div>
 
             <!-- 7. Total Amount Line (تەنها: بڕی پارەکە بە ڕەنووسی کوردی و وشەی کوردی) -->
-            <div style="position: absolute; top: 17.5cm; right: 2.2cm; left: 0.8cm; text-align: right;">
+            <div style="position: absolute; top: 17.9cm; right: 2.0cm; left: 0.6cm; text-align: right;">
                 <span style="font-size: 14px; font-weight: 900; color: #000000;">
                     <strong style="font-family: monospace; font-size: 15px; margin-left: 8px;">{{ toKurdishDigits(number_format($transaction->total_pay)) }}</strong>
                     ({{ numberToKurdishWords($transaction->total_pay) }} دیناری عێراقی)
@@ -343,10 +343,10 @@
             </div>
 
             <!-- 8. Bottom Signatures & Names with Dates (ناوی خەملێنەر و وردبین و پارەوەربگر لەگەڵ بەروار) -->
-            <div style="position: absolute; top: 19.8cm; right: 0.8cm; left: 0.8cm; display: flex; justify-content: space-between; text-align: center; font-size: 12px; font-weight: 900; color: #000000;">
+            <div style="position: absolute; top: 20.3cm; right: 0.6cm; left: 0.6cm; display: flex; justify-content: space-between; text-align: center; font-size: 12px; font-weight: 900; color: #000000;">
                 
                 <!-- 8A. Cashier / Treasurer (خەزنەدار / پارەوەربگر) -->
-                <div style="width: 4.8cm;">
+                <div style="width: 4.6cm;">
                     <div style="font-size: 13px; font-weight: 900;">{{ $transaction->paid_by ?? auth()->user()->name }}</div>
                     <div style="font-size: 10px; font-family: monospace; font-weight: 800; color: #333333; margin-top: 2px;">
                         {{ toKurdishDigits($transaction->paid_at ? $transaction->paid_at->format('Y/m/d') : date('Y/m/d')) }}
@@ -354,7 +354,7 @@
                 </div>
 
                 <!-- 8B. Auditor (ووردبینی / وردبین) -->
-                <div style="width: 4.8cm;">
+                <div style="width: 4.6cm;">
                     <div style="font-size: 13px; font-weight: 900;">{{ $transaction->audited_by ?? 'کارمەندی وردبین' }}</div>
                     <div style="font-size: 10px; font-family: monospace; font-weight: 800; color: #333333; margin-top: 2px;">
                         {{ $transaction->audited_at ? toKurdishDigits($transaction->audited_at->format('Y/m/d')) : toKurdishDigits(date('Y/m/d')) }}
@@ -362,7 +362,7 @@
                 </div>
 
                 <!-- 8C. Estimator / Responsible (لێپرسراو / خەملێنەر) -->
-                <div style="width: 4.8cm;">
+                <div style="width: 4.6cm;">
                     <div style="font-size: 13px; font-weight: 900;">{{ $transaction->inspected_by ?? 'ئەندازیاری کەشف' }}</div>
                     <div style="font-size: 10px; font-family: monospace; font-weight: 800; color: #333333; margin-top: 2px;">
                         {{ $transaction->inspected_at ? toKurdishDigits($transaction->inspected_at->format('Y/m/d')) : toKurdishDigits(date('Y/m/d')) }}

@@ -10,11 +10,18 @@
             </h2>
             <p class="text-xs text-slate-400">گەڕان، فلتەرکردن و بەدواداچوونی قۆناغەکانی مامەڵە.</p>
         </div>
-        @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
-            <a href="{{ route('transactions.create') }}" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center">
-                <i class="fa-solid fa-plus ml-2"></i> مامەڵەی نوێ
-            </a>
-        @endif
+        <div class="flex items-center gap-2">
+            @if(auth()->check() && auth()->user()->isAdmin())
+                <a href="{{ route('transactions.trash') }}" class="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold text-xs rounded-xl shadow transition flex items-center">
+                    <i class="fa-solid fa-trash-can ml-1.5 text-rose-400"></i> ئەرشیفی سڕاوەکان (تەنەکەخۆڵ)
+                </a>
+            @endif
+            @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
+                <a href="{{ route('transactions.create') }}" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center">
+                    <i class="fa-solid fa-plus ml-2"></i> مامەڵەی نوێ
+                </a>
+            @endif
+        </div>
     </div>
 
     <!-- Filter & Search Bar -->

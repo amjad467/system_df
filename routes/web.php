@@ -45,6 +45,7 @@ Route::middleware('auth')->group(function () {
     // Transactions
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/official-prints', [TransactionController::class, 'officialPrintIndex'])->name('transactions.official_prints');
+    Route::get('/transactions/trash/bin', [TransactionController::class, 'trashIndex'])->name('transactions.trash');
     Route::get('/transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
     Route::get('/transactions/{transaction}/edit', [TransactionController::class, 'edit'])->name('transactions.edit');
@@ -66,6 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/transactions/{transaction}/create-pledge', [TransactionController::class, 'createRelatedPledge'])->name('transactions.create_pledge');
     Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.destroy');
     Route::post('/transactions/{id}/restore', [TransactionController::class, 'restore'])->name('transactions.restore');
+    Route::delete('/transactions/{id}/force-delete', [TransactionController::class, 'forceDelete'])->name('transactions.force_delete');
 
     // Notifications
     Route::get('/notifications/read/{notification}', function (\App\Models\Notification $notification) {

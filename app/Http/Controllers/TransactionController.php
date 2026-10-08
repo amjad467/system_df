@@ -880,17 +880,43 @@ class TransactionController extends Controller
             ->with('success', "مامەڵەی بەڵێننامەی بەستراوە بە سەرکەوتوویی دروستکرا بە بارکۆدی نوێ: {$newTransaction->barcode}");
     }
 
+    public function trashIndex(Request $request)
+    {
+        if (!auth()->user()->isAdmin()) {
+            return redirect()->route('dashboard')->with('error', 'تەنها ئەدمین دەسەڵاتی بینینی ئەرشیفی سڕاوەکانی هەیە.');
+        }
+
+        $query = Transaction::onlyTrashed()->with(['transactionType', 'plateType', 'carMake', 'carColor']);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('barcode', 'like', "%{$search}%")
+                  ->orWhere('visitor_name', 'like', "%{$search}%")
+                  ->orWhere('plate_number', 'like', "%{$search}%")
+                  ->orWhere('chassis_number', 'like', "%{$search}%");
+            });
+        }
+
+        $trashedCount = Transaction::onlyTrashed()->count();
+        $transactions = $query->latest('deleted_at')->paginate(15)->withQueryString();
+
+        return view('transactions.trash', compact('transactions', 'trashedCount'));
+    }
+
     public function destroy(Transaction $transaction)
     {
         if (!auth()->user()->isAdmin()) {
             return redirect()->back()->with('error', 'دەسەڵاتی سڕینەوەی کاتیت نییە!');
         }
 
+        $barcode = $transaction->barcode;
+        $name = $transaction->visitor_name;
         $transaction->delete(); // Soft Delete
 
-        AuditLogger::log('سڕینەوەی کاتی (Soft Delete)', Transaction::class, $transaction->id, "مامەڵەی بارکۆد {$transaction->barcode} خرایە ئەرشیفی سڕدراوەکان");
+        AuditLogger::log('سڕینەوەی کاتی (Soft Delete)', Transaction::class, $transaction->id, "مامەڵەی بارکۆد {$barcode} خرایە ئەرشیفی سڕدراوەکان");
 
-        return redirect()->route('transactions.index')->with('success', 'مامەڵەکە بە سەرکەوتوویی خرایە ئەرشیفی سڕدراوەکانەوە (Soft Delete).');
+        return redirect()->route('transactions.index')->with('success', "مامەڵەی بارکۆد ({$barcode}) بە سەرکەوتوویی خرایە ئەرشیفی سڕدراوەکانەوە (تەنەکەخۆڵ).");
     }
 
     public function restore($id)
@@ -899,12 +925,29 @@ class TransactionController extends Controller
             return redirect()->back()->with('error', 'دەسەڵاتی گەڕاندنەوەی مامەڵەی سڕدراوەت نییە!');
         }
 
-        $transaction = Transaction::withTrashed()->findOrFail($id);
+        $transaction = Transaction::onlyTrashed()->findOrFail($id);
         $transaction->restore();
 
-        AuditLogger::log('گەڕاندنەوەی مامەڵەی سڕدراوە', Transaction::class, $transaction->id, "بارکۆد: {$transaction->barcode}");
+        AuditLogger::log('گەڕاندنەوەی مامەڵەی سڕدراوە لە تەنەکەخۆڵ', Transaction::class, $transaction->id, "بارکۆد: {$transaction->barcode} - ناوی هاووڵاتی: {$transaction->visitor_name}");
 
-        return redirect()->route('transactions.show', $transaction->id)->with('success', 'مامەڵەکە بە سەرکەوتوویی گەڕێنرایەوە.');
+        return redirect()->route('transactions.trash')->with('success', "مامەڵەی بارکۆد ({$transaction->barcode}) بە سەرکەوتوویی گەڕێنرایەوە بۆ ناو سیستم.");
+    }
+
+    public function forceDelete($id)
+    {
+        if (!auth()->user()->isAdmin()) {
+            return redirect()->back()->with('error', 'دەسەڵاتی سڕینەوەی یەکجاریت نییە!');
+        }
+
+        $transaction = Transaction::onlyTrashed()->findOrFail($id);
+        $barcode = $transaction->barcode;
+        $name = $transaction->visitor_name;
+
+        AuditLogger::log('سڕینەوەی بنەڕەتی لە داتابەیس (Force Delete)', Transaction::class, $transaction->id, "مامەڵەی بارکۆد: {$barcode} - هاووڵاتی: {$name} بە یەکجاری سڕایەوە");
+
+        $transaction->forceDelete();
+
+        return redirect()->route('transactions.trash')->with('success', "مامەڵەی بارکۆد ({$barcode}) بە یەکجاری و بنەڕەتی لە داتابەیس سڕایەوە.");
     }
 
     public function calculateApi(Request $request)

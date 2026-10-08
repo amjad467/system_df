@@ -95,11 +95,14 @@
                     @endif
 
                     @if(auth()->check() && auth()->user()->isAdmin())
-                        <a href="{{ route('users.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium border border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/10 transition">
+                        <a href="{{ route('users.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium border border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/10 transition {{ request()->routeIs('users.index') ? 'bg-indigo-600 text-white' : '' }}">
                             <i class="fa-solid fa-users-gear ml-1.5"></i> فەرمانبەران
                         </a>
-                        <a href="{{ route('settings.pricing') }}" class="px-3 py-2 rounded-lg text-sm font-medium border border-amber-500/40 text-amber-300 hover:bg-amber-500/10 transition">
+                        <a href="{{ route('settings.pricing') }}" class="px-3 py-2 rounded-lg text-sm font-medium border border-amber-500/40 text-amber-300 hover:bg-amber-500/10 transition {{ request()->routeIs('settings.pricing') ? 'bg-amber-600 text-white' : '' }}">
                             <i class="fa-solid fa-sliders ml-1.5"></i> نرخەکان
+                        </a>
+                        <a href="{{ route('transactions.trash') }}" class="px-3 py-2 rounded-lg text-sm font-medium border border-rose-500/40 text-rose-300 hover:bg-rose-500/10 transition {{ request()->routeIs('transactions.trash') ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : '' }}">
+                            <i class="fa-solid fa-trash-can ml-1.5"></i> سڕاوەکان
                         </a>
                     @endif
 
@@ -198,6 +201,9 @@
                         </a>
                         <a href="{{ route('settings.pricing') }}" class="p-2.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-300 flex items-center justify-center">
                             <i class="fa-solid fa-sliders ml-1.5"></i> نرخەکان
+                        </a>
+                        <a href="{{ route('transactions.trash') }}" class="p-2.5 rounded-xl bg-slate-900 border border-rose-500/40 text-rose-300 flex items-center justify-center">
+                            <i class="fa-solid fa-trash-can ml-1.5"></i> سڕاوەکان
                         </a>
                     @endif
                     <a href="{{ route('logs.index') }}" class="p-2.5 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300">
