@@ -81,9 +81,22 @@
                         <tr class="hover:bg-slate-700/40 transition">
                             <td class="p-3.5 font-mono text-xs text-sky-400 font-bold">{{ $tx->barcode }}</td>
                             <td class="p-3.5 font-medium text-slate-100">
-                                {{ $tx->visitor_name }}
+                                <div class="font-bold text-white">{{ $tx->visitor_name }}</div>
                                 @if($tx->visitor_name_eng)
-                                    <span class="block text-[11px] text-slate-500 font-mono">{{ $tx->visitor_name_eng }}</span>
+                                    <span class="block text-[11px] text-sky-400 font-mono" dir="ltr">{{ $tx->visitor_name_eng }}</span>
+                                @endif
+                                @if($tx->phone_number)
+                                    <span class="block text-[11px] text-emerald-400 font-mono mt-0.5">
+                                        <i class="fa-solid fa-phone text-[9px] ml-1"></i>{{ $tx->phone_number }}
+                                    </span>
+                                @endif
+                                @if($tx->second_driver_name)
+                                    <div class="mt-1 pt-1 border-t border-slate-700/60 text-[11px] text-slate-400">
+                                        <span class="text-slate-500">شۆفێری دووەم:</span> {{ $tx->second_driver_name }}
+                                        @if($tx->second_driver_name_eng)
+                                            <span class="font-mono text-slate-400 text-[10px]" dir="ltr">({{ $tx->second_driver_name_eng }})</span>
+                                        @endif
+                                    </div>
                                 @endif
                             </td>
                             <td class="p-3.5 text-xs text-slate-300 font-semibold">{{ $tx->transactionType->name_kurdish ?? '-' }}</td>

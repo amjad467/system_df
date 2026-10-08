@@ -65,7 +65,7 @@
                 <i class="fa-solid fa-user-gear ml-2"></i> ٢. زانیاری شۆفێر و هاووڵاتی
             </h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">ناوى شۆفێرى يه‌كه‌م بە کوردی / عەرەبی *</label>
                     <input type="text" name="visitor_name" value="{{ old('visitor_name', $transaction->visitor_name) }}" required 
@@ -76,6 +76,14 @@
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">ناوى شۆفێر يه‌كه‌م بە ئینگلیزی</label>
                     <input type="text" name="visitor_name_eng" value="{{ old('visitor_name_eng', $transaction->visitor_name_eng) }}" dir="ltr" 
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-emerald-400 mb-1.5 flex items-center">
+                        <i class="fa-solid fa-phone ml-1 text-emerald-400"></i> ژمارەی مۆبایلی هاووڵاتی
+                    </label>
+                    <input type="text" name="phone_number" value="{{ old('phone_number', $transaction->phone_number) }}" placeholder="مثلاً: 0770 123 4567" dir="ltr" 
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-emerald-500 focus:outline-none">
                 </div>
 
                 <div x-show="isFullBookletForm()">

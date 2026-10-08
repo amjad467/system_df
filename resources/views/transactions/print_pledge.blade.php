@@ -153,9 +153,9 @@
                     </tr>
                     <tr>
                         <td class="black-cell-border gray-label-bg p-2">شۆفێری دووەم:</td>
-                        <td class="black-cell-border p-2 font-bold">{{ $transaction->second_driver_name ?? 'دیاری نەکراوە' }}</td>
-                        <td class="black-cell-border gray-label-bg p-2">کارمەندی داخڵکار:</td>
-                        <td class="black-cell-border p-2 font-bold">{{ $transaction->user_input }}</td>
+                        <td class="black-cell-border p-2 font-bold">{{ $transaction->second_driver_name ?? 'دیاری نەکراوە' }} @if($transaction->second_driver_name_eng) ({{ $transaction->second_driver_name_eng }}) @endif</td>
+                        <td class="black-cell-border gray-label-bg p-2">ژمارەی مۆبایل:</td>
+                        <td class="black-cell-border p-2 font-mono font-bold">{{ $transaction->phone_number ?? '---' }}</td>
                     </tr>
                 </tbody>
             </table>

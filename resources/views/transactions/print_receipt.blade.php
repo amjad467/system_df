@@ -265,8 +265,30 @@
                             </tr>
                             <tr>
                                 <td class="black-cell-border gray-label-bg p-2.5 text-center font-extrabold">ناوی هاووڵاتی</td>
-                                <td class="black-cell-border p-2.5 text-center font-black text-lg">{{ $transaction->visitor_name }}</td>
+                                <td class="black-cell-border p-2.5 text-center font-black text-lg">
+                                    {{ $transaction->visitor_name }}
+                                    @if($transaction->visitor_name_eng)
+                                        <span class="block text-sm font-bold text-gray-700">({{ $transaction->visitor_name_eng }})</span>
+                                    @endif
+                                </td>
                             </tr>
+                            @if($transaction->phone_number)
+                            <tr>
+                                <td class="black-cell-border gray-label-bg p-2.5 text-center font-extrabold">ژمارەی مۆبایل</td>
+                                <td class="black-cell-border p-2.5 text-center font-mono font-bold text-base">{{ $transaction->phone_number }}</td>
+                            </tr>
+                            @endif
+                            @if($transaction->second_driver_name)
+                            <tr>
+                                <td class="black-cell-border gray-label-bg p-2.5 text-center font-extrabold">شۆفێری دووەم</td>
+                                <td class="black-cell-border p-2.5 text-center font-bold text-base">
+                                    {{ $transaction->second_driver_name }}
+                                    @if($transaction->second_driver_name_eng)
+                                        <span class="block text-sm font-bold text-gray-700">({{ $transaction->second_driver_name_eng }})</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @endif
                             <tr>
                                 <td class="black-cell-border gray-label-bg p-2.5 text-center font-extrabold">ژمارەی ئۆتۆمبێل</td>
                                 <td class="black-cell-border p-2.5 text-center">

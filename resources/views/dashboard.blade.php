@@ -8,13 +8,16 @@
             <h2 class="text-2xl font-extrabold text-white">بەخێربێن بۆ بەشی کارگێڕی دەرهێنانی دەفتەر</h2>
             <p class="text-sm text-slate-400">چاودێریکردن و ئیدارەدانی گشت قۆناغەکانی مامەڵە، کەشف، وردبینی، ژمێریاری و لۆگی جولەکان.</p>
         </div>
-        @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
-            <div class="flex items-center space-x-3 space-x-reverse">
+        <div class="flex items-center space-x-3 space-x-reverse">
+            <a href="{{ route('transactions.expired_booklets') }}" class="px-4 py-2.5 bg-rose-600/90 hover:bg-rose-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-rose-600/25 flex items-center transition">
+                <i class="fa-solid fa-calendar-xmark ml-2"></i> دەفتەرە بەسەرچووەکان
+            </a>
+            @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
                 <a href="{{ route('transactions.create') }}" class="px-5 py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-sky-500/25 flex items-center transition">
                     <i class="fa-solid fa-plus ml-2"></i> دروستکردنی مامەڵەی نوێ
                 </a>
-            </div>
-        @endif
+            @endif
+        </div>
     </div>
 
 

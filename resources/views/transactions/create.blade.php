@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div x-data="transactionForm()" class="max-w-5xl mx-auto space-y-6">
+<div x-data="transactionForm({{ \Illuminate\Support\Js::from($fromTransaction) }}, {{ $targetTypeId ? (int)$targetTypeId : 'null' }})" class="max-w-5xl mx-auto space-y-6">
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
@@ -13,6 +13,102 @@
         <a href="{{ route('transactions.index') }}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold rounded-xl border border-slate-700 transition">
             <i class="fa-solid fa-arrow-right ml-1"></i> گەڕانەوە
         </a>
+    </div>
+
+    <!-- Smart Previous Transaction Lookup Card -->
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950/70 border border-indigo-500/40 rounded-2xl p-5 shadow-xl space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-700/80 pb-3">
+            <div>
+                <h3 class="text-sm font-bold text-indigo-300 flex items-center">
+                    <i class="fa-solid fa-clock-rotate-left ml-2 text-indigo-400"></i> بەکارهێنانەوەی زانیارییەکانی پێشوو (بۆ تازەکردنەوە، پووچەڵکردنەوە، ناوگۆڕین، دەفتەرگۆڕین)
+                </h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">
+                    ئەگەر هاووڵاتی دەفتەری لەم سیستەمە دەرهێناوە، بە تابلۆ، شاسی، ناو، یان بارکۆد بگەڕێ و فۆڕمەکە خۆکار پڕبکەرەوە. (ئەگەر لەدەرەوەی سیستەم بووە، دەتوانیت بە ئاسانی هەموو زانیارییەکان بە دەستی داخڵ بکەیت).
+                </p>
+            </div>
+            
+            <div x-show="parentTransactionId" class="flex items-center gap-2">
+                <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 text-[11px] font-bold rounded-lg border border-emerald-500/40 flex items-center gap-1">
+                    <i class="fa-solid fa-link text-[10px]"></i> بەستراوەتەوە بە مامەڵەی پێشوو
+                </span>
+                <button type="button" @click="clearPrevious()" class="px-2.5 py-1 bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 text-[11px] font-bold rounded-lg border border-rose-500/40 transition">
+                    لابردن
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Bar with Live Dropdown -->
+        <div class="relative">
+            <div class="relative">
+                <input type="text" 
+                       x-model="searchQuery" 
+                       @input.debounce.300ms="searchPrevious()" 
+                       placeholder="بۆ هێنانی زانیاری پێشوو بگەڕێ (ژمارەی تابلۆ، شاسی، ناوی هاووڵاتی، ژمارەی دەفتەر، بارکۆد)..." 
+                       class="w-full bg-slate-900 border border-indigo-500/50 rounded-xl pr-10 pl-10 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-400 font-mono">
+                <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-3 text-slate-400 text-xs"></i>
+                <span x-show="isSearching" class="absolute left-3 top-2.5 text-xs text-indigo-400">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                </span>
+            </div>
+
+            <!-- Search Results Dropdown -->
+            <div x-show="showResults && searchResults.length > 0" 
+                 @click.away="showResults = false" 
+                 x-cloak
+                 class="absolute z-50 left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl max-h-80 overflow-y-auto divide-y divide-slate-800">
+                <template x-for="item in searchResults" :key="item.id">
+                    <div class="p-3 hover:bg-slate-800 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-slate-100 text-xs" x-text="item.visitor_name"></span>
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-400 border border-emerald-500/40" x-text="item.plate_number"></span>
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400" x-text="item.transaction_type ? item.transaction_type.name_kurdish : ''"></span>
+                            </div>
+                            <div class="text-[11px] text-slate-400 flex flex-wrap items-center gap-3 font-mono">
+                                <span x-show="item.booklet_number" x-text="'دەفتەر: ' + item.booklet_number" class="text-amber-300"></span>
+                                <span x-show="item.chassis_number" x-text="'شاسی: ' + item.chassis_number"></span>
+                                <span x-show="item.car_make" x-text="'مارکە: ' + (item.car_make.name_kurdish || '')"></span>
+                                <span x-show="item.end_date" x-text="'بەسەرچوون: ' + (item.end_date ? item.end_date.split('T')[0] : '')" class="text-rose-400"></span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <!-- Quick action to apply for renewal -->
+                            <button type="button" @click="populateFromPrevious(item, 2)" class="px-2.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-bold rounded-lg transition shadow">
+                                <i class="fa-solid fa-rotate-right ml-1"></i> تازەکردنەوە
+                            </button>
+                            <!-- Quick action to apply for cancellation -->
+                            <button type="button" @click="populateFromPrevious(item, 5)" class="px-2.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-bold rounded-lg transition shadow">
+                                <i class="fa-solid fa-ban ml-1"></i> پووچەڵکردنەوە
+                            </button>
+                            <!-- Name change -->
+                            <button type="button" @click="populateFromPrevious(item, 3)" class="px-2 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold rounded-lg transition shadow">
+                                ناوگۆڕین
+                            </button>
+                            <!-- Populate keeping current type -->
+                            <button type="button" @click="populateFromPrevious(item)" class="px-2 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-[11px] font-bold rounded-lg transition">
+                                پڕکردنەوە
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Empty Results Notice -->
+            <div x-show="showResults && searchResults.length === 0 && !isSearching" 
+                 x-cloak
+                 class="absolute z-50 left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-xl p-4 text-center text-xs text-slate-400 shadow-xl">
+                هیچ مامەڵەیەکی پێشوو نەدۆزرایەوە بەم زانیارییە. دەتوانیت لە خوارەوە بە دەستی زانیارییەکان داخڵ بکەیت.
+            </div>
+        </div>
+
+        <!-- Banner when previous transaction is selected -->
+        <div x-show="parentTransactionId" x-cloak class="p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl flex items-center justify-between text-xs text-indigo-200">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+                <span>زانیارییەکان لە مامەڵەی پێشوو وەرگیران: <strong class="text-white" x-text="parentTransactionSummary"></strong></span>
+            </div>
+            <span class="text-[10px] text-slate-400">دەتوانیت هەر زانیارییەک پێویست بێت لە خوارەوە دەستکاری بکەیت.</span>
+        </div>
     </div>
 
     <!-- Transaction Type Quick Selector Tabs -->
@@ -45,6 +141,7 @@
     <!-- Main Form -->
     <form action="{{ route('transactions.store') }}" method="POST" class="space-y-6">
         @csrf
+        <input type="hidden" name="parent_transaction_id" :value="parentTransactionId">
 
         <!-- 1. Transaction & Directorate Details -->
         <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-4">
@@ -106,28 +203,36 @@
                 <i class="fa-solid fa-user-gear ml-2"></i> ٢. زانیاری شۆفێر و هاووڵاتی
             </h3>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">ناوى شۆفێرى يه‌كه‌م بە کوردی / عەرەبی *</label>
-                    <input type="text" name="visitor_name" required placeholder="ناوی سێیانی شۆفێری یەکەم" 
+                    <input type="text" name="visitor_name" x-model="visitorName" required placeholder="ناوی سێیانی شۆفێری یەکەم" 
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
                 </div>
 
                 <div x-show="isFullBookletForm()">
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">ناوى شۆفێر يه‌كه‌م بە ئینگلیزی</label>
-                    <input type="text" name="visitor_name_eng" placeholder="Full name in English" dir="ltr" 
+                    <input type="text" name="visitor_name_eng" x-model="visitorNameEng" placeholder="Full name in English" dir="ltr" 
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-emerald-400 mb-1.5 flex items-center">
+                        <i class="fa-solid fa-phone ml-1 text-emerald-400"></i> ژمارەی مۆبایلی هاووڵاتی
+                    </label>
+                    <input type="text" name="phone_number" x-model="phoneNumber" placeholder="مثلاً: 0770 123 4567" dir="ltr" 
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-emerald-500 focus:outline-none">
                 </div>
 
                 <div x-show="isFullBookletForm()">
                     <label class="block text-xs font-semibold text-slate-400 mb-1.5">ناوى شۆفێری دووه‌م بە کوردی (ئارەزوومەندانه)</label>
-                    <input type="text" name="second_driver_name" placeholder="ناوی سێیانی شۆفێری دووەم" 
+                    <input type="text" name="second_driver_name" x-model="secondDriverName" placeholder="ناوی سێیانی شۆفێری دووەم" 
                            class="w-full bg-slate-900/60 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
                 </div>
 
                 <div x-show="isFullBookletForm()">
                     <label class="block text-xs font-semibold text-slate-400 mb-1.5">ناوى شۆفێر دووەم بە ئینگلیزی (ئارەزوومەندانە)</label>
-                    <input type="text" name="second_driver_name_eng" placeholder="Second Driver in English" dir="ltr" 
+                    <input type="text" name="second_driver_name_eng" x-model="secondDriverNameEng" placeholder="Second Driver in English" dir="ltr" 
                            class="w-full bg-slate-900/60 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
                 </div>
             </div>
@@ -161,7 +266,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">ژمارەی تابلۆی ئۆتۆمبێل *</label>
-                    <input type="text" name="plate_number" required placeholder="مثلاً: 22 A 12345" dir="ltr"
+                    <input type="text" name="plate_number" x-model="plateNumber" required placeholder="مثلاً: 22 A 12345" dir="ltr"
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-sky-500 focus:outline-none">
                 </div>
 
@@ -206,7 +311,7 @@
                 <!-- Model Year -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">مۆدێلی دروستکردن (٤ ژمارە دەبێت) *</label>
-                    <input type="text" name="model_year" required maxlength="4" minlength="4" pattern="\d{4}" placeholder="مثلاً: 2024" dir="ltr"
+                    <input type="text" name="model_year" x-model="modelYear" required maxlength="4" minlength="4" pattern="\d{4}" placeholder="مثلاً: 2024" dir="ltr"
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-sky-500 focus:outline-none">
                 </div>
 
@@ -236,21 +341,21 @@
                 <!-- Chassis Number (VIN) -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">ژمارەی شاسی (VIN) *</label>
-                    <input type="text" name="chassis_number" required placeholder="17-Digit VIN Number" dir="ltr"
+                    <input type="text" name="chassis_number" x-model="chassisNumber" required placeholder="17-Digit VIN Number" dir="ltr"
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono uppercase focus:border-sky-500 focus:outline-none">
                 </div>
 
                 <!-- Piston count -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">ژمارەی بستۆن</label>
-                    <input type="number" name="piston_count" value="4" min="1" max="16"
+                    <input type="number" name="piston_count" x-model="pistonCount" min="1" max="16"
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-sky-500 focus:outline-none">
                 </div>
 
                 <!-- Salana Number -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">ژمارەی ساڵانەی ئۆتۆمبێل</label>
-                    <input type="text" name="salana_number" placeholder="ژمارەی فەرمی ساڵانە" dir="ltr"
+                    <input type="text" name="salana_number" x-model="salanaNumber" placeholder="ژمارەی فەرمی ساڵانە" dir="ltr"
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-sky-500 focus:outline-none">
                 </div>
             </div>
@@ -641,26 +746,104 @@
 </div>
 
 <script>
-    function transactionForm() {
+    function transactionForm(initialTx = null, targetTypeId = null) {
+        let initialTypeId = targetTypeId ? parseInt(targetTypeId) : (initialTx ? 2 : 1);
         return {
-            typeId: 1,
+            typeId: initialTypeId,
+            parentTransactionId: initialTx ? initialTx.id : '',
+            parentTransactionSummary: initialTx ? ((initialTx.visitor_name || '') + ' | ' + (initialTx.plate_number || '') + (initialTx.booklet_number ? ' | دەفتەر: ' + initialTx.booklet_number : '') + (initialTx.barcode ? ' | بارکۆد: ' + initialTx.barcode : '')) : '',
+            
+            // Driver & Citizen inputs
+            visitorName: initialTx ? (initialTx.visitor_name || '') : '',
+            visitorNameEng: initialTx ? (initialTx.visitor_name_eng || '') : '',
+            secondDriverName: initialTx ? (initialTx.second_driver_name || '') : '',
+            secondDriverNameEng: initialTx ? (initialTx.second_driver_name_eng || '') : '',
+            phoneNumber: initialTx ? (initialTx.phone_number || '') : '',
+
+            // Vehicle inputs
+            plateNumber: initialTx ? (initialTx.plate_number || '') : '',
+            plateTypeId: initialTx ? (initialTx.plate_type_id || 1) : 1,
+            carMakeId: initialTx ? (initialTx.car_make_id || '') : '',
+            carMakeEng: initialTx && initialTx.car_make ? (initialTx.car_make.name_english || '') : '',
+            carColorId: initialTx ? (initialTx.car_color_id || '') : '',
+            carColorEng: initialTx && initialTx.car_color ? (initialTx.car_color.name_english || '') : '',
+            modelYear: initialTx ? (initialTx.model_year || '') : '',
+            chassisNumber: initialTx ? (initialTx.chassis_number || '') : '',
+            pistonCount: initialTx ? (initialTx.piston_count || 4) : 4,
+            salanaNumber: initialTx ? (initialTx.salana_number || '') : '',
+
             numYears: 1,
-            directorateId: '{{ $defaultDirectorateId }}',
-            directorId: '{{ $defaultDirectorId }}',
-            plateTypeId: 1,
-            carMakeId: '',
-            carMakeEng: '',
-            carColorId: '',
-            carColorEng: '',
+            directorateId: initialTx ? (initialTx.traffic_directorate_id || '{{ $defaultDirectorateId }}') : '{{ $defaultDirectorateId }}',
+            directorId: initialTx ? (initialTx.director_id || '{{ $defaultDirectorId }}') : '{{ $defaultDirectorId }}',
             startDate: '{{ date("Y-m-d") }}',
             endDate: '{{ date("Y-m-d", strtotime("+1 year")) }}',
 
-            zedabar: 'باشە',
-            zedabarEng: 'good',
-            kamukurty: 'باشە',
-            kamukurtyEng: 'good',
-            baryGshty: 'باشە',
-            baryGshtyEng: 'good',
+            zedabar: initialTx ? (initialTx.zedabar || 'باشە') : 'باشە',
+            zedabarEng: initialTx ? (initialTx.zedabar_eng || 'good') : 'good',
+            kamukurty: initialTx ? (initialTx.kamukurty || 'باشە') : 'باشە',
+            kamukurtyEng: initialTx ? (initialTx.kamukurty_eng || 'good') : 'good',
+            baryGshty: initialTx ? (initialTx.bary_gshty || 'باشە') : 'باشە',
+            baryGshtyEng: initialTx ? (initialTx.bary_gshty_eng || 'good') : 'good',
+
+            // Previous transactions live search
+            searchQuery: '',
+            searchResults: [],
+            isSearching: false,
+            showResults: false,
+
+            searchPrevious() {
+                if (!this.searchQuery || this.searchQuery.trim().length < 2) {
+                    this.searchResults = [];
+                    this.showResults = false;
+                    return;
+                }
+                this.isSearching = true;
+                fetch(`{{ route('transactions.lookup_previous_api') }}?query=${encodeURIComponent(this.searchQuery.trim())}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        this.searchResults = data;
+                        this.showResults = true;
+                        this.isSearching = false;
+                    })
+                    .catch(() => {
+                        this.isSearching = false;
+                    });
+            },
+
+            populateFromPrevious(record, chosenType = null) {
+                this.parentTransactionId = record.id;
+                this.parentTransactionSummary = (record.visitor_name || '') + ' | ' + (record.plate_number || '') + (record.booklet_number ? ' | دەفتەر: ' + record.booklet_number : '') + (record.barcode ? ' | بارکۆد: ' + record.barcode : '');
+                this.visitorName = record.visitor_name || '';
+                this.visitorNameEng = record.visitor_name_eng || '';
+                this.secondDriverName = record.second_driver_name || '';
+                this.secondDriverNameEng = record.second_driver_name_eng || '';
+                this.phoneNumber = record.phone_number || '';
+                this.plateNumber = record.plate_number || '';
+                this.plateTypeId = record.plate_type_id || 1;
+                this.carMakeId = record.car_make_id || '';
+                this.carMakeEng = (record.car_make && record.car_make.name_english) ? record.car_make.name_english : '';
+                this.carColorId = record.car_color_id || '';
+                this.carColorEng = (record.car_color && record.car_color.name_english) ? record.car_color.name_english : '';
+                this.modelYear = record.model_year || '';
+                this.chassisNumber = record.chassis_number || '';
+                this.pistonCount = record.piston_count || 4;
+                this.salanaNumber = record.salana_number || '';
+                if (record.traffic_directorate_id) this.directorateId = record.traffic_directorate_id;
+                if (record.director_id) this.directorId = record.director_id;
+
+                if (chosenType) {
+                    this.typeId = chosenType;
+                }
+
+                this.showResults = false;
+                this.searchQuery = '';
+                this.calculateFees();
+            },
+
+            clearPrevious() {
+                this.parentTransactionId = '';
+                this.parentTransactionSummary = '';
+            },
 
             isFullBookletForm() {
                 // 1: دەرهێنانی دەفتەر, 2: تازەکردنەوە, 3: ناوگۆڕین, 4: دەفتەرگۆڕین, 7: ناوگۆڕین و دەفتەرگۆڕین
@@ -1015,7 +1198,11 @@
             },
 
             init() {
-                this.calculateFees();
+                if (initialTx) {
+                    this.populateFromPrevious(initialTx, targetTypeId ? parseInt(targetTypeId) : null);
+                } else {
+                    this.calculateFees();
+                }
             }
         }
     }

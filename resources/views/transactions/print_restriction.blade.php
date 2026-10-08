@@ -79,11 +79,10 @@
 
                 <!-- Center Emblem & English Title -->
                 <div class="flex flex-col items-center justify-center space-y-1">
-                    <div class="w-16 h-16 flex items-center justify-center">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Coat_of_arms_of_Kurdistan_Region.svg/250px-Coat_of_arms_of_Kurdistan_Region.svg.png" 
+                    <div class="w-20 h-20 flex items-center justify-center">
+                        <img src="{{ asset('images/krg_logo.png') }}" 
                              alt="Kurdish Region Emblem" 
-                             class="max-h-16 object-contain"
-                             onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><text y=\'50%\' x=\'50%\' text-anchor=\'middle\' font-size=\'40\'>🦅</text></svg>';">
+                             class="max-h-20 object-contain">
                     </div>
                     <div class="text-[10px] font-bold text-center leading-tight">
                         <p class="font-extrabold text-[11px]">Kurdish Region</p>

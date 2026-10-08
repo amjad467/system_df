@@ -46,6 +46,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('/transactions/official-prints', [TransactionController::class, 'officialPrintIndex'])->name('transactions.official_prints');
     Route::get('/transactions/trash/bin', [TransactionController::class, 'trashIndex'])->name('transactions.trash');
+    Route::get('/transactions/reports/expired-booklets', [TransactionController::class, 'expiredBookletsReport'])->name('transactions.expired_booklets');
+    Route::get('/transactions/api/lookup-previous', [TransactionController::class, 'lookupPreviousApi'])->name('transactions.lookup_previous_api');
     Route::get('/transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
     Route::get('/transactions/{transaction}/edit', [TransactionController::class, 'edit'])->name('transactions.edit');

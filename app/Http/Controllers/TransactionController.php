@@ -30,6 +30,10 @@ class TransactionController extends Controller
             $query->where(function($q) use ($search) {
                 $q->where('barcode', 'like', "%{$search}%")
                   ->orWhere('visitor_name', 'like', "%{$search}%")
+                  ->orWhere('visitor_name_eng', 'like', "%{$search}%")
+                  ->orWhere('second_driver_name', 'like', "%{$search}%")
+                  ->orWhere('second_driver_name_eng', 'like', "%{$search}%")
+                  ->orWhere('phone_number', 'like', "%{$search}%")
                   ->orWhere('plate_number', 'like', "%{$search}%")
                   ->orWhere('chassis_number', 'like', "%{$search}%")
                   ->orWhere('receipt_37a_number', 'like', "%{$search}%")
@@ -107,14 +111,12 @@ class TransactionController extends Controller
 
         $pendingCountTotal = (clone $baseQuery)->where(function($q) {
             $q->where('is_printed', false)
-              ->where('is_submitted', false)
-              ->where('is_booklet_completed', false);
+              ->where('is_submitted', false);
         })->count();
 
         $printedCountTotal = (clone $baseQuery)->where(function($q) {
             $q->where('is_printed', true)
-              ->orWhere('is_submitted', true)
-              ->orWhere('is_booklet_completed', true);
+              ->orWhere('is_submitted', true);
         })->count();
 
         $totalPaidToday = Transaction::whereNull('cancelled_at')
@@ -127,14 +129,12 @@ class TransactionController extends Controller
         if ($tab === 'printed') {
             $query->where(function($q) {
                 $q->where('is_printed', true)
-                  ->orWhere('is_submitted', true)
-                  ->orWhere('is_booklet_completed', true);
+                  ->orWhere('is_submitted', true);
             });
         } else {
             $query->where(function($q) {
                 $q->where('is_printed', false)
-                  ->where('is_submitted', false)
-                  ->where('is_booklet_completed', false);
+                  ->where('is_submitted', false);
             });
         }
 
@@ -151,7 +151,7 @@ class TransactionController extends Controller
         ));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $directorates = TrafficDirectorate::all();
         $directors = Director::all();
@@ -163,6 +163,13 @@ class TransactionController extends Controller
         $defaultDirectorateId = TrafficDirectorate::where('name_kurdish', 'like', '%سلێمانی%')->first()?->id ?? $directorates->first()?->id;
         $defaultDirectorId = Director::first()?->id ?? 1;
 
+        $fromTransaction = null;
+        if ($request->filled('from_transaction')) {
+            $fromTransaction = Transaction::with(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor'])->find($request->from_transaction);
+        }
+
+        $targetTypeId = $request->get('target_type');
+
         return view('transactions.create', compact(
             'directorates',
             'directors',
@@ -171,13 +178,95 @@ class TransactionController extends Controller
             'carColors',
             'transactionTypes',
             'defaultDirectorateId',
-            'defaultDirectorId'
+            'defaultDirectorId',
+            'fromTransaction',
+            'targetTypeId'
+        ));
+    }
+
+    public function lookupPreviousApi(Request $request)
+    {
+        $query = trim($request->get('query'));
+        if (empty($query) || strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $results = Transaction::with(['transactionType', 'plateType', 'carMake', 'carColor', 'trafficDirectorate'])
+            ->where(function($q) use ($query) {
+                $q->where('plate_number', 'like', "%{$query}%")
+                  ->orWhere('chassis_number', 'like', "%{$query}%")
+                  ->orWhere('barcode', 'like', "%{$query}%")
+                  ->orWhere('visitor_name', 'like', "%{$query}%")
+                  ->orWhere('second_driver_name', 'like', "%{$query}%")
+                  ->orWhere('phone_number', 'like', "%{$query}%")
+                  ->orWhere('salana_number', 'like', "%{$query}%")
+                  ->orWhere('booklet_number', 'like', "%{$query}%");
+            })
+            ->latest()
+            ->limit(10)
+            ->get();
+
+        return response()->json($results);
+    }
+
+    public function expiredBookletsReport(Request $request)
+    {
+        $status = $request->get('status', 'expired'); // 'expired', 'expiring_soon', 'all'
+        $search = $request->get('search');
+
+        // Booklet types: 1: New Issue, 2: Renewal, 3: Name Change, 4: Booklet Replacement, 7: Both
+        $bookletTypeIds = [1, 2, 3, 4, 7];
+
+        $baseQuery = Transaction::with(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor'])
+            ->whereIn('transaction_type_id', $bookletTypeIds)
+            ->whereNotNull('end_date')
+            ->whereNull('cancelled_at');
+
+        if ($search) {
+            $baseQuery->where(function($q) use ($search) {
+                $q->where('plate_number', 'like', "%{$search}%")
+                  ->orWhere('barcode', 'like', "%{$search}%")
+                  ->orWhere('visitor_name', 'like', "%{$search}%")
+                  ->orWhere('phone_number', 'like', "%{$search}%")
+                  ->orWhere('chassis_number', 'like', "%{$search}%")
+                  ->orWhere('salana_number', 'like', "%{$search}%")
+                  ->orWhere('booklet_number', 'like', "%{$search}%");
+            });
+        }
+
+        $now = now()->startOfDay();
+        $soon = now()->addDays(30)->endOfDay();
+
+        $expiredCount = (clone $baseQuery)->where('end_date', '<', $now)->count();
+        $expiringSoonCount = (clone $baseQuery)->where('end_date', '>=', $now)->where('end_date', '<=', $soon)->count();
+        $totalCount = $expiredCount + $expiringSoonCount;
+
+        $query = clone $baseQuery;
+
+        if ($status === 'expiring_soon') {
+            $query->where('end_date', '>=', $now)->where('end_date', '<=', $soon);
+        } elseif ($status === 'expired') {
+            $query->where('end_date', '<', $now);
+        } else {
+            $query->where('end_date', '<=', $soon);
+        }
+
+        $transactions = $query->orderBy('end_date', 'asc')->paginate(15)->withQueryString();
+
+        return view('transactions.expired_booklets', compact(
+            'transactions',
+            'status',
+            'expiredCount',
+            'expiringSoonCount',
+            'totalCount',
+            'search'
         ));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'parent_transaction_id' => 'nullable|exists:transactions,id',
             'transaction_type_id' => 'required|exists:transaction_types,id',
             'traffic_directorate_id' => 'nullable|exists:traffic_directorates,id',
             'director_id' => 'nullable|exists:directors,id',
@@ -188,6 +277,7 @@ class TransactionController extends Controller
             'visitor_name_eng' => 'nullable|string|max:255',
             'second_driver_name' => 'nullable|string|max:255',
             'second_driver_name_eng' => 'nullable|string|max:255',
+            'phone_number' => 'nullable|string|max:50',
             'plate_number' => 'required|string|max:100',
             'model_year' => 'required|digits:4',
             'chassis_number' => 'required|string|max:100',
@@ -276,6 +366,7 @@ class TransactionController extends Controller
                     'visitor_name_eng' => $tx->visitor_name_eng,
                     'second_driver_name' => $tx->second_driver_name,
                     'second_driver_name_eng' => $tx->second_driver_name_eng,
+                    'phone_number' => $tx->phone_number,
                     'plate_number' => $tx->plate_number,
                     'model_year' => $tx->model_year,
                     'chassis_number' => $tx->chassis_number,
@@ -374,6 +465,7 @@ class TransactionController extends Controller
             'visitor_name_eng' => 'nullable|string|max:255',
             'second_driver_name' => 'nullable|string|max:255',
             'second_driver_name_eng' => 'nullable|string|max:255',
+            'phone_number' => 'nullable|string|max:50',
             'plate_number' => 'required|string|max:100',
             'model_year' => 'required|digits:4',
             'chassis_number' => 'required|string|max:100',
@@ -475,11 +567,43 @@ class TransactionController extends Controller
 
     public function scanBarcode(Request $request)
     {
-        $barcode = trim($request->barcode);
-        $transaction = Transaction::where('barcode', $barcode)->first();
+        $term = trim($request->barcode);
+        if (empty($term)) {
+            return redirect()->back();
+        }
 
+        // 1. Direct barcode match
+        $transaction = Transaction::where('barcode', $term)->first();
+
+        // 2. Direct exact match by plate, phone, chassis, booklet, receipt
         if (!$transaction) {
-            return redirect()->back()->with('error', "هیچ مامەڵەیەک نەدۆزرایەوە بە بارکۆدی: {$barcode}");
+            $matches = Transaction::where('plate_number', $term)
+                ->orWhere('phone_number', $term)
+                ->orWhere('chassis_number', $term)
+                ->orWhere('booklet_number', $term)
+                ->orWhere('receipt_37a_number', $term)
+                ->latest()
+                ->get();
+
+            if ($matches->count() === 1) {
+                return redirect()->route('transactions.show', $matches->first()->id);
+            } elseif ($matches->count() > 1) {
+                return redirect()->route('transactions.index', ['search' => $term]);
+            }
+        }
+
+        // 3. Fallback partial search into transactions index
+        if (!$transaction) {
+            $count = Transaction::where('visitor_name', 'like', "%{$term}%")
+                ->orWhere('plate_number', 'like', "%{$term}%")
+                ->orWhere('phone_number', 'like', "%{$term}%")
+                ->count();
+
+            if ($count > 0) {
+                return redirect()->route('transactions.index', ['search' => $term]);
+            }
+
+            return redirect()->back()->with('error', "هیچ مامەڵەیەک نەدۆزرایەوە بە گەڕانی: {$term}");
         }
 
         return redirect()->route('transactions.show', $transaction->id);
@@ -616,7 +740,7 @@ class TransactionController extends Controller
 
         AuditLogger::log('تەواوکردنی دەفتەر', Transaction::class, $transaction->id, "ژمارەی سەر دەفتەر: {$bookletNum}");
 
-        return redirect()->back()->with('success', 'دەفتەر بە سەرکەوتوویی تەواو کرا و تۆمارکرا.');
+        return redirect()->back()->with('success', "ژمارەی دەفتەر ({$bookletNum}) بە سەرکەوتوویی تۆمارکرا و چاپی دەفتەر ئەکتیڤ بوو.");
     }
 
     public function printPaymentReceipt(Transaction $transaction)
@@ -820,6 +944,11 @@ class TransactionController extends Controller
 
     public function printBooklet(Transaction $transaction)
     {
+        if (empty($transaction->booklet_number)) {
+            return redirect()->route('transactions.show', $transaction->id)
+                ->with('error', 'هەتا ژمارەی دەفتەر (Booklet Number) وەرنەگرێت، چاپی دەفتەر ئەکتیڤ نابێت و ناتوانرێت چاپ بکرێت!');
+        }
+
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
         return view('transactions.print_booklet', compact('transaction'));
     }
@@ -965,6 +1094,10 @@ class TransactionController extends Controller
 
     public function markPrinted(Transaction $transaction)
     {
+        if ($transaction->requiresBooklet() && empty($transaction->booklet_number)) {
+            return redirect()->back()->with('error', 'ناتوانرێت مامەڵەکە تەواو و ئەرشیف بکرێت! سەرەتا دەبێت ژمارەی دەفتەر تۆمار بکرێت پاشان چاپ بکرێت.');
+        }
+
         $transaction->update([
             'is_printed' => true,
             'is_submitted' => true,

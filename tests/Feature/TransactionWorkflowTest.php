@@ -290,5 +290,159 @@ class TransactionWorkflowTest extends TestCase
         $this->assertEquals('CUST-887766', $tx->no_nusraw_puchal);
         $this->assertEquals('2026-10-01', $tx->date_nusraw_puchal->format('Y-m-d'));
     }
+
+    public function test_lookup_previous_api_returns_matching_results(): void
+    {
+        $admin = User::where('user_login', 'admin')->first();
+        $tx = Transaction::first();
+
+        $response = $this->actingAs($admin)->getJson(route('transactions.lookup_previous_api', ['query' => $tx->plate_number]));
+        $response->assertStatus(200);
+        $response->assertJsonFragment(['plate_number' => $tx->plate_number]);
+    }
+
+    public function test_expired_booklets_report_endpoint(): void
+    {
+        $admin = User::where('user_login', 'admin')->first();
+        
+        $response = $this->actingAs($admin)->get(route('transactions.expired_booklets', ['status' => 'all']));
+        $response->assertStatus(200);
+        $response->assertSee('ڕاپۆرتی دەفتەرە بەسەرچووەکان');
+    }
+
+    public function test_renewal_links_parent_transaction(): void
+    {
+        $dataEntry = User::where('user_login', 'dataentry')->first();
+        $parentTx = Transaction::first();
+
+        $response = $this->actingAs($dataEntry)->post(route('transactions.store'), [
+            'parent_transaction_id' => $parentTx->id,
+            'transaction_type_id' => 2, // Renewal (تازەکردنەوە)
+            'visitor_name' => $parentTx->visitor_name,
+            'plate_number' => $parentTx->plate_number,
+            'model_year' => $parentTx->model_year ?? '2023',
+            'chassis_number' => $parentTx->chassis_number ?? 'KMH12345678901234',
+            'num_years' => 1,
+            'start_date' => now()->format('Y-m-d'),
+            'end_date' => now()->addYear()->format('Y-m-d'),
+        ]);
+
+        $response->assertRedirect();
+        $newTx = Transaction::where('parent_transaction_id', $parentTx->id)->where('transaction_type_id', 2)->first();
+        $this->assertNotNull($newTx);
+        $this->assertEquals($parentTx->id, $newTx->parent_transaction_id);
+    }
+
+    public function test_phone_number_and_driver_details_in_audit_and_search(): void
+    {
+        $user = User::where('user_login', 'auditor')->first();
+
+        $tx = Transaction::create([
+            'barcode' => '202610090099',
+            'transaction_type_id' => 1,
+            'visitor_name' => 'ئارام کەریم عەلی',
+            'visitor_name_eng' => 'Aram Karim Ali',
+            'phone_number' => '07701234567',
+            'second_driver_name' => 'سەردار قادر محەمەد',
+            'second_driver_name_eng' => 'Sardar Qadir Muhammad',
+            'plate_number' => '45678',
+            'plate_type_id' => 1,
+            'traffic_directorate_id' => 1,
+            'car_make_id' => 1,
+            'car_color_id' => 1,
+            'model_year' => '2022',
+            'chassis_number' => 'WBA12345678901234',
+            'piston_count' => 4,
+            'num_years' => 1,
+            'start_date' => now()->format('Y-m-d'),
+            'end_date' => now()->addYear()->format('Y-m-d'),
+            'is_inspected' => true,
+            'is_audited' => false,
+            'user_input' => 'test_user',
+        ]);
+
+        // 1. Auditor view displays all first and second driver names (Kurdish + English) and phone
+        $response = $this->actingAs($user)->get(route('transactions.show', $tx->id));
+        $response->assertStatus(200);
+        $response->assertSee('ئارام کەریم عەلی');
+        $response->assertSee('Aram Karim Ali');
+        $response->assertSee('07701234567');
+        $response->assertSee('سەردار قادر محەمەد');
+        $response->assertSee('Sardar Qadir Muhammad');
+
+        // 2. Scan / Search by phone number redirects directly to transaction show
+        $scanResponse = $this->actingAs($user)->post(route('transactions.scan'), [
+            'barcode' => '07701234567',
+        ]);
+        $scanResponse->assertRedirect(route('transactions.show', $tx->id));
+
+        // 3. Search in transactions index finds the record
+        $indexResponse = $this->actingAs($user)->get(route('transactions.index', ['search' => '07701234567']));
+        $indexResponse->assertStatus(200);
+        $indexResponse->assertSee('07701234567');
+        $indexResponse->assertSee('ئارام کەریم عەلی');
+    }
+
+    public function test_booklet_print_inactive_until_booklet_number_assigned(): void
+    {
+        $admin = User::where('user_login', 'admin')->first();
+
+        // Transaction requiring booklet, is_paid = true, but booklet_number is NULL
+        $tx = Transaction::create([
+            'barcode' => '202610091122',
+            'transaction_type_id' => 1, // دەرهێنانی دەفتەر (Requires Booklet)
+            'visitor_name' => 'بەهمەن ئەحمەد حەسەن',
+            'plate_number' => '99887',
+            'plate_type_id' => 1,
+            'traffic_directorate_id' => 1,
+            'car_make_id' => 1,
+            'car_color_id' => 1,
+            'model_year' => '2023',
+            'chassis_number' => 'WBA99887766554433',
+            'piston_count' => 6,
+            'num_years' => 1,
+            'start_date' => now()->format('Y-m-d'),
+            'end_date' => now()->addYear()->format('Y-m-d'),
+            'is_inspected' => true,
+            'is_audited' => true,
+            'is_paid' => true,
+            'receipt_37a_number' => 'REC-9988',
+            'booklet_number' => null,
+            'is_booklet_completed' => false,
+            'user_input' => 'test_user',
+        ]);
+
+        $this->assertTrue($tx->requiresBooklet());
+        $this->assertNull($tx->booklet_number);
+
+        // 1. Direct attempt to print booklet before receiving booklet number must redirect with error
+        $printResponse = $this->actingAs($admin)->get(route('transactions.print_booklet', $tx->id));
+        $printResponse->assertRedirect();
+        $printResponse->assertSessionHas('error');
+
+        // 2. show.blade.php should display disabled booklet print button
+        $showResponse = $this->actingAs($admin)->get(route('transactions.show', $tx->id));
+        $showResponse->assertStatus(200);
+        $showResponse->assertSee('چاپی دەفتەر (ناچالاکە - بێ ژمارە)');
+
+        // 3. Complete booklet assignment
+        $completeResponse = $this->actingAs($admin)->post(route('transactions.complete_booklet', $tx->id), [
+            'booklet_number' => 'DF-998811',
+        ]);
+        $completeResponse->assertRedirect();
+        $tx->refresh();
+        $this->assertEquals('DF-998811', $tx->booklet_number);
+        $this->assertTrue((bool)$tx->is_booklet_completed);
+
+        // 4. Now booklet print is active and returns HTTP 200
+        $activePrintResponse = $this->actingAs($admin)->get(route('transactions.print_booklet', $tx->id));
+        $activePrintResponse->assertStatus(200);
+        $activePrintResponse->assertSee('DF-998811');
+
+        // 5. show.blade.php now displays active print button with booklet number
+        $updatedShowResponse = $this->actingAs($admin)->get(route('transactions.show', $tx->id));
+        $updatedShowResponse->assertStatus(200);
+        $updatedShowResponse->assertSee('چاپی دەفتەر (DF-998811)');
+    }
 }
 

@@ -127,7 +127,7 @@
                             $isInspection = $tx->isInspection();
                             $requiresBooklet = $tx->requiresBooklet();
                         @endphp
-                        <tr class="hover:bg-slate-700/30 transition" x-data="{ hasPrinted: false }">
+                        <tr class="hover:bg-slate-700/30 transition" x-data="{ hasPrinted: false, showBookletModal: false }">
                             <!-- Barcode & Date -->
                             <td class="py-3.5 px-4">
                                 <span class="font-mono font-bold text-amber-300 block text-sm">{{ $tx->barcode }}</span>
@@ -158,10 +158,21 @@
                                 </span>
                             </td>
 
-                            <!-- Payment Receipt Info -->
+                            <!-- Payment Receipt Info & Booklet Info -->
                             <td class="py-3.5 px-4">
                                 <span class="font-mono font-bold text-sky-400 block">پسولە: {{ $tx->receipt_37a_number ?? '---' }}</span>
                                 <span class="text-xs text-slate-400 block">بڕی: {{ number_format($tx->total_pay) }} د.ع</span>
+                                @if($requiresBooklet)
+                                    @if(!empty($tx->booklet_number))
+                                        <span class="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-indigo-300 bg-indigo-950/70 border border-indigo-700/60 px-2 py-0.5 rounded mt-1">
+                                            <i class="fa-solid fa-passport"></i> دەفتەر: {{ $tx->booklet_number }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-300 bg-amber-950/70 border border-amber-600/60 px-2 py-0.5 rounded mt-1 animate-pulse">
+                                            <i class="fa-solid fa-triangle-exclamation"></i> بێ ژمارەی دەفتەر
+                                        </span>
+                                    @endif
+                                @endif
                             </td>
 
                             <!-- Official Print Actions -->
@@ -192,14 +203,40 @@
                                             </template>
                                         @else
                                             <!-- Booklet Issuance (دەرهێنانی دەفتەر) -->
-                                            <template x-if="!hasPrinted">
-                                                <a href="{{ route('transactions.print_booklet', $tx->id) }}" target="_blank"
-                                                   @click="hasPrinted = true"
-                                                   class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center">
-                                                    <i class="fa-solid fa-passport ml-1.5"></i>
-                                                    چاپی دەفتەر
-                                                </a>
-                                            </template>
+                                            @if(!empty($tx->booklet_number))
+                                                <!-- ACTIVE Print Booklet Button because booklet number is present -->
+                                                <template x-if="!hasPrinted">
+                                                    <a href="{{ route('transactions.print_booklet', $tx->id) }}" target="_blank"
+                                                       @click="hasPrinted = true"
+                                                       class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center"
+                                                       title="چاپی دەفتەری گەشتیاری ({{ $tx->booklet_number }})">
+                                                        <i class="fa-solid fa-passport ml-1.5"></i>
+                                                        چاپی دەفتەر ({{ $tx->booklet_number }})
+                                                    </a>
+                                                </template>
+
+                                                <!-- Button to edit booklet number if needed -->
+                                                <button type="button" @click="showBookletModal = true"
+                                                        class="p-2 text-slate-400 hover:text-amber-300 transition"
+                                                        title="دەستکاریکردنی ژمارەی دەفتەر">
+                                                    <i class="fa-solid fa-pen text-xs"></i>
+                                                </button>
+                                            @else
+                                                <!-- INACTIVE / DISABLED Print Booklet Button because booklet number is missing -->
+                                                <button type="button" disabled
+                                                        class="px-3.5 py-2 bg-slate-800 text-slate-500 border border-slate-700 text-xs font-bold rounded-xl cursor-not-allowed opacity-60 flex items-center"
+                                                        title="هەتا ژمارەی دەفتەر وەرنەگرێت، چاپی دەفتەر ئەکتیڤ نابێت">
+                                                    <i class="fa-solid fa-ban ml-1.5 text-rose-400"></i>
+                                                    چاپی دەفتەر (ناچالاکە)
+                                                </button>
+
+                                                <!-- Primary Button to enter booklet number -->
+                                                <button type="button" @click="showBookletModal = true"
+                                                        class="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-black rounded-xl shadow-lg shadow-amber-600/30 transition flex items-center animate-pulse">
+                                                    <i class="fa-solid fa-book-bookmark ml-1.5"></i>
+                                                    تۆمارکردنی ژمارەی دەفتەر
+                                                </button>
+                                            @endif
                                         @endif
 
                                         <!-- Disabled state after print command clicked -->
@@ -209,16 +246,25 @@
                                             </span>
                                         </template>
 
-                                        <!-- Action: Complete Print / Move to Printed List -->
-                                        <form action="{{ route('transactions.mark_printed', $tx->id) }}" method="POST" class="inline" onsubmit="return confirm('دڵنیایت لە ئەنجامدانی چاپ و گواستنەوەی ئەم مامەڵەیە بۆ بەشی چاپکراوەکان؟')">
-                                            @csrf
-                                            <button type="submit" 
-                                                    :class="hasPrinted ? 'bg-emerald-600 hover:bg-emerald-500 ring-2 ring-emerald-400 animate-pulse' : 'bg-emerald-700/80 hover:bg-emerald-600'"
-                                                    class="px-4 py-2 text-white text-xs font-black rounded-xl shadow-md transition flex items-center">
-                                                <i class="fa-solid fa-check-double ml-1.5 text-emerald-200"></i>
-                                                تەواوکردنی چاپ و گواستنەوە
+                                        @if(!$requiresBooklet || !empty($tx->booklet_number))
+                                            <!-- Action: Complete Print / Move to Printed List -->
+                                            <form action="{{ route('transactions.mark_printed', $tx->id) }}" method="POST" class="inline" onsubmit="return confirm('دڵنیایت لە ئەنجامدانی چاپ و گواستنەوەی ئەم مامەڵەیە بۆ بەشی چاپکراوەکان؟')">
+                                                @csrf
+                                                <button type="submit" 
+                                                        :class="hasPrinted ? 'bg-emerald-600 hover:bg-emerald-500 ring-2 ring-emerald-400 animate-pulse' : 'bg-emerald-700/80 hover:bg-emerald-600'"
+                                                        class="px-4 py-2 text-white text-xs font-black rounded-xl shadow-md transition flex items-center">
+                                                    <i class="fa-solid fa-check-double ml-1.5 text-emerald-200"></i>
+                                                    تەواوکردنی چاپ و گواستنەوە
+                                                </button>
+                                            </form>
+                                        @else
+                                            <button type="button" disabled
+                                                    class="px-3 py-2 bg-slate-800 text-slate-500 border border-slate-700 text-xs font-bold rounded-xl cursor-not-allowed opacity-50 flex items-center"
+                                                    title="سەرەتا دەبێت ژمارەی دەفتەر تۆمار بکرێت">
+                                                <i class="fa-solid fa-lock ml-1.5 text-slate-400"></i>
+                                                چاوەڕێی دەفتەرە
                                             </button>
-                                        </form>
+                                        @endif
                                     @else
                                         <!-- PRINTED ARCHIVE TAB ACTIONS (تەواوکراوەکان - چاپی دووبارە) -->
                                         <span class="px-3 py-1.5 bg-emerald-950 text-emerald-300 border border-emerald-600/40 text-xs font-bold rounded-xl flex items-center" title="چاپکراوە لە {{ $tx->booklet_completed_at?->format('Y-m-d H:i') }}">
@@ -241,14 +287,57 @@
                                                 چاپی دووبارەی پشکنین
                                             </a>
                                         @else
-                                            <a href="{{ route('transactions.print_booklet', $tx->id) }}" target="_blank"
-                                               class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-extrabold rounded-xl shadow-md transition flex items-center"
-                                               title="چاپی دووبارەی دەفتەر">
-                                                <i class="fa-solid fa-rotate-right ml-1.5 text-amber-200"></i>
-                                                چاپی دووبارەی دەفتەر
-                                            </a>
+                                            @if(!empty($tx->booklet_number))
+                                                <a href="{{ route('transactions.print_booklet', $tx->id) }}" target="_blank"
+                                                   class="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-extrabold rounded-xl shadow-md transition flex items-center"
+                                                   title="چاپی دووبارەی دەفتەر ({{ $tx->booklet_number }})">
+                                                    <i class="fa-solid fa-rotate-right ml-1.5 text-amber-200"></i>
+                                                    چاپی دووبارەی دەفتەر ({{ $tx->booklet_number }})
+                                                </a>
+                                            @else
+                                                <button type="button" disabled
+                                                        class="px-3.5 py-1.5 bg-slate-800 text-slate-500 border border-slate-700 text-xs font-bold rounded-xl cursor-not-allowed opacity-60 flex items-center"
+                                                        title="بێ ژمارەی دەفتەر">
+                                                    <i class="fa-solid fa-ban ml-1.5 text-rose-400"></i>
+                                                    بێ ژمارەی دەفتەر
+                                                </button>
+                                            @endif
                                         @endif
                                     @endif
+
+                                    <!-- Modal to Enter Booklet Number for this transaction -->
+                                    <div x-show="showBookletModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                                        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-right" @click.away="showBookletModal = false">
+                                            <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                                                <h3 class="text-base font-bold text-white flex items-center">
+                                                    <i class="fa-solid fa-book-bookmark ml-2 text-indigo-400"></i>
+                                                    تۆمارکردنی ژمارەی سەر دەفتەر
+                                                </h3>
+                                                <button type="button" @click="showBookletModal = false" class="text-slate-400 hover:text-white">
+                                                    <i class="fa-solid fa-xmark"></i>
+                                                </button>
+                                            </div>
+                                            <div class="bg-slate-800/80 p-3 rounded-xl border border-slate-700 text-xs space-y-1">
+                                                <p class="text-slate-200 font-bold">هاووڵاتی: <span class="text-amber-300">{{ $tx->visitor_name }}</span></p>
+                                                <p class="text-slate-300 font-mono">تابلۆ: {{ $tx->plate_number }} | شاسی: {{ $tx->chassis_number }}</p>
+                                            </div>
+                                            <form action="{{ route('transactions.complete_booklet', $tx->id) }}" method="POST" class="space-y-4">
+                                                @csrf
+                                                <div>
+                                                    <label class="block text-xs font-bold text-slate-200 mb-1.5">ژمارەی سەر دەفتەری فیعلی بنووسە *</label>
+                                                    <input type="text" name="booklet_number" value="{{ $tx->booklet_number }}" required placeholder="مثلاً: DF-554433 یان 12345" dir="ltr" autofocus
+                                                           class="w-full bg-slate-800 border border-slate-600 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-sm text-white font-mono focus:outline-none">
+                                                    <p class="text-[11px] text-slate-400 mt-1">
+                                                        تێبینی: بە داخڵکردنی ئەم ژمارەیە، چاپی دەفتەر لە سیستەمدا ئەکتیڤ دەبێت.
+                                                    </p>
+                                                </div>
+                                                <div class="flex justify-end space-x-2 space-x-reverse pt-2">
+                                                    <button type="button" @click="showBookletModal = false" class="px-4 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-bold rounded-xl">پاشگەزبوونەوە</button>
+                                                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg">تۆمارکردن و ئەکتیڤکردنی چاپ</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
 
                                 </div>
                             </td>

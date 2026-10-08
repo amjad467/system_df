@@ -135,9 +135,22 @@
                 <tbody>
                     <tr>
                         <td class="black-cell-border gray-label-bg p-2 w-1/6">ناوی هاووڵاتی:</td>
-                        <td class="black-cell-border p-2 font-black text-sm w-2/6">{{ $transaction->visitor_name }} @if(!$transaction->isCancellationOrInspection() && $transaction->visitor_name_eng) ({{ $transaction->visitor_name_eng }}) @endif</td>
+                        <td class="black-cell-border p-2 font-black text-sm w-2/6">
+                            {{ $transaction->visitor_name }}
+                            @if(!$transaction->isCancellationOrInspection() && $transaction->visitor_name_eng)
+                                <div class="text-[11px] font-mono font-normal">{{ $transaction->visitor_name_eng }}</div>
+                            @endif
+                            @if($transaction->phone_number)
+                                <div class="text-[11px] font-mono font-semibold">مۆبایل: {{ $transaction->phone_number }}</div>
+                            @endif
+                        </td>
                         <td class="black-cell-border gray-label-bg p-2 w-1/6">جۆری مامەڵە:</td>
-                        <td class="black-cell-border p-2 font-black text-sm w-2/6 text-blue-900">{{ $transaction->transactionType->name_kurdish ?? '' }}</td>
+                        <td class="black-cell-border p-2 font-black text-sm w-2/6 text-blue-900">
+                            {{ $transaction->transactionType->name_kurdish ?? '' }}
+                            @if(!$transaction->isCancellationOrInspection() && $transaction->second_driver_name)
+                                <div class="text-[11px] font-normal text-black mt-0.5">شۆفێری دووەم: {{ $transaction->second_driver_name }} @if($transaction->second_driver_name_eng) ({{ $transaction->second_driver_name_eng }}) @endif</div>
+                            @endif
+                        </td>
                     </tr>
                     @if($transaction->isCancellation() || $transaction->no_nusraw_puchal)
                     <tr>
