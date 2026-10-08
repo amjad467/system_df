@@ -43,7 +43,7 @@
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body x-data="{ showMyPasswordModal: false }" class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-sky-500 selection:text-white">
+<body x-data="{ showMyPasswordModal: false, mobileMenuOpen: false }" class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-sky-500 selection:text-white">
 
     <!-- Top Navigation Bar -->
     <header class="bg-slate-800/90 backdrop-blur border-b border-slate-700/80 sticky top-0 z-40">
@@ -51,29 +51,32 @@
             <div class="flex items-center justify-between h-16">
                 <!-- Logo & Brand -->
                 <div class="flex items-center space-x-3 space-x-reverse">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
-                        <i class="fa-solid fa-passport text-white text-xl"></i>
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl bg-slate-900 text-slate-300 hover:text-white border border-slate-700">
+                        <i class="fa-solid" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
+                    </button>
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20 shrink-0">
+                        <i class="fa-solid fa-passport text-white text-lg sm:text-xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-300">
+                        <h1 class="text-sm sm:text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-300 leading-tight">
                             بەڕێوەبەرایەتی گومرگی سلێمانی
                         </h1>
-                        <p class="text-xs text-slate-400">سیستەمی دەرهێنانی دەفتەری ئۆتۆمبێلی گەشتیاری</p>
+                        <p class="text-[10px] sm:text-xs text-slate-400">سیستەمی دەرهێنانی دەفتەری ئۆتۆمبێلی گەشتیاری</p>
                     </div>
                 </div>
 
-                <!-- Fast Barcode Scanner Form -->
+                <!-- Fast Barcode Scanner Form (Desktop) -->
                 <form action="{{ route('transactions.scan') }}" method="POST" class="hidden md:flex items-center relative">
                     @csrf
                     <input type="text" name="barcode" placeholder="سکانی بارکۆد بکە (YYMMDDXXXX)..." 
-                           class="w-64 bg-slate-900/90 text-sm text-slate-200 placeholder-slate-500 rounded-xl border border-slate-700 pr-10 pl-4 py-2 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition">
+                           class="w-56 lg:w-64 bg-slate-900/90 text-sm text-slate-200 placeholder-slate-500 rounded-xl border border-slate-700 pr-10 pl-4 py-2 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition">
                     <button type="submit" class="absolute right-3 text-slate-400 hover:text-sky-400">
                         <i class="fa-solid fa-barcode"></i>
                     </button>
                 </form>
 
-                <!-- Navigation Links -->
-                <nav class="flex items-center space-x-1 space-x-reverse">
+                <!-- Navigation Links (Desktop) -->
+                <nav class="hidden lg:flex items-center space-x-1 space-x-reverse">
                     <a href="{{ route('dashboard') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('dashboard') ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30' : 'text-slate-300 hover:bg-slate-700 hover:text-white' }}">
                         <i class="fa-solid fa-chart-pie ml-1.5"></i> داشبۆرد
                     </a>
@@ -158,6 +161,69 @@
                     @endauth
 
                 </nav>
+            </div>
+
+            <!-- Mobile Navigation Drawer -->
+            <div x-show="mobileMenuOpen" x-cloak class="lg:hidden py-4 border-t border-slate-700 space-y-3">
+                <!-- Fast Scanner Barcode Form for Mobile -->
+                <form action="{{ route('transactions.scan') }}" method="POST" class="flex items-center relative mb-3">
+                    @csrf
+                    <input type="text" name="barcode" placeholder="سکانی بارکۆد بکە..." 
+                           class="w-full bg-slate-900 text-xs text-slate-200 placeholder-slate-500 rounded-xl border border-slate-700 pr-9 pl-3 py-2.5 focus:outline-none focus:border-sky-500">
+                    <button type="submit" class="absolute right-3 text-slate-400">
+                        <i class="fa-solid fa-barcode"></i>
+                    </button>
+                </form>
+
+                <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+                    <a href="{{ route('dashboard') }}" class="p-2.5 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-200 hover:bg-sky-600 hover:text-white">
+                        <i class="fa-solid fa-chart-pie ml-1.5 text-sky-400"></i> داشبۆرد
+                    </a>
+                    <a href="{{ route('transactions.index') }}" class="p-2.5 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-200 hover:bg-sky-600 hover:text-white">
+                        <i class="fa-solid fa-list-check ml-1.5 text-emerald-400"></i> مامەڵەکان
+                    </a>
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'booklet'))
+                        <a href="{{ route('transactions.official_prints') }}" class="p-2.5 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-amber-300 hover:bg-amber-600 hover:text-white">
+                            <i class="fa-solid fa-print ml-1.5 text-amber-400"></i> چاپی نوسراوەکان
+                        </a>
+                    @endif
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
+                        <a href="{{ route('transactions.create') }}" class="p-2.5 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
+                            <i class="fa-solid fa-plus-circle ml-1.5"></i> مامەڵەی نوێ
+                        </a>
+                    @endif
+                    @if(auth()->check() && auth()->user()->isAdmin())
+                        <a href="{{ route('users.index') }}" class="p-2.5 rounded-xl bg-slate-900 border border-indigo-500/40 text-indigo-300 flex items-center justify-center">
+                            <i class="fa-solid fa-users-gear ml-1.5"></i> فەرمانبەران
+                        </a>
+                        <a href="{{ route('settings.pricing') }}" class="p-2.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-300 flex items-center justify-center">
+                            <i class="fa-solid fa-sliders ml-1.5"></i> نرخەکان
+                        </a>
+                    @endif
+                    <a href="{{ route('logs.index') }}" class="p-2.5 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300">
+                        <i class="fa-solid fa-clock-rotate-left ml-1.5 text-slate-400"></i> لۆگ
+                    </a>
+                </div>
+
+                @auth
+                    <div class="pt-3 border-t border-slate-700/80 flex items-center justify-between text-xs">
+                        <div class="text-right">
+                            <span class="font-bold text-white block">{{ auth()->user()->name }}</span>
+                            <span class="text-[10px] text-sky-400 font-semibold block">{{ auth()->user()->role_name_kurdish }}</span>
+                        </div>
+                        <div class="flex items-center space-x-2 space-x-reverse">
+                            <button type="button" @click="showMyPasswordModal = true" class="px-3 py-1.5 bg-amber-500/20 text-amber-300 rounded-lg font-bold text-xs flex items-center">
+                                <i class="fa-solid fa-key ml-1"></i> گۆڕینی پاسوۆرد
+                            </button>
+                            <form action="{{ route('logout') }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" class="px-3 py-1.5 bg-rose-600 text-white rounded-lg font-bold text-xs flex items-center">
+                                    <i class="fa-solid fa-power-off ml-1"></i> دەربچۆ
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @endauth
             </div>
         </div>
     </header>
