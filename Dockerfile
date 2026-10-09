@@ -22,5 +22,5 @@ RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
 
 EXPOSE 8080
 
-# دروستکردنی فایلی داتابەیس، پێدانی مۆڵەتی نووسین، و کارپێکردنی مایکگرەیشن و سیدەر
-CMD touch database/database.sqlite && chmod 777 database/database.sqlite && php artisan migrate --force && php artisan db:seed --force && php artisan config:clear && php artisan serve --host 0.0.0.0 --port ${PORT:-8080}
+# کارپێکردنی مایکگرەیشن و سیدەر و سێرڤەر
+CMD php artisan migrate --force && php artisan db:seed --force && php artisan config:clear && php artisan serve --host 0.0.0.0 --port ${PORT:-8080}
