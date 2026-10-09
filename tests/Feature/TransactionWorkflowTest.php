@@ -444,5 +444,38 @@ class TransactionWorkflowTest extends TestCase
         $updatedShowResponse->assertStatus(200);
         $updatedShowResponse->assertSee('چاپی دەفتەر (DF-998811)');
     }
+
+    public function test_accounting_66_report_endpoints_and_filtering(): void
+    {
+        $admin = User::where('user_login', 'admin')->first();
+
+        // 1. Check Accounting 66 index view loads
+        $response = $this->actingAs($admin)->get(route('reports.accounting_66'));
+        $response->assertStatus(200);
+        $response->assertSee('محاسبة ٦٦');
+        $response->assertSee('کۆی داهات');
+
+        // 2. Check presets (e.g. this_month, today)
+        $monthResponse = $this->actingAs($admin)->get(route('reports.accounting_66', ['preset' => 'this_month']));
+        $monthResponse->assertStatus(200);
+
+        // 3. Check receipt range filtering
+        $rangeResponse = $this->actingAs($admin)->get(route('reports.accounting_66', [
+            'receipt_from' => 1,
+            'receipt_to' => 50,
+        ]));
+        $rangeResponse->assertStatus(200);
+
+        // 4. Check Official Print View loads
+        $printResponse = $this->actingAs($admin)->get(route('reports.accounting_66.print'));
+        $printResponse->assertStatus(200);
+        $printResponse->assertSee('محاسبة ٦٦');
+        $printResponse->assertSee('بەڕێوەبەرایەتی گومرگی سلێمانی');
+
+        // 5. Check CSV export
+        $exportResponse = $this->actingAs($admin)->get(route('reports.accounting_66.export'));
+        $exportResponse->assertStatus(200);
+        $exportResponse->assertHeader('content-type', 'text/csv; charset=UTF-8');
+    }
 }
 

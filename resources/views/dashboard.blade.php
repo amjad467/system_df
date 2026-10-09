@@ -8,7 +8,10 @@
             <h2 class="text-2xl font-extrabold text-white">بەخێربێن بۆ بەشی کارگێڕی دەرهێنانی دەفتەر</h2>
             <p class="text-sm text-slate-400">چاودێریکردن و ئیدارەدانی گشت قۆناغەکانی مامەڵە، کەشف، وردبینی، ژمێریاری و لۆگی جولەکان.</p>
         </div>
-        <div class="flex items-center space-x-3 space-x-reverse">
+        <div class="flex items-center space-x-3 space-x-reverse flex-wrap gap-2">
+            <a href="{{ route('reports.accounting_66') }}" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-amber-600/25 flex items-center transition">
+                <i class="fa-solid fa-file-invoice-dollar ml-2"></i> ڕاپۆرتی محاسبة ٦٦
+            </a>
             <a href="{{ route('transactions.expired_booklets') }}" class="px-4 py-2.5 bg-rose-600/90 hover:bg-rose-500 text-white text-sm font-semibold rounded-xl shadow-lg shadow-rose-600/25 flex items-center transition">
                 <i class="fa-solid fa-calendar-xmark ml-2"></i> دەفتەرە بەسەرچووەکان
             </a>

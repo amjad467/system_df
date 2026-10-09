@@ -91,6 +91,9 @@
                     <a href="{{ route('transactions.expired_booklets') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('transactions.expired_booklets') ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : 'text-rose-400 hover:bg-slate-700 hover:text-white' }}">
                         <i class="fa-solid fa-calendar-xmark ml-1.5"></i> دەفتەرە بەسەرچووەکان
                     </a>
+                    <a href="{{ route('reports.accounting_66') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('reports.accounting_66*') ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30' : 'text-amber-300 hover:bg-slate-700 hover:text-white' }}">
+                        <i class="fa-solid fa-file-invoice-dollar ml-1.5"></i> محاسبة ٦٦
+                    </a>
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
                         <a href="{{ route('transactions.create') }}" class="px-3 py-2 rounded-lg text-sm font-medium bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 transition">
                             <i class="fa-solid fa-plus-circle ml-1.5"></i> مامەڵەی نوێ
@@ -195,6 +198,9 @@
                     @endif
                     <a href="{{ route('transactions.expired_booklets') }}" class="p-2.5 rounded-xl bg-slate-900 border border-rose-500/40 text-rose-300 hover:bg-rose-600 hover:text-white flex items-center justify-center">
                         <i class="fa-solid fa-calendar-xmark ml-1.5 text-rose-400"></i> بەسەرچووەکان
+                    </a>
+                    <a href="{{ route('reports.accounting_66') }}" class="p-2.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-300 hover:bg-amber-600 hover:text-white flex items-center justify-center">
+                        <i class="fa-solid fa-file-invoice-dollar ml-1.5 text-amber-400"></i> محاسبة ٦٦
                     </a>
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
                         <a href="{{ route('transactions.create') }}" class="p-2.5 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
