@@ -70,6 +70,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/transactions/{transaction}/return', [TransactionController::class, 'returnTransaction'])->name('transactions.return');
     Route::post('/transactions/{transaction}/revert-inspection', [TransactionController::class, 'revertInspection'])->name('transactions.revert_inspection');
+    Route::post('/transactions/{transaction}/revert-audit', [TransactionController::class, 'revertAudit'])->name('transactions.revert_audit');
     Route::post('/transactions/{transaction}/revert-step', [TransactionController::class, 'revertStep'])->name('transactions.revert_step');
     Route::post('/transactions/{transaction}/create-pledge', [TransactionController::class, 'createRelatedPledge'])->name('transactions.create_pledge');
     Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.destroy');

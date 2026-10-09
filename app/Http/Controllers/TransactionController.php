@@ -694,7 +694,28 @@ class TransactionController extends Controller
 
         AuditLogger::log('وردبینیکردنی مامەڵە', Transaction::class, $transaction->id, "وردبینی پەسەندکرا بۆ بارکۆد: {$transaction->barcode}");
 
-        return redirect()->back()->with('success', 'وردبینی مامەڵەکە بە سەرکەوتوویی ئەنجامدرا.');
+        return redirect()->route('transactions.show', $transaction->id)->with('success', 'وردبینی مامەڵەکە بە سەرکەوتوویی ئەنجامدرا.');
+    }
+
+    public function revertAudit(Transaction $transaction)
+    {
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('transactions.audit') && auth()->user()->role !== 'auditor') {
+            return redirect()->route('transactions.show', $transaction->id)->with('error', 'دەسەڵاتی هەڵوەشاندنەوەی وردبینی تەنها بۆ کارمەندی وردبین و ئەدمینە.');
+        }
+
+        if ($transaction->is_paid) {
+            return redirect()->route('transactions.show', $transaction->id)->with('error', 'ناتوانرێت وردبینی هەڵوەشێنرێتەوە چونکە وەسڵی پارەدان ۳۷/أ بۆ بڕاوە و پارە دراوە! (تەنها ئەدمین دەتوانێت لە ڕێگەی Reset قۆناغی پارەدان ڕێکبخاتەوە).');
+        }
+
+        $transaction->update([
+            'is_audited' => false,
+            'audited_by' => null,
+            'audited_at' => null,
+        ]);
+
+        AuditLogger::log('هەڵوەشاندنەوەی پەسەندکردنی وردبینی', Transaction::class, $transaction->id, "وردبینی هەڵوەشێنرایەوە بۆ بارکۆد: {$transaction->barcode}");
+
+        return redirect()->route('transactions.show', $transaction->id)->with('warning', 'قۆناغی وردبینی بە سەرکەوتوویی هەڵوەشێنرایەوە. ئێستا دەتوانیت سەرلەنوێ وردبینی بکەیتەوە یان بیگەڕێنیتەوە بۆ تەخمین/داتائەنتەری.');
     }
 
     public function pay(Request $request, Transaction $transaction)

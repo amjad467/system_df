@@ -553,5 +553,45 @@ class TransactionWorkflowTest extends TestCase
         $res = $this->actingAs($admin)->get(route('settings.lookups'));
         $res->assertStatus(200);
     }
+
+    public function test_auditor_can_revert_audit_before_payment(): void
+    {
+        $auditor = User::where('role', 'auditor')->first();
+        $tx = Transaction::first();
+        $tx->update([
+            'is_inspected' => true,
+            'is_audited' => true,
+            'audited_by' => $auditor->name,
+            'audited_at' => now(),
+            'is_paid' => false,
+        ]);
+
+        $response = $this->actingAs($auditor)->post(route('transactions.revert_audit', $tx->id));
+        $response->assertRedirect(route('transactions.show', $tx->id));
+
+        $tx->refresh();
+        $this->assertFalse((bool)$tx->is_audited);
+        $this->assertNull($tx->audited_by);
+    }
+
+    public function test_auditor_cannot_revert_audit_after_payment(): void
+    {
+        $auditor = User::where('role', 'auditor')->first();
+        $tx = Transaction::first();
+        $tx->update([
+            'is_inspected' => true,
+            'is_audited' => true,
+            'audited_by' => $auditor->name,
+            'audited_at' => now(),
+            'is_paid' => true,
+            'receipt_37a_number' => '37A-998811',
+        ]);
+
+        $response = $this->actingAs($auditor)->post(route('transactions.revert_audit', $tx->id));
+        $response->assertSessionHas('error');
+
+        $tx->refresh();
+        $this->assertTrue((bool)$tx->is_audited);
+    }
 }
 

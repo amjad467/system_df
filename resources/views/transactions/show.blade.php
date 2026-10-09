@@ -56,6 +56,19 @@
                 </button>
             @endif
 
+            <!-- Auditor Revert / Return button in Toolbar when scanned/viewed before payment -->
+            @if($transaction->is_audited && !$transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->hasPermission('transactions.audit')))
+                <form action="{{ route('transactions.revert_audit', $transaction->id) }}" method="POST" class="inline" onsubmit="return confirm('ئایا دڵنیایت لە هەڵوەشاندنەوەی پەسەندی وردبینی؟ مامەڵەکە دەگەڕێتەوە بۆ چاوەڕوانی وردبینی.');">
+                    @csrf
+                    <button type="submit" class="px-3 py-2 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center">
+                        <i class="fa-solid fa-arrow-rotate-left ml-1.5"></i> هەڵوەشاندنەوەی وردبینی
+                    </button>
+                </form>
+                <button type="button" @click="showReturnModal = true" class="px-3 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center">
+                    <i class="fa-solid fa-arrow-turn-down-left ml-1.5"></i> گەڕاندنەوە بۆ پێشتر
+                </button>
+            @endif
+
             <!-- Print Data Entry Routing Slip (Data Entry and Admin ONLY) -->
             @if(auth()->user()->isAdmin() || auth()->user()->role === 'data_entry')
                 <a href="{{ route('transactions.print_data_entry', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-blue-700 hover:bg-blue-600 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center">
@@ -427,6 +440,20 @@
                                 <i class="fa-solid fa-clock ml-1.5 text-purple-400"></i> چاوەڕێی پەسەندکردنی وردبینییە (تەنها کارمەندی وردبین دەتوانێت پەسەندی بکات)
                             </span>
                         @endif
+                    @endif
+
+                    <!-- If Audited, but before Payment: Auditor/Admin can Revert Audit or Return to Previous Step -->
+                    @if($transaction->is_audited && !$transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->hasPermission('transactions.audit')))
+                        <form action="{{ route('transactions.revert_audit', $transaction->id) }}" method="POST" class="inline" onsubmit="return confirm('ئایا دڵنیایت لە هەڵوەشاندنەوەی پەسەندی وردبینی؟ مامەڵەکە دەگەڕێتەوە بۆ چاوەڕوانی وردبینی.');">
+                            @csrf
+                            <button type="submit" class="px-4 py-2 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-purple-700/25 transition flex items-center">
+                                <i class="fa-solid fa-arrow-rotate-left ml-1.5 text-purple-200"></i> هەڵوەشاندنەوەی پەسەندی وردبینی (Revert Audit)
+                            </button>
+                        </form>
+
+                        <button type="button" @click="showReturnModal = true" class="px-4 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/20 transition flex items-center">
+                            <i class="fa-solid fa-arrow-turn-down-left ml-1.5"></i> گەڕاندنەوەی هەڵە بۆ ستێپی پێشتر (تەخمین / داتائەنتەری)
+                        </button>
                     @endif
 
                     <!-- Step 4: Payment (Cashier / Admin) -->
