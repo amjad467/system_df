@@ -10,10 +10,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
+    <!-- Theme Init Script (Prevent Flash) -->
+    <script>
+        if (localStorage.getItem('color-theme') === 'light') {
+            document.documentElement.classList.remove('dark');
+        } else {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
@@ -43,25 +53,39 @@
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body x-data="{ showMyPasswordModal: false, mobileMenuOpen: false }" class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-sky-500 selection:text-white">
+<body x-data="{ 
+    showMyPasswordModal: false, 
+    mobileMenuOpen: false,
+    isDark: document.documentElement.classList.contains('dark'),
+    toggleTheme() {
+        this.isDark = !this.isDark;
+        if (this.isDark) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('color-theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('color-theme', 'light');
+        }
+    }
+}" class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-sky-500 selection:text-white transition-colors duration-200">
 
     <!-- Top Navigation Bar -->
-    <header class="bg-slate-800/90 backdrop-blur border-b border-slate-700/80 sticky top-0 z-40">
+    <header class="bg-white/95 dark:bg-slate-800/90 backdrop-blur border-b border-slate-200 dark:border-slate-700/80 sticky top-0 z-40 transition-colors duration-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <!-- Logo & Brand -->
                 <div class="flex items-center space-x-3 space-x-reverse">
-                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl bg-slate-900 text-slate-300 hover:text-white border border-slate-700">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700">
                         <i class="fa-solid" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
                     </button>
                     <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20 shrink-0">
                         <i class="fa-solid fa-passport text-white text-lg sm:text-xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-sm sm:text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-indigo-300 leading-tight">
+                        <h1 class="text-sm sm:text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-sky-600 dark:from-sky-400 to-indigo-700 dark:to-indigo-300 leading-tight">
                             بەڕێوەبەرایەتی گومرگی سلێمانی
                         </h1>
-                        <p class="text-[10px] sm:text-xs text-slate-400">سیستەمی دەرهێنانی دەفتەری ئۆتۆمبێلی گەشتیاری</p>
+                        <p class="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400">سیستەمی دەرهێنانی دەفتەری ئۆتۆمبێلی گەشتیاری</p>
                     </div>
                 </div>
 
@@ -69,52 +93,76 @@
                 <form action="{{ route('transactions.scan') }}" method="POST" class="hidden md:flex items-center relative">
                     @csrf
                     <input type="text" name="barcode" placeholder="سکانی بارکۆد بکە (YYMMDDXXXX)..." 
-                           class="w-56 lg:w-64 bg-slate-900/90 text-sm text-slate-200 placeholder-slate-500 rounded-xl border border-slate-700 pr-10 pl-4 py-2 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition">
-                    <button type="submit" class="absolute right-3 text-slate-400 hover:text-sky-400">
+                           class="w-56 lg:w-64 bg-slate-50 dark:bg-slate-900/90 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl border border-slate-200 dark:border-slate-700 pr-10 pl-4 py-2 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition">
+                    <button type="submit" class="absolute right-3 text-slate-400 hover:text-sky-500">
                         <i class="fa-solid fa-barcode"></i>
                     </button>
                 </form>
 
                 <!-- Navigation Links (Desktop) -->
                 <nav class="hidden lg:flex items-center space-x-1 space-x-reverse">
-                    <a href="{{ route('dashboard') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('dashboard') ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30' : 'text-slate-300 hover:bg-slate-700 hover:text-white' }}">
+                    <a href="{{ route('dashboard') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('dashboard') ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white' }}">
                         <i class="fa-solid fa-chart-pie ml-1.5"></i> داشبۆرد
                     </a>
-                    <a href="{{ route('transactions.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('transactions.index') ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30' : 'text-slate-300 hover:bg-slate-700 hover:text-white' }}">
+                    <a href="{{ route('transactions.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('transactions.index') ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white' }}">
                         <i class="fa-solid fa-list-check ml-1.5"></i> مامەڵەکان
                     </a>
+
+                    <!-- چاپی نوسراوەکان (Booklet and Admin ONLY) -->
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'booklet'))
-                        <a href="{{ route('transactions.official_prints') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('transactions.official_prints') ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30' : 'text-amber-400 hover:bg-slate-700 hover:text-white' }}">
+                        <a href="{{ route('transactions.official_prints') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('transactions.official_prints') ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30' : 'text-amber-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-amber-700 dark:hover:text-white' }}">
                             <i class="fa-solid fa-print ml-1.5"></i> چاپی نوسراوەکان
                         </a>
                     @endif
-                    <a href="{{ route('transactions.expired_booklets') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('transactions.expired_booklets') ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : 'text-rose-400 hover:bg-slate-700 hover:text-white' }}">
-                        <i class="fa-solid fa-calendar-xmark ml-1.5"></i> دەفتەرە بەسەرچووەکان
-                    </a>
-                    <a href="{{ route('reports.accounting_66') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('reports.accounting_66*') ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30' : 'text-amber-300 hover:bg-slate-700 hover:text-white' }}">
-                        <i class="fa-solid fa-file-invoice-dollar ml-1.5"></i> محاسبة ٦٦
-                    </a>
+
+                    <!-- دەفتەرە بەسەرچووەکان (Point 5: Booklet and Admin ONLY) -->
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'booklet'))
+                        <a href="{{ route('transactions.expired_booklets') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('transactions.expired_booklets') ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : 'text-rose-600 dark:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-rose-700 dark:hover:text-white' }}">
+                            <i class="fa-solid fa-calendar-xmark ml-1.5"></i> دەفتەرە بەسەرچووەکان
+                        </a>
+                    @endif
+
+                    <!-- محاسبة ٦٦ (Point 3: Cashier and Admin ONLY) -->
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier'))
+                        <a href="{{ route('reports.accounting_66') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('reports.accounting_66*') ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30' : 'text-amber-600 dark:text-amber-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-amber-700 dark:hover:text-white' }}">
+                            <i class="fa-solid fa-file-invoice-dollar ml-1.5"></i> محاسبة ٦٦
+                        </a>
+                    @endif
+
+                    <!-- مامەڵەی نوێ (Point 8: Data Entry and Admin ONLY) -->
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
                         <a href="{{ route('transactions.create') }}" class="px-3 py-2 rounded-lg text-sm font-medium bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 transition">
                             <i class="fa-solid fa-plus-circle ml-1.5"></i> مامەڵەی نوێ
                         </a>
                     @endif
 
+                    <!-- Admin Only Menu Items -->
                     @if(auth()->check() && auth()->user()->isAdmin())
-                        <a href="{{ route('users.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium border border-indigo-500/40 text-indigo-300 hover:bg-indigo-500/10 transition {{ request()->routeIs('users.index') ? 'bg-indigo-600 text-white' : '' }}">
+                        <a href="{{ route('settings.lookups') }}" class="px-3 py-2 rounded-lg text-sm font-medium border border-teal-500/40 text-teal-600 dark:text-teal-300 hover:bg-teal-500/10 transition {{ request()->routeIs('settings.lookups') ? 'bg-teal-600 text-white' : '' }}">
+                            <i class="fa-solid fa-folder-tree ml-1.5"></i> پێناسەکان
+                        </a>
+                        <a href="{{ route('users.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium border border-indigo-500/40 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-500/10 transition {{ request()->routeIs('users.index') ? 'bg-indigo-600 text-white' : '' }}">
                             <i class="fa-solid fa-users-gear ml-1.5"></i> فەرمانبەران
                         </a>
-                        <a href="{{ route('settings.pricing') }}" class="px-3 py-2 rounded-lg text-sm font-medium border border-amber-500/40 text-amber-300 hover:bg-amber-500/10 transition {{ request()->routeIs('settings.pricing') ? 'bg-amber-600 text-white' : '' }}">
+                        <a href="{{ route('settings.pricing') }}" class="px-3 py-2 rounded-lg text-sm font-medium border border-amber-500/40 text-amber-600 dark:text-amber-300 hover:bg-amber-500/10 transition {{ request()->routeIs('settings.pricing') ? 'bg-amber-600 text-white' : '' }}">
                             <i class="fa-solid fa-sliders ml-1.5"></i> نرخەکان
                         </a>
-                        <a href="{{ route('transactions.trash') }}" class="px-3 py-2 rounded-lg text-sm font-medium border border-rose-500/40 text-rose-300 hover:bg-rose-500/10 transition {{ request()->routeIs('transactions.trash') ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : '' }}">
+                        <a href="{{ route('transactions.trash') }}" class="px-3 py-2 rounded-lg text-sm font-medium border border-rose-500/40 text-rose-600 dark:text-rose-300 hover:bg-rose-500/10 transition {{ request()->routeIs('transactions.trash') ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : '' }}">
                             <i class="fa-solid fa-trash-can ml-1.5"></i> سڕاوەکان
+                        </a>
+                        <!-- لۆگ (Point 4: Admin ONLY) -->
+                        <a href="{{ route('logs.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('logs.index') ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white' }}">
+                            <i class="fa-solid fa-clock-rotate-left ml-1.5"></i> لۆگ
                         </a>
                     @endif
 
-                    <a href="{{ route('logs.index') }}" class="px-3 py-2 rounded-lg text-sm font-medium transition {{ request()->routeIs('logs.index') ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30' : 'text-slate-300 hover:bg-slate-700 hover:text-white' }}">
-                        <i class="fa-solid fa-clock-rotate-left ml-1.5"></i> لۆگ
-                    </a>
+                    <!-- Theme Toggle & Profile Section -->
+                    <div class="flex items-center space-x-2 space-x-reverse mr-2">
+                        <!-- Dark / Light Mode Toggle Button -->
+                        <button @click="toggleTheme()" type="button" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-amber-500 dark:text-yellow-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition border border-slate-200 dark:border-slate-700" title="گۆڕینی دۆخی ڕووناکی / تاریکی">
+                            <i class="fa-solid fa-sun text-sm" x-show="!isDark"></i>
+                            <i class="fa-solid fa-moon text-sm" x-show="isDark"></i>
+                        </button>
 
                     <!-- User Profile & Logout -->
                     @auth
@@ -123,9 +171,9 @@
                         @endphp
 
                         <!-- Notification Bell -->
-                        <div class="relative mr-2" x-data="{ openNotifs: false }">
-                            <button @click="openNotifs = !openNotifs" class="relative p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition border border-slate-700">
-                                <i class="fa-solid fa-bell text-sm text-sky-400"></i>
+                        <div class="relative" x-data="{ openNotifs: false }">
+                            <button @click="openNotifs = !openNotifs" class="relative p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition border border-slate-200 dark:border-slate-700">
+                                <i class="fa-solid fa-bell text-sm text-sky-500"></i>
                                 @if($unreadNotifications->count() > 0)
                                     <span class="absolute -top-1 -right-1 w-4 h-4 bg-rose-600 text-white rounded-full text-[9px] font-extrabold flex items-center justify-center animate-pulse">
                                         {{ $unreadNotifications->count() }}
@@ -133,17 +181,17 @@
                                 @endif
                             </button>
 
-                            <div x-show="openNotifs" @click.away="openNotifs = false" x-cloak class="absolute left-0 mt-2 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-3 z-50 space-y-2">
-                                <h4 class="text-xs font-bold text-sky-400 border-b border-slate-800 pb-2 flex items-center justify-between">
+                            <div x-show="openNotifs" @click.away="openNotifs = false" x-cloak class="absolute left-0 mt-2 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-3 z-50 space-y-2">
+                                <h4 class="text-xs font-bold text-sky-500 dark:text-sky-400 border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center justify-between">
                                     <span><i class="fa-solid fa-bell ml-1"></i> ئاگادارییەکانی دەسەڵاتی تۆ</span>
                                     <span class="text-[10px] text-slate-500 font-mono">{{ $unreadNotifications->count() }} نوێ</span>
                                 </h4>
                                 <div class="max-h-60 overflow-y-auto space-y-1.5">
                                     @forelse($unreadNotifications as $notif)
-                                        <a href="{{ route('notifications.read', $notif->id) }}" class="block p-2 bg-slate-800/80 hover:bg-slate-800 rounded-xl border border-slate-700/60 transition">
-                                            <span class="text-xs font-bold text-slate-100 block">{{ $notif->title }}</span>
-                                            <span class="text-[11px] text-slate-400 block mt-0.5">{{ $notif->message }}</span>
-                                            <span class="text-[9px] text-sky-400 font-mono block mt-1">{{ $notif->created_at->diffForHumans() }}</span>
+                                        <a href="{{ route('notifications.read', $notif->id) }}" class="block p-2 bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/60 transition">
+                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-100 block">{{ $notif->title }}</span>
+                                            <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">{{ $notif->message }}</span>
+                                            <span class="text-[9px] text-sky-500 dark:text-sky-400 font-mono block mt-1">{{ $notif->created_at->diffForHumans() }}</span>
                                         </a>
                                     @empty
                                         <p class="text-xs text-slate-500 text-center py-3">هیچ ئاگادارییەکی نوێت نییە.</p>
@@ -152,75 +200,102 @@
                             </div>
                         </div>
 
-                        <div class="mr-2 border-r border-slate-700 pr-3 flex items-center space-x-2 space-x-reverse">
+                        <div class="mr-2 border-r border-slate-200 dark:border-slate-700 pr-3 flex items-center space-x-2 space-x-reverse">
                             <div class="text-right hidden sm:block">
-                                <span class="text-xs font-bold text-slate-100 block">{{ auth()->user()->name }}</span>
-                                <span class="text-[10px] text-sky-400 font-semibold block">{{ auth()->user()->role_name_kurdish }}</span>
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-100 block">{{ auth()->user()->name }}</span>
+                                <span class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold block">{{ auth()->user()->role_name_kurdish }}</span>
                             </div>
-                            <button type="button" @click="showMyPasswordModal = true" title="گۆڕینی پاسوۆردی کەسی" class="w-8 h-8 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 flex items-center justify-center transition">
+                            <button type="button" @click="showMyPasswordModal = true" title="گۆڕینی پاسوۆردی کەسی" class="w-8 h-8 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 dark:text-amber-400 flex items-center justify-center transition">
                                 <i class="fa-solid fa-key text-xs"></i>
                             </button>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
-                                <button type="submit" title="چوونەدەرەوە" class="w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 flex items-center justify-center transition">
+                                <button type="submit" title="چوونەدەرەوە" class="w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 flex items-center justify-center transition">
                                     <i class="fa-solid fa-power-off text-xs"></i>
                                 </button>
                             </form>
                         </div>
                     @endauth
+                    </div>
 
                 </nav>
             </div>
 
             <!-- Mobile Navigation Drawer -->
-            <div x-show="mobileMenuOpen" x-cloak class="lg:hidden py-4 border-t border-slate-700 space-y-3">
+            <div x-show="mobileMenuOpen" x-cloak class="lg:hidden py-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-700">
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300">گۆڕینی دۆخی ڕووناکی / تاریکی:</span>
+                    <button @click="toggleTheme()" type="button" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 text-amber-500 dark:text-yellow-400 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 text-xs font-bold">
+                        <i class="fa-solid fa-sun" x-show="!isDark"></i>
+                        <i class="fa-solid fa-moon" x-show="isDark"></i>
+                        <span x-text="isDark ? 'تاریک' : 'ڕووناک'"></span>
+                    </button>
+                </div>
+
                 <!-- Fast Scanner Barcode Form for Mobile -->
                 <form action="{{ route('transactions.scan') }}" method="POST" class="flex items-center relative mb-3">
                     @csrf
                     <input type="text" name="barcode" placeholder="سکانی بارکۆد بکە..." 
-                           class="w-full bg-slate-900 text-xs text-slate-200 placeholder-slate-500 rounded-xl border border-slate-700 pr-9 pl-3 py-2.5 focus:outline-none focus:border-sky-500">
+                           class="w-full bg-slate-50 dark:bg-slate-900 text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl border border-slate-200 dark:border-slate-700 pr-9 pl-3 py-2.5 focus:outline-none focus:border-sky-500">
                     <button type="submit" class="absolute right-3 text-slate-400">
                         <i class="fa-solid fa-barcode"></i>
                     </button>
                 </form>
 
                 <div class="grid grid-cols-2 gap-2 text-xs font-bold">
-                    <a href="{{ route('dashboard') }}" class="p-2.5 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-200 hover:bg-sky-600 hover:text-white">
-                        <i class="fa-solid fa-chart-pie ml-1.5 text-sky-400"></i> داشبۆرد
+                    <a href="{{ route('dashboard') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-sky-600 hover:text-white">
+                        <i class="fa-solid fa-chart-pie ml-1.5 text-sky-500"></i> داشبۆرد
                     </a>
-                    <a href="{{ route('transactions.index') }}" class="p-2.5 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-200 hover:bg-sky-600 hover:text-white">
-                        <i class="fa-solid fa-list-check ml-1.5 text-emerald-400"></i> مامەڵەکان
+                    <a href="{{ route('transactions.index') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-sky-600 hover:text-white">
+                        <i class="fa-solid fa-list-check ml-1.5 text-emerald-500"></i> مامەڵەکان
                     </a>
+
+                    <!-- چاپی نوسراوەکان (Booklet and Admin ONLY) -->
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'booklet'))
-                        <a href="{{ route('transactions.official_prints') }}" class="p-2.5 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-amber-300 hover:bg-amber-600 hover:text-white">
-                            <i class="fa-solid fa-print ml-1.5 text-amber-400"></i> چاپی نوسراوەکان
+                        <a href="{{ route('transactions.official_prints') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-amber-600 dark:text-amber-300 hover:bg-amber-600 hover:text-white">
+                            <i class="fa-solid fa-print ml-1.5 text-amber-500"></i> چاپی نوسراوەکان
                         </a>
                     @endif
-                    <a href="{{ route('transactions.expired_booklets') }}" class="p-2.5 rounded-xl bg-slate-900 border border-rose-500/40 text-rose-300 hover:bg-rose-600 hover:text-white flex items-center justify-center">
-                        <i class="fa-solid fa-calendar-xmark ml-1.5 text-rose-400"></i> بەسەرچووەکان
-                    </a>
-                    <a href="{{ route('reports.accounting_66') }}" class="p-2.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-300 hover:bg-amber-600 hover:text-white flex items-center justify-center">
-                        <i class="fa-solid fa-file-invoice-dollar ml-1.5 text-amber-400"></i> محاسبة ٦٦
-                    </a>
+
+                    <!-- دەفتەرە بەسەرچووەکان (Point 5: Booklet and Admin ONLY) -->
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'booklet'))
+                        <a href="{{ route('transactions.expired_booklets') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-300 hover:bg-rose-600 hover:text-white flex items-center justify-center">
+                            <i class="fa-solid fa-calendar-xmark ml-1.5 text-rose-500"></i> بەسەرچووەکان
+                        </a>
+                    @endif
+
+                    <!-- محاسبة ٦٦ (Point 3: Cashier and Admin ONLY) -->
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier'))
+                        <a href="{{ route('reports.accounting_66') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-500/40 text-amber-600 dark:text-amber-300 hover:bg-amber-600 hover:text-white flex items-center justify-center">
+                            <i class="fa-solid fa-file-invoice-dollar ml-1.5 text-amber-500"></i> محاسبة ٦٦
+                        </a>
+                    @endif
+
+                    <!-- مامەڵەی نوێ (Point 8: Data Entry and Admin ONLY) -->
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
                         <a href="{{ route('transactions.create') }}" class="p-2.5 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
                             <i class="fa-solid fa-plus-circle ml-1.5"></i> مامەڵەی نوێ
                         </a>
                     @endif
+
                     @if(auth()->check() && auth()->user()->isAdmin())
-                        <a href="{{ route('users.index') }}" class="p-2.5 rounded-xl bg-slate-900 border border-indigo-500/40 text-indigo-300 flex items-center justify-center">
+                        <a href="{{ route('settings.lookups') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-500/40 text-teal-600 dark:text-teal-300 flex items-center justify-center">
+                            <i class="fa-solid fa-folder-tree ml-1.5"></i> پێناسەکان
+                        </a>
+                        <a href="{{ route('users.index') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-indigo-300 dark:border-indigo-500/40 text-indigo-600 dark:text-indigo-300 flex items-center justify-center">
                             <i class="fa-solid fa-users-gear ml-1.5"></i> فەرمانبەران
                         </a>
-                        <a href="{{ route('settings.pricing') }}" class="p-2.5 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-300 flex items-center justify-center">
+                        <a href="{{ route('settings.pricing') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-500/40 text-amber-600 dark:text-amber-300 flex items-center justify-center">
                             <i class="fa-solid fa-sliders ml-1.5"></i> نرخەکان
                         </a>
-                        <a href="{{ route('transactions.trash') }}" class="p-2.5 rounded-xl bg-slate-900 border border-rose-500/40 text-rose-300 flex items-center justify-center">
+                        <a href="{{ route('transactions.trash') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-300 flex items-center justify-center">
                             <i class="fa-solid fa-trash-can ml-1.5"></i> سڕاوەکان
                         </a>
+                        <!-- لۆگ (Point 4: Admin ONLY) -->
+                        <a href="{{ route('logs.index') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300">
+                            <i class="fa-solid fa-clock-rotate-left ml-1.5 text-slate-500"></i> لۆگ
+                        </a>
                     @endif
-                    <a href="{{ route('logs.index') }}" class="p-2.5 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-300">
-                        <i class="fa-solid fa-clock-rotate-left ml-1.5 text-slate-400"></i> لۆگ
-                    </a>
                 </div>
 
                 @auth

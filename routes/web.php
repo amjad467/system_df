@@ -69,6 +69,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/transactions/{transaction}/cancel', [TransactionController::class, 'cancel'])->name('transactions.cancel');
 
     Route::post('/transactions/{transaction}/return', [TransactionController::class, 'returnTransaction'])->name('transactions.return');
+    Route::post('/transactions/{transaction}/revert-inspection', [TransactionController::class, 'revertInspection'])->name('transactions.revert_inspection');
     Route::post('/transactions/{transaction}/revert-step', [TransactionController::class, 'revertStep'])->name('transactions.revert_step');
     Route::post('/transactions/{transaction}/create-pledge', [TransactionController::class, 'createRelatedPledge'])->name('transactions.create_pledge');
     Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.destroy');
@@ -114,6 +115,7 @@ Route::middleware('auth')->group(function () {
     // Super Admin Settings & User Management
     Route::get('/settings/pricing', [SettingsController::class, 'pricing'])->name('settings.pricing');
     Route::post('/settings/pricing', [SettingsController::class, 'updatePricing'])->name('settings.pricing.update');
+    Route::get('/settings/lookups', [SettingsController::class, 'lookups'])->name('settings.lookups');
 
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');

@@ -38,4 +38,17 @@ class SettingsController extends Controller
 
         return redirect()->back()->with('success', 'نرخی سەرجەم مامەڵەکان بە سەرکەوتوویی لەلایەن سۆپەر ئەدمین نوێکرایەوە.');
     }
+
+    public function lookups()
+    {
+        if (!auth()->user()->isAdmin()) {
+            return redirect()->route('dashboard')->with('error', 'تەنها ئەدمین دەتوانێت داتاکانی بەڕێوەبەرایەتی و جۆری مامەڵە بەڕێوەببات!');
+        }
+
+        $transactionTypes = TransactionType::all();
+        $directorates = \App\Models\TrafficDirectorate::all();
+        $directors = \App\Models\Director::all();
+
+        return view('settings.lookups', compact('transactionTypes', 'directorates', 'directors'));
+    }
 }

@@ -477,5 +477,81 @@ class TransactionWorkflowTest extends TestCase
         $exportResponse->assertStatus(200);
         $exportResponse->assertHeader('content-type', 'text/csv; charset=UTF-8');
     }
+
+    public function test_inspector_can_revert_inspection_before_audit(): void
+    {
+        $inspector = User::where('user_login', 'inspector')->first();
+        $tx = Transaction::first();
+        $tx->update([
+            'is_inspected' => true,
+            'inspected_by' => $inspector->name,
+            'inspected_at' => now(),
+            'is_audited' => false,
+        ]);
+
+        $response = $this->actingAs($inspector)->post(route('transactions.revert_inspection', $tx->id));
+        $response->assertRedirect(route('transactions.show', $tx->id));
+
+        $tx->refresh();
+        $this->assertFalse((bool)$tx->is_inspected);
+        $this->assertTrue((bool)$tx->is_returned);
+        $this->assertTrue($tx->canBeEditedByDataEntry());
+    }
+
+    public function test_auditor_requires_exact_matching_amount(): void
+    {
+        $auditor = User::where('user_login', 'auditor')->first();
+        $tx = Transaction::first();
+        $tx->update([
+            'is_inspected' => true,
+            'is_audited' => false,
+            'total_pay' => 50000,
+        ]);
+
+        // Wrong amount fails
+        $wrongResponse = $this->actingAs($auditor)->post(route('transactions.audit', $tx->id), [
+            'confirm_total_pay' => '40000',
+        ]);
+        $wrongResponse->assertSessionHas('error');
+        $tx->refresh();
+        $this->assertFalse((bool)$tx->is_audited);
+
+        // Correct amount succeeds
+        $correctResponse = $this->actingAs($auditor)->post(route('transactions.audit', $tx->id), [
+            'confirm_total_pay' => '50000',
+        ]);
+        $correctResponse->assertSessionHas('success');
+        $tx->refresh();
+        $this->assertTrue((bool)$tx->is_audited);
+    }
+
+    public function test_role_restrictions_for_accounting_logs_lookups(): void
+    {
+        $dataEntry = User::where('role', 'data_entry')->first();
+        $cashier = User::where('role', 'cashier')->first();
+        $admin = User::where('role', 'admin')->first();
+
+        // Data Entry cannot access accounting 66
+        $res = $this->actingAs($dataEntry)->get(route('reports.accounting_66'));
+        $res->assertRedirect(route('dashboard'));
+
+        // Cashier can access accounting 66
+        $res = $this->actingAs($cashier)->get(route('reports.accounting_66'));
+        $res->assertStatus(200);
+
+        // Non-admin cannot access logs or lookups
+        $res = $this->actingAs($dataEntry)->get(route('logs.index'));
+        $res->assertRedirect(route('dashboard'));
+
+        $res = $this->actingAs($dataEntry)->get(route('settings.lookups'));
+        $res->assertRedirect(route('dashboard'));
+
+        // Admin can access both
+        $res = $this->actingAs($admin)->get(route('logs.index'));
+        $res->assertStatus(200);
+
+        $res = $this->actingAs($admin)->get(route('settings.lookups'));
+        $res->assertStatus(200);
+    }
 }
 

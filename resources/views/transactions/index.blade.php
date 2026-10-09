@@ -25,18 +25,18 @@
     </div>
 
     <!-- Filter & Search Bar -->
-    <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-4 shadow-xl">
+    <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 shadow-sm dark:shadow-xl">
         <form action="{{ route('transactions.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-3">
             <!-- Search Text -->
             <div class="md:col-span-2 relative">
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="گەڕان بەپێی بارکۆد، ناوی شۆفێر، ژمارەی تابلۆ، وەسڵ یان دەفتەر..."
-                       class="w-full bg-slate-900 border border-slate-700 rounded-xl pr-10 pl-4 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-sky-500 focus:outline-none">
-                <i class="fa-solid fa-magnifying-glass absolute right-3 top-3 text-slate-500"></i>
+                       class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl pr-10 pl-4 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-sky-500 focus:outline-none">
+                <i class="fa-solid fa-magnifying-glass absolute right-3 top-3 text-slate-400"></i>
             </div>
 
             <!-- Transaction Type Filter -->
             <div>
-                <select name="transaction_type_id" onchange="this.form.submit()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
+                <select name="transaction_type_id" onchange="this.form.submit()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-sky-500 focus:outline-none">
                     <option value="">گشت جۆرەکانی مامەڵە</option>
                     @foreach($transactionTypes as $tt)
                         <option value="{{ $tt->id }}" {{ request('transaction_type_id') == $tt->id ? 'selected' : '' }}>{{ $tt->name_kurdish }}</option>
@@ -46,11 +46,11 @@
 
             <!-- Stage Filter -->
             <div>
-                <select name="stage" onchange="this.form.submit()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
+                <select name="stage" onchange="this.form.submit()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:border-sky-500 focus:outline-none">
                     <option value="">گشت قۆناغەکان</option>
                     <option value="inspection" {{ request('stage') == 'inspection' ? 'selected' : '' }}>چاوەڕوانی کەشف</option>
                     <option value="audit" {{ request('stage') == 'audit' ? 'selected' : '' }}>چاوەڕوانی وردبینی</option>
-                    <option value="payment" {{ request('stage') == 'payment' ? 'selected' : '' }}>چاوەڕوانی وەسڵ/پارەدا</option>
+                    <option value="payment" {{ request('stage') == 'payment' ? 'selected' : '' }}>چاوەڕوانی وەسڵ/پارەدان</option>
                     <option value="booklet" {{ request('stage') == 'booklet' ? 'selected' : '' }}>چاوەڕوانی دەفتەر</option>
                     <option value="completed" {{ request('stage') == 'completed' ? 'selected' : '' }}>تەواوکراوەکان</option>
                     <option value="cancelled" {{ request('stage') == 'cancelled' ? 'selected' : '' }}>پووچەڵکراوەکان</option>
@@ -60,10 +60,10 @@
     </div>
 
     <!-- Table -->
-    <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl shadow-xl overflow-hidden">
+    <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-sm dark:shadow-xl overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-right text-sm text-slate-300">
-                <thead class="bg-slate-900/80 text-slate-400 text-xs uppercase border-b border-slate-700">
+            <table class="w-full text-right text-sm text-slate-700 dark:text-slate-300">
+                <thead class="bg-slate-50 dark:bg-slate-900/80 text-slate-500 dark:text-slate-400 text-xs uppercase border-b border-slate-200 dark:border-slate-700">
                     <tr>
                         <th class="p-3.5">بارکۆد</th>
                         <th class="p-3.5">ناوی شۆفێر / خاوەن</th>

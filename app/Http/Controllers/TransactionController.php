@@ -153,6 +153,10 @@ class TransactionController extends Controller
 
     public function create(Request $request)
     {
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'data_entry') {
+            return redirect()->route('dashboard')->with('error', 'تەنها کارمەندی داتائەنتەری و ئەدمین دەتوانن مامەڵەی نوێ تۆمار بکەن!');
+        }
+
         $directorates = TrafficDirectorate::all();
         $directors = Director::all();
         $plateTypes = PlateType::all();
@@ -211,6 +215,10 @@ class TransactionController extends Controller
 
     public function expiredBookletsReport(Request $request)
     {
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'booklet') {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی دەفتەرە بەسەرچووەکان تەنها بۆ بەشی دەفتەر و ئەدمینە!');
+        }
+
         $status = $request->get('status', 'expired'); // 'expired', 'expiring_soon', 'all'
         $search = $request->get('search');
 
@@ -265,6 +273,10 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'data_entry') {
+            return redirect()->route('dashboard')->with('error', 'تەنها کارمەندی داتائەنتەری و ئەدمین دەتوانن مامەڵەی نوێ تۆمار بکەن!');
+        }
+
         $validated = $request->validate([
             'parent_transaction_id' => 'nullable|exists:transactions,id',
             'transaction_type_id' => 'required|exists:transaction_types,id',
@@ -549,7 +561,11 @@ class TransactionController extends Controller
             'return_reason' => $validated['return_reason'],
             'returned_by_user_id' => auth()->id(),
             'is_inspected' => false,
+            'inspected_by' => null,
+            'inspected_at' => null,
             'is_audited' => false,
+            'audited_by' => null,
+            'audited_at' => null,
         ]);
 
         AuditLogger::log('گەڕاندنەوەی مامەڵە بۆ چاککردنەوە', Transaction::class, $transaction->id, "هۆکار: {$validated['return_reason']}");
@@ -626,9 +642,33 @@ class TransactionController extends Controller
         return redirect()->back()->with('success', 'کەشف و تەخمین بە سەرکەوتوویی پەسەندکرا. قۆناغی دەستکاریکردن قوفڵ بوو.');
     }
 
-    public function audit(Transaction $transaction)
+    public function revertInspection(Transaction $transaction)
     {
-        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('transactions.audit')) {
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'inspector' && !auth()->user()->hasPermission('transactions.inspect')) {
+            return redirect()->route('transactions.show', $transaction->id)->with('error', 'تەنها ئەندازیاری کەشف و تەخمین دەتوانێت ئەم قۆناغە هەڵوەشێنێتەوە!');
+        }
+
+        if ($transaction->is_audited) {
+            return redirect()->route('transactions.show', $transaction->id)->with('error', 'ئەم مامەڵەیە وردبینی بۆ کراوە و لە قۆناغی وردبینییە یان دواتر! ناتوانرێت هەڵبوەشێنرێتەوە.');
+        }
+
+        $transaction->update([
+            'is_inspected' => false,
+            'inspected_by' => null,
+            'inspected_at' => null,
+            'is_returned' => true,
+            'return_reason' => 'هەڵوەشاندنەوەی تەخمین لەلایەن ئەندازیار بۆ چاککردنەوە لە داتائەنتەری',
+            'returned_by_user_id' => auth()->id(),
+        ]);
+
+        AuditLogger::log('هەڵوەشاندنەوەی قۆناغی تەخمین', Transaction::class, $transaction->id, "تەخمین هەڵوەشێنرایەوە بۆ بارکۆد: {$transaction->barcode}");
+
+        return redirect()->route('transactions.show', $transaction->id)->with('warning', 'قۆناغی کەشف و تەخمین هەڵوەشێنرایەوە و گەڕێنرایەوە بۆ داتائەنتەری بۆ چاککردنەوەی هەڵە.');
+    }
+
+    public function audit(Request $request, Transaction $transaction)
+    {
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('transactions.audit') && auth()->user()->role !== 'auditor') {
             return redirect()->back()->with('error', 'تەنها کارمەندی وردبین (Auditor) دەتوانێت تێپەڕاندنی قۆناغی وردبینی ئەنجام بدات!');
         }
 
@@ -636,10 +676,20 @@ class TransactionController extends Controller
             return redirect()->back()->with('error', 'کاری تەخمین ئەنجام بدە دواتر وەرە وردبینی! ناتوانرێت ستێپی تەخمین تێپەڕێندرێت.');
         }
 
+        if ($request->filled('confirm_total_pay')) {
+            $entered = (float)preg_replace('/[^\d.]/', '', (string)$request->confirm_total_pay);
+            $actual = (float)$transaction->total_pay;
+            if (abs($entered - $actual) > 0.01) {
+                return redirect()->back()->with('error', 'بڕی پارەی دووپاتکراوە (' . number_format($entered) . ' د.ع) یەکسان نییە لەگەڵ کۆی گشتی مامەڵەکە (' . number_format($actual) . ' د.ع)!');
+            }
+        }
+
         $transaction->update([
             'is_audited' => true,
             'audited_by' => auth()->user()?->name ?? 'وردبین',
             'audited_at' => now(),
+            'is_returned' => false,
+            'return_reason' => null,
         ]);
 
         AuditLogger::log('وردبینیکردنی مامەڵە', Transaction::class, $transaction->id, "وردبینی پەسەندکرا بۆ بارکۆد: {$transaction->barcode}");
@@ -745,6 +795,10 @@ class TransactionController extends Controller
 
     public function printPaymentReceipt(Transaction $transaction)
     {
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'cashier') {
+            return redirect()->back()->with('error', 'تەنها ژمێریار / وەسڵبڕ و ئەدمین دەتوانن پسوولەی پارەدان چاپ بکەن!');
+        }
+
         if (!$transaction->is_paid) {
             return redirect()->back()->with('error', 'پسوولەی پارەدان شایەنی چاپکردن نییە چونکە مامەڵەکە پارەدانی بۆ ئەنجام نەدراوە.');
         }
@@ -938,6 +992,10 @@ class TransactionController extends Controller
 
     public function printDataEntry(Transaction $transaction)
     {
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'data_entry') {
+            return redirect()->back()->with('error', 'تەنها کارمەندی داتائەنتەری و ئەدمین دەتوانن فیشەی داتائەنتەری چاپ بکەن!');
+        }
+
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director', 'parentTransaction', 'relatedTransactions']);
         return view('transactions.print_data_entry', compact('transaction'));
     }

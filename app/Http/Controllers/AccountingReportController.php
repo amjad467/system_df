@@ -13,6 +13,10 @@ class AccountingReportController extends Controller
 {
     public function index(Request $request)
     {
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'cashier') {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی ڕاپۆرتی محاسبة ٦٦ تەنها بۆ ژمێریار / وەسڵبڕ و ئەدمینە!');
+        }
+
         $data = $this->prepareReportData($request);
         $transactionTypes = TransactionType::all();
 
@@ -23,6 +27,10 @@ class AccountingReportController extends Controller
 
     public function print(Request $request)
     {
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'cashier') {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی چاپی محاسبة ٦٦ تەنها بۆ ژمێریار / وەسڵبڕ و ئەدمینە!');
+        }
+
         $data = $this->prepareReportData($request);
         return view('transactions.print_accounting_report', $data);
     }
