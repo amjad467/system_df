@@ -1,0 +1,296 @@
+[
+    {
+        "id": 1,
+        "name_kurdish": "تۆیۆتا راف فۆر",
+        "name_english": "Toyota rav 4",
+        "created_at": null,
+        "updated_at": "2026-10-04 10:07:52"
+    },
+    {
+        "id": 2,
+        "name_kurdish": "نیسان",
+        "name_english": "Nissan",
+        "created_at": null,
+        "updated_at": null
+    },
+    {
+        "id": 3,
+        "name_kurdish": "هیۆندای",
+        "name_english": "Hyundai",
+        "created_at": null,
+        "updated_at": null
+    },
+    {
+        "id": 4,
+        "name_kurdish": "کیا",
+        "name_english": "Kia",
+        "created_at": null,
+        "updated_at": null
+    },
+    {
+        "id": 5,
+        "name_kurdish": "میڕسیدس",
+        "name_english": "Mercedes-Benz",
+        "created_at": null,
+        "updated_at": null
+    },
+    {
+        "id": 6,
+        "name_kurdish": "بی ئێم دەبلیو",
+        "name_english": "BMW",
+        "created_at": null,
+        "updated_at": null
+    },
+    {
+        "id": 7,
+        "name_kurdish": "شۆفرلێت",
+        "name_english": "Chevrolet",
+        "created_at": null,
+        "updated_at": null
+    },
+    {
+        "id": 8,
+        "name_kurdish": "فۆرد",
+        "name_english": "Ford",
+        "created_at": null,
+        "updated_at": null
+    },
+    {
+        "id": 9,
+        "name_kurdish": "لێکسس",
+        "name_english": "Lexus",
+        "created_at": null,
+        "updated_at": null
+    },
+    {
+        "id": 10,
+        "name_kurdish": "تۆیۆتا",
+        "name_english": "Toyota",
+        "created_at": null,
+        "updated_at": null
+    },
+    {
+        "id": 11,
+        "name_kurdish": "تويوتا لاندكروز استيشن",
+        "name_english": "TOYOTA",
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-11-01 09:00:42"
+    },
+    {
+        "id": 12,
+        "name_kurdish": "تويوتا بيك اب دبل قماره‌",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 13,
+        "name_kurdish": "شوفرليت تاهؤ استيشن",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 14,
+        "name_kurdish": "فورد اكسبلور استيشن",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 15,
+        "name_kurdish": "دوج جارجر صالون",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 16,
+        "name_kurdish": "يوكون استيشن GMC اوتوماتيك",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 17,
+        "name_kurdish": "جيتور X70Pستيشن",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 18,
+        "name_kurdish": "دوج دورانجو استيشن اتوماتيك",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 19,
+        "name_kurdish": "تويوتا برادو استيشن ئوتوماتيك",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 20,
+        "name_kurdish": "تويوتا راف استيشن اتوماتيك",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 21,
+        "name_kurdish": "رانج روراستيشن اوتوماتيك",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 22,
+        "name_kurdish": "فولكس واكن جيتا صالون",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 23,
+        "name_kurdish": "جيب كراند شيروكى استيشن",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 24,
+        "name_kurdish": "نيسان روك استيشن اوتوماتيك",
+        "name_english": "NISSAN RUGE",
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-11-02 20:27:37"
+    },
+    {
+        "id": 25,
+        "name_kurdish": "هيونداى سانتافى صالون",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 26,
+        "name_kurdish": "هيونداى توكسون استيشن",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 27,
+        "name_kurdish": "لكزز 570lx استيشن اتوماتيك",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 28,
+        "name_kurdish": "نيسان باثفاندةر استيشن",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 29,
+        "name_kurdish": "نيسان سنترا صالون",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 30,
+        "name_kurdish": "هه‌ڤال H6استيشن",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 31,
+        "name_kurdish": "BMW هابير استيشن",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 32,
+        "name_kurdish": "شوفرليت سوبربان استيشن اتوماتيك",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 33,
+        "name_kurdish": "T2 جيتور استيشن",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 34,
+        "name_kurdish": "جيب جيروكى استيشن",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 35,
+        "name_kurdish": "كيا K5 صالون",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 36,
+        "name_kurdish": "لكزز استيشن",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 37,
+        "name_kurdish": "كيا سبورتاج استيشن",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 38,
+        "name_kurdish": "نيسان التيما صالون",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 39,
+        "name_kurdish": "جيب رانجلر استيشن",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 40,
+        "name_kurdish": "شوفرليت كامارو ذوبابين صالون اتوماتيك",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 41,
+        "name_kurdish": "تويوتا هايلوكس بيك اب دبل قماره‌",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    },
+    {
+        "id": 42,
+        "name_kurdish": "تويوتا اظلون صالون",
+        "name_english": null,
+        "created_at": "2026-10-30 21:12:53",
+        "updated_at": "2026-10-30 21:12:53"
+    }
+]

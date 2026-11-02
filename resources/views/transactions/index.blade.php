@@ -98,6 +98,9 @@
             @endif
 
             @if(auth()->check() && auth()->user()->isAdmin())
+                <a href="{{ route('restore_records') }}" onclick="return confirm('ئایا دڵنیایت لە هاوردەکردن/گەڕاندنەوەی سەرجەم ٨٤ تۆمارە بنەڕەتییەکان و هەموو داتاکانی ئەکسێس؟');" class="px-3.5 py-2 bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/40 font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5" title="گەڕاندنەوەی هەموو تۆمارە کۆنەکان و هاوردەکراوەکان">
+                    <i class="fa-solid fa-cloud-arrow-down text-indigo-400"></i> گەڕاندنەوەی سەرجەم تۆمارەکان (84 تۆمار)
+                </a>
                 <a href="{{ route('transactions.trash') }}" class="px-3.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5">
                     <i class="fa-solid fa-trash-can text-rose-400"></i> سڕاوەکان
                 </a>

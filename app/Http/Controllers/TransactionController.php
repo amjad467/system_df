@@ -23,9 +23,14 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
+        // Self-heal: If database is empty on hosted service, automatically restore all 84 baseline records
+        if (Transaction::count() === 0) {
+            \App\Services\DataRestoreService::restoreAll();
+        }
+
         $today = now()->toDateString();
 
-        // ڕێکخستنی بەروار: بە شێوەی بنەڕەتی تەنها بۆ ئەمڕۆیە
+        // ڕێکخستنی بەروار: ئەگەر فلتەر دیارینەکرابوو، ئەگەر ئەمڕۆ تۆمار هەبوو today بەکاربێنە، دەنا all بۆ ئەوەی تۆمارەکان بە بەتاڵی دەرنەکەون
         $dateFilter = $request->get('date_filter');
         if (!$dateFilter) {
             if ($request->filled('from_date') || $request->filled('to_date')) {
@@ -33,7 +38,8 @@ class TransactionController extends Controller
             } elseif ($request->has('all_dates')) {
                 $dateFilter = 'all';
             } else {
-                $dateFilter = 'today';
+                $hasToday = Transaction::whereDate('transaction_date', $today)->orWhereDate('created_at', $today)->exists();
+                $dateFilter = $hasToday ? 'today' : 'all';
             }
         }
 

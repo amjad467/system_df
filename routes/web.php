@@ -22,6 +22,13 @@ Route::get('/create-admin', function () {
     return response('<h3>سەرکەوتوو بوو! هەموو ئەکاونتەکان بە وشەی تێپەڕی 123456 ئامادەکران:</h3><ul><li>ئەدمین: <strong>admin</strong> | پاسۆرد: <strong>123456</strong></li><li>داتا ئەنتەری: <strong>dataentry</strong> | پاسۆرد: <strong>123456</strong></li><li>تەخمین: <strong>inspector</strong> | پاسۆرد: <strong>123456</strong></li><li>وردبینی: <strong>auditor</strong> | پاسۆرد: <strong>123456</strong></li><li>وەسڵبڕ: <strong>cashier</strong> | پاسۆرد: <strong>123456</strong></li><li>دەفتەر: <strong>booklet</strong> | پاسۆرد: <strong>123456</strong></li></ul><br><a href="/login" style="padding:10px 20px;background:#0284c7;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;">بڕۆ بۆ پەڕەی چوونەژوورەوە</a>', 200, ['Content-Type' => 'text/html; charset=UTF-8']);
 });
 
+// هاوردەکردن و گەڕاندنەوەی سەرجەم داتاکان (84 تۆمار و ئەکسێس)
+Route::get('/restore-records', function () {
+    \App\Http\Controllers\Auth\LoginController::ensureDefaultUsersExist();
+    $stats = \App\Services\DataRestoreService::restoreAll();
+    return redirect()->route('transactions.index', ['date_filter' => 'all'])->with('success', "سەرکەوتوو بوو! هەموو {$stats['transactions']} تۆمارەکە (تۆمارە کۆنەکان و داتاکانی ئەکسێس) بە سەرکەوتوویی گەڕێنرانەوە بۆ سیستەم.");
+})->name('restore_records');
+
 Route::middleware('auth')->group(function () {
     Route::get('/', function () {
         return redirect()->route('dashboard');

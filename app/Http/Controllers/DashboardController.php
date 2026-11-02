@@ -10,6 +10,11 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // Self-heal: If database is empty on hosted service, automatically restore all 84 baseline records
+        if (Transaction::count() === 0) {
+            \App\Services\DataRestoreService::restoreAll();
+        }
+
         $totalTransactions = Transaction::count();
         $totalIncome = Transaction::where('is_paid', true)->sum('total_pay');
         $pendingInspection = Transaction::where('is_inspected', false)->whereNull('cancelled_at')->count();
