@@ -56,34 +56,27 @@
         $linkedBooklet = $transaction->parentTransaction ?? $transaction->relatedTransactions->first();
     @endphp
 
-    <!-- Top Action Bar (Hide in Print) -->
-    <div class="no-print mb-4 max-w-4xl mx-auto flex items-center justify-between bg-slate-900 text-white p-3.5 rounded-2xl shadow-xl">
-        <div class="flex items-center space-x-3 space-x-reverse text-sm font-bold">
-            <span class="bg-amber-500/20 text-amber-300 px-3.5 py-1 rounded-xl border border-amber-500/40 flex items-center">
-                <svg class="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                فیشەی فەرمی بەڵێننامەی یاسایی
-            </span>
-            <span class="text-slate-300">بارکۆد: <strong class="font-mono text-amber-300 text-base">{{ $transaction->barcode }}</strong></span>
+    <!-- Top Studio Toolbar (Hidden during printing) -->
+    <x-print-layout-studio 
+        docId="letter_pledge" 
+        targetId="pledgePrintArea" 
+        title="فیشەی بەڵێننامەی یاسایی • {{ $transaction->barcode }}" 
+        initialTop="0" 
+        initialRight="0" 
+        initialZoom="100" />
+
+    @if($linkedBooklet)
+        <div class="no-print max-w-4xl mx-auto my-2 p-2.5 bg-blue-900/40 border border-blue-500/40 rounded-xl flex items-center justify-between text-xs text-blue-200">
+            <span class="font-bold">ئەم بەڵێننامەیە بەستراوەتەوە بە دەفتەری سەرەکی:</span>
+            <a href="{{ route('transactions.print_data_entry', $linkedBooklet->id) }}" target="_blank" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-lg transition inline-flex items-center">
+                <svg class="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 000-4H9a2 2 0 000 4zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                چاپکردنی فیشەی دەفتەر ({{ $linkedBooklet->barcode }})
+            </a>
         </div>
-        <div class="flex items-center space-x-3 space-x-reverse">
-            @if($linkedBooklet)
-                <a href="{{ route('transactions.print_data_entry', $linkedBooklet->id) }}" target="_blank" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm rounded-xl shadow-lg transition flex items-center">
-                    <svg class="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 000-4H9a2 2 0 000 4zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    چاپکردنی فیشەی دەفتەر ({{ $linkedBooklet->barcode }})
-                </a>
-            @endif
-            <button onclick="window.print()" class="px-6 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-black text-sm rounded-xl shadow-lg transition flex items-center">
-                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 000-4H9a2 2 0 000 4zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                چاپکردنی بەڵێننامە (Print Pledge)
-            </button>
-            <button onclick="window.close()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm rounded-xl transition">
-                داخستن
-            </button>
-        </div>
-    </div>
+    @endif
 
     <!-- MAIN FORM PORTRAIT ROUTING CARD (Exact same frame & standard format as print_data_entry) -->
-    <div class="print-card bg-white border-2 border-black p-6 rounded-md shadow-xl max-w-4xl mx-auto space-y-4">
+    <div id="pledgePrintArea" class="print-card bg-white border-2 border-black p-6 rounded-md shadow-xl max-w-4xl mx-auto space-y-4 mt-3">
 
         <!-- Header Section -->
         <div class="border-b-2 border-black pb-3 flex items-center justify-between">

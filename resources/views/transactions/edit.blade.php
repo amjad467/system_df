@@ -97,6 +97,24 @@
                     <input type="text" name="second_driver_name_eng" value="{{ old('second_driver_name_eng', $transaction->second_driver_name_eng) }}" dir="ltr" 
                            class="w-full bg-slate-900/60 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
                 </div>
+
+                <!-- ژمارەی پاسپۆرت (تەنها لەگەڵ دەرهێنانی دەفتەر) -->
+                <div x-show="parseInt(typeId) === 1" x-cloak>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center">
+                        <i class="fa-solid fa-passport ml-1.5 text-amber-400"></i> ژمارەی پاسپۆرت (Passport No.)
+                    </label>
+                    <input type="text" name="passport_number" value="{{ old('passport_number', $transaction->passport_number) }}" placeholder="مثلاً: A12345678" dir="ltr" 
+                           class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:outline-none uppercase">
+                </div>
+
+                <!-- ناونیشان (تەنها لەگەڵ دەرهێنانی دەفتەر) -->
+                <div x-show="parseInt(typeId) === 1" x-cloak>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center">
+                        <i class="fa-solid fa-map-location-dot ml-1.5 text-sky-400"></i> ناونیشان (Address)
+                    </label>
+                    <input type="text" name="address" value="{{ old('address', $transaction->address) }}" placeholder="ناونیشانی نیشتەجێبوون (شار، گەڕەک)..." 
+                           class="w-full bg-slate-900 border border-slate-700 focus:border-sky-400 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none">
+                </div>
             </div>
         </div>
 

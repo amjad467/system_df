@@ -40,28 +40,17 @@
 </head>
 <body class="p-4">
 
-    <!-- Top Action Bar (Hidden in Print) -->
-    <div class="no-print mb-4 max-w-4xl mx-auto flex items-center justify-between bg-slate-900 text-white p-3.5 rounded-2xl shadow-xl">
-        <div class="flex items-center space-x-3 space-x-reverse text-sm font-bold">
-            <span class="bg-sky-500/20 text-sky-300 px-3.5 py-1 rounded-xl border border-sky-500/40 flex items-center">
-                <svg class="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                نوسراوی فەرمی پشکنین
-            </span>
-            <span class="text-slate-300">بارکۆد: <strong class="font-mono text-amber-300 text-base">{{ $transaction->barcode }}</strong></span>
-        </div>
-        <div class="flex items-center space-x-3 space-x-reverse">
-            <button onclick="window.print()" class="px-6 py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-black text-sm rounded-xl shadow-lg transition flex items-center">
-                <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 000-4H9a2 2 0 000 4zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                چاپکردنی نوسراو (Print)
-            </button>
-            <button onclick="window.close()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm rounded-xl transition">
-                داخستن
-            </button>
-        </div>
-    </div>
+    <!-- Top Studio Toolbar (Hidden during printing) -->
+    <x-print-layout-studio 
+        docId="letter_inspection" 
+        targetId="inspectionLetterPrintArea" 
+        title="نوسراوی پشکنین • {{ $transaction->barcode }}" 
+        initialTop="0" 
+        initialRight="0" 
+        initialZoom="100" />
 
     <!-- MAIN REPORT PRINT CARD -->
-    <div class="print-card bg-white border-2 border-black p-6 rounded-md shadow-xl max-w-4xl mx-auto space-y-4 text-black">
+    <div id="inspectionLetterPrintArea" class="print-card bg-white border-2 border-black p-6 rounded-md shadow-xl max-w-4xl mx-auto space-y-4 text-black mt-4">
 
         <!-- Emblem & Header Grid (Matching Image 3 exact header) -->
         <div class="border-2 border-black p-3 rounded-none relative">

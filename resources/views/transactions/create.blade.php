@@ -197,43 +197,101 @@
             </div>
         </div>
 
-        <!-- 2. Drivers Information -->
+        <!-- 2. Drivers Information & Key Vehicle Identity -->
         <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-4">
             <h3 class="text-base font-bold text-sky-400 border-b border-slate-700 pb-2 flex items-center">
                 <i class="fa-solid fa-user-gear ml-2"></i> ٢. زانیاری شۆفێر و هاووڵاتی
             </h3>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- 1. ژمارەی شاسی (VIN) - لە پێش ژمارەی مۆبایلەوەیە -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-bold text-sky-400 flex items-center">
+                            <i class="fa-solid fa-barcode ml-1 text-sky-400"></i> ژمارەی شاسی ئۆتۆمبێل (VIN) *
+                        </label>
+                        <span x-show="isCheckingChassis" class="text-[10px] text-sky-400 flex items-center gap-1 font-bold animate-pulse">
+                            <i class="fa-solid fa-spinner fa-spin"></i> پشکنین...
+                        </span>
+                    </div>
+                    <input type="text" 
+                           name="chassis_number" 
+                           x-model="chassisNumber" 
+                           @input.debounce.400ms="lookupByChassis()" 
+                           @change="lookupByChassis()" 
+                           @blur="lookupByChassis()" 
+                           @keydown.enter.prevent="lookupByChassis(); $refs.phoneInput ? $refs.phoneInput.focus() : null;" 
+                           required 
+                           autofocus
+                           placeholder="17-Digit VIN Number" 
+                           dir="ltr"
+                           class="w-full bg-slate-900 border border-sky-500/60 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono uppercase focus:border-sky-400 focus:outline-none">
+
+                    <!-- تێبینی کاتێک زانیاری پێشتری هەبێت -->
+                    <div x-show="chassisFound && chassisPreviousInfo" x-cloak class="mt-1.5 p-1.5 bg-emerald-950/80 border border-emerald-500/50 rounded-lg text-[11px] text-emerald-300 flex items-center justify-between">
+                        <span class="flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                            <span>زانیاری پێشتری هەیە (خۆکار پڕکرایەوە).</span>
+                        </span>
+                        <button type="button" @click="clearChassisAutoFill()" class="text-rose-400 hover:text-rose-300 font-bold underline mr-1 text-[10px]">
+                            سڕینەوە
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. ژمارەی مۆبایلی هاووڵاتی -->
                 <div>
                     <label class="block text-xs font-bold text-emerald-400 mb-1.5 flex items-center">
                         <i class="fa-solid fa-phone ml-1 text-emerald-400"></i> ژمارەی مۆبایلی هاووڵاتی *
                     </label>
-                    <input type="text" name="phone_number" x-model="phoneNumber" placeholder="مثلاً: 0770 123 4567" dir="ltr" 
+                    <input type="text" name="phone_number" x-ref="phoneInput" x-model="phoneNumber" placeholder="مثلاً: 0770 123 4567" dir="ltr" 
                            class="w-full bg-slate-900 border border-emerald-500/50 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-emerald-400 focus:outline-none">
                 </div>
 
+                <!-- 3. ناوی شۆفێری یەکەم بە کوردی -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">ناوى شۆفێرى يه‌كه‌م بە کوردی / عەرەبی *</label>
                     <input type="text" name="visitor_name" x-model="visitorName" required placeholder="ناوی سێیانی شۆفێری یەکەم" 
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
                 </div>
 
+                <!-- 4. ناوی شۆفێری یەکەم بە ئینگلیزی -->
                 <div x-show="isFullBookletForm()">
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">ناوى شۆفێر يه‌كه‌م بە ئینگلیزی</label>
                     <input type="text" name="visitor_name_eng" x-model="visitorNameEng" placeholder="Full name in English" dir="ltr" 
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
                 </div>
 
+                <!-- 5. شۆفێری دووەم بە کوردی -->
                 <div x-show="isFullBookletForm()">
                     <label class="block text-xs font-semibold text-slate-400 mb-1.5">ناوى شۆفێری دووه‌م بە کوردی (ئارەزوومەندانه)</label>
                     <input type="text" name="second_driver_name" x-model="secondDriverName" placeholder="ناوی سێیانی شۆفێری دووەم" 
                            class="w-full bg-slate-900/60 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
                 </div>
 
+                <!-- 6. شۆفێری دووەم بە ئینگلیزی -->
                 <div x-show="isFullBookletForm()">
                     <label class="block text-xs font-semibold text-slate-400 mb-1.5">ناوى شۆفێر دووەم بە ئینگلیزی (ئارەزوومەندانە)</label>
                     <input type="text" name="second_driver_name_eng" x-model="secondDriverNameEng" placeholder="Second Driver in English" dir="ltr" 
                            class="w-full bg-slate-900/60 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
+                </div>
+
+                <!-- 7. ژمارەی پاسپۆرت (تەنها لەگەڵ دەرهێنانی دەفتەر) -->
+                <div x-show="parseInt(typeId) === 1" x-cloak>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center">
+                        <i class="fa-solid fa-passport ml-1.5 text-amber-400"></i> ژمارەی پاسپۆرت (Passport No.)
+                    </label>
+                    <input type="text" name="passport_number" x-model="passportNumber" placeholder="مثلاً: A12345678" dir="ltr" 
+                           class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:outline-none uppercase">
+                </div>
+
+                <!-- 8. ناونیشان (تەنها لەگەڵ دەرهێنانی دەفتەر) -->
+                <div x-show="parseInt(typeId) === 1" x-cloak>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center">
+                        <i class="fa-solid fa-map-location-dot ml-1.5 text-sky-400"></i> ناونیشان (Address)
+                    </label>
+                    <input type="text" name="address" x-model="address" placeholder="ناونیشانی نیشتەجێبوون (شار، گەڕەک)..." 
+                           class="w-full bg-slate-900 border border-slate-700 focus:border-sky-400 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none">
                 </div>
             </div>
         </div>
@@ -338,13 +396,6 @@
                            class="w-full bg-slate-900/60 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-sky-400 font-mono focus:outline-none">
                 </div>
 
-                <!-- Chassis Number (VIN) -->
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">ژمارەی شاسی (VIN) *</label>
-                    <input type="text" name="chassis_number" x-model="chassisNumber" required placeholder="17-Digit VIN Number" dir="ltr"
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono uppercase focus:border-sky-500 focus:outline-none">
-                </div>
-
                 <!-- Piston count -->
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">ژمارەی بستۆن</label>
@@ -437,7 +488,7 @@
         <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-sky-950 border-2 border-sky-500/50 rounded-2xl p-6 shadow-2xl space-y-4">
             <h3 class="text-base font-extrabold text-white flex items-center justify-between border-b border-slate-700 pb-3">
                 <span class="flex items-center">
-                    <i class="fa-solid fa-calculator ml-2 text-emerald-400"></i> هەژمارکردنی خۆکاری بڕی پارە و نرخەکان
+                    <i class="fa-solid fa-calculator ml-2 text-emerald-400"></i> ٦. هەژمارکردنی خۆکاری بڕی پارە و نرخەکان
                 </span>
                 <span class="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full font-mono font-bold" x-text="'کۆی گشتی: ' + Number(fees.total_pay).toLocaleString() + ' د.ع'"></span>
             </h3>
@@ -657,29 +708,58 @@
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl max-h-[85vh] flex flex-col">
             <h3 class="text-base font-bold text-white flex items-center justify-between border-b border-slate-700 pb-3">
                 <span><i class="fa-solid fa-car-side ml-2 text-sky-400"></i> بەڕێوەبردن و زیادکردنی مارکەی ئۆتۆمبێل</span>
-                <button @click="showCarMakeModal = false" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+                <button @click="showCarMakeModal = false; carMakeSearch = ''" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
             </h3>
 
-            <div class="overflow-y-auto flex-1 space-y-2 max-h-48 border-b border-slate-800 pb-3">
+            <!-- Live Search Box at Top of Modal (Kurdish & English) -->
+            <div class="space-y-1.5">
+                <label class="text-[11px] font-bold text-sky-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-magnifying-glass text-[10px]"></i>
+                    گەڕان لە مارکە تۆمارکراوەکان (Search Existing Makes):
+                </label>
+                <div class="relative">
+                    <input type="text" 
+                           x-model="carMakeSearch" 
+                           placeholder="گەڕان بە کوردی یان ئینگلیزی (مثلاً: تۆیۆتا / Toyota / KIA)..." 
+                           class="w-full bg-slate-800/90 border border-slate-600 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 rounded-xl pr-9 pl-8 py-2 text-xs text-slate-100 placeholder-slate-400 transition font-sans">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-slate-400 text-xs"></i>
+                    <button type="button" 
+                            x-show="carMakeSearch" 
+                            @click="carMakeSearch = ''" 
+                            class="absolute left-2.5 top-2 text-slate-400 hover:text-white text-xs transition">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Existing Makes Table with instant live filtering -->
+            <div class="overflow-y-auto flex-1 space-y-2 max-h-52 border border-slate-800 rounded-xl p-1 bg-slate-950/40">
                 <table class="w-full text-right text-xs text-slate-200">
-                    <thead class="bg-slate-800 text-slate-400">
+                    <thead class="bg-slate-800 text-slate-400 sticky top-0 z-10">
                         <tr>
                             <th class="p-2">مارکە (کوردی)</th>
                             <th class="p-2">مارکە (ئینگلیزی)</th>
-                            <th class="p-2 text-center">دەستکاریکردن</th>
+                            <th class="p-2 text-center">کردار</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-800">
+                    <tbody class="divide-y divide-slate-800/80">
                         @foreach($carMakes as $cm)
-                            <tr>
-                                <td class="p-2">
-                                    <input type="text" id="cm_kurdish_{{ $cm->id }}" value="{{ $cm->name_kurdish }}" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs w-full">
+                            <tr x-show="!carMakeSearch || '{{ strtolower(addslashes($cm->name_kurdish)) }}'.includes(carMakeSearch.toLowerCase().trim()) || '{{ strtolower(addslashes($cm->name_english)) }}'.includes(carMakeSearch.toLowerCase().trim())" class="hover:bg-slate-800/50 transition">
+                                <td class="p-1.5">
+                                    <input type="text" id="cm_kurdish_{{ $cm->id }}" value="{{ $cm->name_kurdish }}" class="bg-slate-800 border border-slate-700 focus:border-sky-500 rounded px-2 py-1 text-xs w-full text-slate-100">
                                 </td>
-                                <td class="p-2">
-                                    <input type="text" id="cm_english_{{ $cm->id }}" value="{{ $cm->name_english }}" dir="ltr" class="bg-slate-800 border border-slate-700 rounded px-2 py-1 text-xs font-mono w-full">
+                                <td class="p-1.5">
+                                    <input type="text" id="cm_english_{{ $cm->id }}" value="{{ $cm->name_english }}" dir="ltr" class="bg-slate-800 border border-slate-700 focus:border-sky-500 rounded px-2 py-1 text-xs font-mono w-full text-slate-100">
                                 </td>
-                                <td class="p-2 text-center">
-                                    <button type="button" @click="updateCarMake({{ $cm->id }})" class="px-2 py-1 bg-amber-600 text-white rounded text-[11px] font-bold">پاشەکەوت</button>
+                                <td class="p-1.5 text-center whitespace-nowrap">
+                                    <div class="flex items-center justify-center gap-1">
+                                        <button type="button" @click="selectCarMakeFromModal({{ $cm->id }}, '{{ addslashes($cm->name_english) }}')" class="px-2 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded text-[10px] font-bold shadow transition" title="هەڵبژاردنی ئەم مارکەیە بۆ فۆڕم">
+                                            هەڵبژاردن
+                                        </button>
+                                        <button type="button" @click="updateCarMake({{ $cm->id }})" class="px-2 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-[10px] font-bold shadow transition" title="پاشەکەوتکردنی دەستکاری">
+                                            پاشەکەوت
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -687,13 +767,28 @@
                 </table>
             </div>
 
-            <div class="space-y-3 pt-2">
-                <h4 class="text-xs font-bold text-sky-400">+ زیادکردنی مارکەی نوێ</h4>
-                <div class="grid grid-cols-2 gap-2">
-                    <input type="text" x-model="newMakeKurdish" placeholder="کوردی (مثلاً: هۆندا)" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100">
-                    <input type="text" x-model="newMakeEnglish" placeholder="ئینگلیزی (e.g. Honda)" dir="ltr" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono">
+            <!-- New Make Addition Form at Bottom -->
+            <div class="space-y-2.5 pt-2 border-t border-slate-800">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold text-sky-400">+ زیادکردنی مارکەی نوێ (ئەگەر لە سەرەوە نەبوو):</h4>
+                    <span x-show="carMakeSearch" class="text-[10px] text-slate-400">
+                        دەتوانیت لەم خانانەی خوارەوە ناوی نوێ بنووسیت
+                    </span>
                 </div>
-                <button type="button" @click="addCarMake()" class="w-full py-2 bg-sky-600 text-white text-xs font-bold rounded-xl shadow">زیادکردن</button>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">ناوی کوردی:</label>
+                        <input type="text" x-model="newMakeKurdish" placeholder="مثلاً: هۆندا" class="w-full bg-slate-800 border border-slate-700 focus:border-sky-500 rounded-xl px-3 py-2 text-xs text-slate-100">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1">ناوی ئینگلیزی (English):</label>
+                        <input type="text" x-model="newMakeEnglish" placeholder="e.g. Honda" dir="ltr" class="w-full bg-slate-800 border border-slate-700 focus:border-sky-500 rounded-xl px-3 py-2 text-xs text-slate-100 font-mono">
+                    </div>
+                </div>
+                <button type="button" @click="addCarMake()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>زیادکردنی مارکەی نوێ و هەڵبژاردن</span>
+                </button>
             </div>
         </div>
     </div>
@@ -759,6 +854,8 @@
             secondDriverName: initialTx ? (initialTx.second_driver_name || '') : '',
             secondDriverNameEng: initialTx ? (initialTx.second_driver_name_eng || '') : '',
             phoneNumber: initialTx ? (initialTx.phone_number || '') : '',
+            passportNumber: initialTx ? (initialTx.passport_number || '') : '',
+            address: initialTx ? (initialTx.address || '') : '',
 
             // Vehicle inputs
             plateNumber: initialTx ? (initialTx.plate_number || '') : '',
@@ -771,6 +868,11 @@
             chassisNumber: initialTx ? (initialTx.chassis_number || '') : '',
             pistonCount: initialTx ? (initialTx.piston_count || 4) : 4,
             salanaNumber: initialTx ? (initialTx.salana_number || '') : '',
+
+            // Chassis fast lookup & auto-fill state
+            isCheckingChassis: false,
+            chassisFound: initialTx ? true : false,
+            chassisPreviousInfo: initialTx || null,
 
             numYears: 1,
             directorateId: initialTx ? (initialTx.traffic_directorate_id || '{{ $defaultDirectorateId }}') : '{{ $defaultDirectorateId }}',
@@ -818,6 +920,8 @@
                 this.secondDriverName = record.second_driver_name || '';
                 this.secondDriverNameEng = record.second_driver_name_eng || '';
                 this.phoneNumber = record.phone_number || '';
+                this.passportNumber = record.passport_number || '';
+                this.address = record.address || '';
                 this.plateNumber = record.plate_number || '';
                 this.plateTypeId = record.plate_type_id || 1;
                 this.carMakeId = record.car_make_id || '';
@@ -843,6 +947,41 @@
             clearPrevious() {
                 this.parentTransactionId = '';
                 this.parentTransactionSummary = '';
+                this.chassisFound = false;
+                this.chassisPreviousInfo = null;
+                this.passportNumber = '';
+                this.address = '';
+            },
+
+            lookupByChassis() {
+                const clean = (this.chassisNumber || '').trim();
+                if (clean.length < 3) {
+                    this.chassisFound = false;
+                    this.chassisPreviousInfo = null;
+                    return;
+                }
+
+                this.isCheckingChassis = true;
+                fetch(`{{ route('transactions.lookup_previous_api') }}?chassis_number=${encodeURIComponent(clean)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        this.isCheckingChassis = false;
+                        if (data && data.found && data.record) {
+                            this.chassisFound = true;
+                            this.chassisPreviousInfo = data.record;
+                            this.populateFromPrevious(data.record);
+                        } else {
+                            this.chassisFound = false;
+                            this.chassisPreviousInfo = null;
+                        }
+                    })
+                    .catch(() => {
+                        this.isCheckingChassis = false;
+                    });
+            },
+
+            clearChassisAutoFill() {
+                this.clearPrevious();
             },
 
             isFullBookletForm() {
@@ -867,6 +1006,8 @@
             showCarMakeModal: false,
             showCarColorModal: false,
 
+            carMakeSearch: '',
+
             newTxTypeName: '',
             newDirectorateName: '',
             newDirectorName: '',
@@ -889,8 +1030,17 @@
 
             onCarMakeChange() {
                 const sel = document.querySelector('select[name="car_make_id"]');
-                const opt = sel.options[sel.selectedIndex];
+                const opt = sel ? sel.options[sel.selectedIndex] : null;
                 this.carMakeEng = opt ? (opt.getAttribute('data-eng') || '') : '';
+            },
+
+            selectCarMakeFromModal(id, english) {
+                this.carMakeId = id;
+                this.carMakeEng = english || '';
+                const sel = document.querySelector('select[name="car_make_id"]');
+                if (sel) sel.value = id;
+                this.showCarMakeModal = false;
+                this.carMakeSearch = '';
             },
 
             onCarColorChange() {
@@ -1071,6 +1221,7 @@
                         this.carMakeId = data.item.id;
                         this.carMakeEng = data.item.name_english || '';
                         this.showCarMakeModal = false;
+                        this.carMakeSearch = '';
                         this.newMakeKurdish = '';
                         this.newMakeEnglish = '';
                     }
@@ -1200,6 +1351,8 @@
             init() {
                 if (initialTx) {
                     this.populateFromPrevious(initialTx, targetTypeId ? parseInt(targetTypeId) : null);
+                    this.chassisFound = true;
+                    this.chassisPreviousInfo = initialTx;
                 } else {
                     this.calculateFees();
                 }

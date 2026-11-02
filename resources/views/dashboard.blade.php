@@ -203,7 +203,9 @@
                                     <td class="p-2.5 font-mono text-xs text-sky-600 dark:text-sky-400 font-bold whitespace-nowrap">{{ $tx->barcode }}</td>
                                     <td class="p-2.5 font-bold text-slate-800 dark:text-slate-100 max-w-[130px] truncate">{{ $tx->visitor_name }}</td>
                                     <td class="p-2.5 text-slate-500 dark:text-slate-400 whitespace-nowrap">{{ $tx->transactionType->name_kurdish ?? '-' }}</td>
-                                    <td class="p-2.5 font-mono text-emerald-600 dark:text-emerald-400 font-bold whitespace-nowrap">{{ $tx->plate_number }}</td>
+                                    <td class="p-2.5 whitespace-nowrap">
+                                        <x-vehicle-plate :plate="$tx->plate_number" :type="$tx->plateType" size="sm" />
+                                    </td>
                                     <td class="p-2.5 font-bold text-slate-800 dark:text-white whitespace-nowrap">{{ number_format($tx->total_pay) }} د.ع</td>
                                     <td class="p-2.5 text-center whitespace-nowrap">
                                         @if($tx->is_cancelled)

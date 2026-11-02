@@ -23,10 +23,60 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
+        $today = now()->toDateString();
+
+        // ڕێکخستنی بەروار: بە شێوەی بنەڕەتی تەنها بۆ ئەمڕۆیە
+        $dateFilter = $request->get('date_filter');
+        if (!$dateFilter) {
+            if ($request->filled('from_date') || $request->filled('to_date')) {
+                $dateFilter = 'custom';
+            } elseif ($request->has('all_dates')) {
+                $dateFilter = 'all';
+            } else {
+                $dateFilter = 'today';
+            }
+        }
+
         $query = Transaction::with(['transactionType', 'trafficDirectorate', 'carMake', 'carColor', 'plateType']);
 
+        // سەپاندنی فلتەری بەروار
+        if ($dateFilter === 'today') {
+            $query->where(function($q) use ($today) {
+                $q->whereDate('transaction_date', $today)
+                  ->orWhereDate('created_at', $today);
+            });
+        } elseif ($dateFilter === 'yesterday') {
+            $yesterday = now()->subDay()->toDateString();
+            $query->where(function($q) use ($yesterday) {
+                $q->whereDate('transaction_date', $yesterday)
+                  ->orWhereDate('created_at', $yesterday);
+            });
+        } elseif ($dateFilter === 'this_week') {
+            $lastWeek = now()->subDays(7)->toDateString();
+            $query->where(function($q) use ($lastWeek, $today) {
+                $q->whereBetween('transaction_date', [$lastWeek, $today])
+                  ->orWhereBetween('created_at', [$lastWeek, now()]);
+            });
+        } elseif ($dateFilter === 'custom') {
+            if ($request->filled('from_date') && $request->filled('to_date')) {
+                $query->whereBetween('transaction_date', [$request->from_date, $request->to_date]);
+            } elseif ($request->filled('from_date')) {
+                $query->whereDate('transaction_date', '>=', $request->from_date);
+            } elseif ($request->filled('to_date')) {
+                $query->whereDate('transaction_date', '<=', $request->to_date);
+            } else {
+                $query->where(function($q) use ($today) {
+                    $q->whereDate('transaction_date', $today)
+                      ->orWhereDate('created_at', $today);
+                });
+                $dateFilter = 'today';
+            }
+        }
+        // ئەگەر all بێت هیچ مەرجێکی بەروار نایەتە پێشەوە تا گشت کاتەکان پیشان بدات
+
+        // گەڕانی دەقی
         if ($request->filled('search')) {
-            $search = $request->search;
+            $search = trim($request->search);
             $query->where(function($q) use ($search) {
                 $q->where('barcode', 'like', "%{$search}%")
                   ->orWhere('visitor_name', 'like', "%{$search}%")
@@ -45,40 +95,121 @@ class TransactionController extends Controller
             $query->where('transaction_type_id', $request->transaction_type_id);
         }
 
-        if ($request->filled('stage')) {
-            switch ($request->stage) {
+        // فلتەری قۆناغ
+        $stage = $request->get('stage', 'all');
+        if ($stage && $stage !== 'all') {
+            switch ($stage) {
                 case 'inspection':
-                    $query->where('is_inspected', false)->where('is_cancelled', false);
+                    $query->where('is_inspected', false)->whereNull('cancelled_at');
                     break;
                 case 'audit':
-                    $query->where('is_inspected', true)->where('is_audited', false)->where('is_cancelled', false);
+                    $query->where('is_inspected', true)->where('is_audited', false)->whereNull('cancelled_at');
                     break;
                 case 'payment':
-                    $query->where('is_audited', true)->where('is_paid', false)->where('is_cancelled', false);
+                    $query->where('is_audited', true)->where('is_paid', false)->whereNull('cancelled_at');
                     break;
                 case 'booklet':
-                    $query->where('is_paid', true)->where('is_booklet_completed', false)->where('is_cancelled', false);
-                    break;
-                case 'submit':
-                    $query->where('is_paid', true)->where('is_submitted', false)->where('is_cancelled', false);
+                    $query->where('is_paid', true)->where('is_booklet_completed', false)->whereNull('cancelled_at');
                     break;
                 case 'completed':
-                    $query->where('is_submitted', true)->where('is_cancelled', false);
+                    $query->where(function($q) {
+                        $q->where('is_submitted', true)->orWhere('is_booklet_completed', true);
+                    })->whereNull('cancelled_at');
                     break;
                 case 'cancelled':
-                    $query->where('is_cancelled', true);
+                    $query->whereNotNull('cancelled_at');
                     break;
             }
         }
 
-        $transactions = $query->latest()->paginate(15);
+        // هەژمارکردنی ژمارەی مامەڵەکانی هەر قۆناغێک بەپێی بەرواری هەڵبژێردراو
+        $baseCountQuery = Transaction::query();
+        if ($dateFilter === 'today') {
+            $baseCountQuery->where(function($q) use ($today) {
+                $q->whereDate('transaction_date', $today)
+                  ->orWhereDate('created_at', $today);
+            });
+        } elseif ($dateFilter === 'yesterday') {
+            $yesterday = now()->subDay()->toDateString();
+            $baseCountQuery->where(function($q) use ($yesterday) {
+                $q->whereDate('transaction_date', $yesterday)
+                  ->orWhereDate('created_at', $yesterday);
+            });
+        } elseif ($dateFilter === 'this_week') {
+            $lastWeek = now()->subDays(7)->toDateString();
+            $baseCountQuery->where(function($q) use ($lastWeek, $today) {
+                $q->whereBetween('transaction_date', [$lastWeek, $today])
+                  ->orWhereBetween('created_at', [$lastWeek, now()]);
+            });
+        } elseif ($dateFilter === 'custom') {
+            if ($request->filled('from_date') && $request->filled('to_date')) {
+                $baseCountQuery->whereBetween('transaction_date', [$request->from_date, $request->to_date]);
+            } elseif ($request->filled('from_date')) {
+                $baseCountQuery->whereDate('transaction_date', '>=', $request->from_date);
+            } elseif ($request->filled('to_date')) {
+                $baseCountQuery->whereDate('transaction_date', '<=', $request->to_date);
+            } else {
+                $baseCountQuery->where(function($q) use ($today) {
+                    $q->whereDate('transaction_date', $today)
+                      ->orWhereDate('created_at', $today);
+                });
+            }
+        }
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $baseCountQuery->where(function($q) use ($search) {
+                $q->where('barcode', 'like', "%{$search}%")
+                  ->orWhere('visitor_name', 'like', "%{$search}%")
+                  ->orWhere('plate_number', 'like', "%{$search}%")
+                  ->orWhere('booklet_number', 'like', "%{$search}%");
+            });
+        }
+        if ($request->filled('transaction_type_id')) {
+            $baseCountQuery->where('transaction_type_id', $request->transaction_type_id);
+        }
+
+        $stageCounts = [
+            'all' => (clone $baseCountQuery)->count(),
+            'inspection' => (clone $baseCountQuery)->where('is_inspected', false)->whereNull('cancelled_at')->count(),
+            'audit' => (clone $baseCountQuery)->where('is_inspected', true)->where('is_audited', false)->whereNull('cancelled_at')->count(),
+            'payment' => (clone $baseCountQuery)->where('is_audited', true)->where('is_paid', false)->whereNull('cancelled_at')->count(),
+            'booklet' => (clone $baseCountQuery)->where('is_paid', true)->where('is_booklet_completed', false)->whereNull('cancelled_at')->count(),
+            'completed' => (clone $baseCountQuery)->where(function($q) {
+                $q->where('is_submitted', true)->orWhere('is_booklet_completed', true);
+            })->whereNull('cancelled_at')->count(),
+            'cancelled' => (clone $baseCountQuery)->whereNotNull('cancelled_at')->count(),
+        ];
+
+        // هەڵبژاردنی ژمارەی تۆمارەکان لە هەر پەڕەیەکدا (15, 30, 50, 100)
+        $perPage = (int)$request->get('per_page', 15);
+        if (!in_array($perPage, [15, 30, 50, 100])) {
+            $perPage = 15;
+        }
+
+        $transactions = $query->latest('id')->paginate($perPage)->withQueryString();
         $transactionTypes = TransactionType::all();
 
-        return view('transactions.index', compact('transactions', 'transactionTypes'));
+        return view('transactions.index', compact(
+            'transactions',
+            'transactionTypes',
+            'stageCounts',
+            'stage',
+            'perPage',
+            'dateFilter',
+            'today'
+        ));
     }
 
     public function officialPrintIndex(Request $request)
     {
+        if (auth()->user()->role === 'data_entry') {
+            return redirect()->route('dashboard')->with('error', 'کارمەندی داتائەنتەری دەسەڵاتی بینینی چاپی نوسراوەکانی نییە!');
+        }
+
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'booklet') {
+            return redirect()->route('dashboard')->with('error', 'تەنها کارمەندی بەشی دەفتەر و ئەدمین دەتوانن سەردانی چاپی نوسراوەکان بکەن!');
+        }
+
         $tab = $request->get('tab', 'pending');
         $selectedDate = $request->get('date', now()->format('Y-m-d'));
         $search = $request->get('search');
@@ -190,7 +321,24 @@ class TransactionController extends Controller
 
     public function lookupPreviousApi(Request $request)
     {
-        $query = trim($request->get('query'));
+        $chassis = trim($request->get('chassis_number', ''));
+        if (!empty($chassis) && strlen($chassis) >= 3) {
+            $chassisClean = str_replace(' ', '', $chassis);
+            $record = Transaction::with(['transactionType', 'plateType', 'carMake', 'carColor', 'trafficDirectorate'])
+                ->where(function($q) use ($chassis, $chassisClean) {
+                    $q->where('chassis_number', $chassis)
+                      ->orWhereRaw("REPLACE(chassis_number, ' ', '') = ?", [$chassisClean]);
+                })
+                ->latest('id')
+                ->first();
+
+            return response()->json([
+                'found' => (bool)$record,
+                'record' => $record,
+            ]);
+        }
+
+        $query = trim($request->get('query', ''));
         if (empty($query) || strlen($query) < 2) {
             return response()->json([]);
         }
@@ -203,6 +351,7 @@ class TransactionController extends Controller
                   ->orWhere('visitor_name', 'like', "%{$query}%")
                   ->orWhere('second_driver_name', 'like', "%{$query}%")
                   ->orWhere('phone_number', 'like', "%{$query}%")
+                  ->orWhere('passport_number', 'like', "%{$query}%")
                   ->orWhere('salana_number', 'like', "%{$query}%")
                   ->orWhere('booklet_number', 'like', "%{$query}%");
             })
@@ -290,6 +439,8 @@ class TransactionController extends Controller
             'second_driver_name' => 'nullable|string|max:255',
             'second_driver_name_eng' => 'nullable|string|max:255',
             'phone_number' => 'nullable|string|max:50',
+            'passport_number' => 'nullable|string|max:100',
+            'address' => 'nullable|string|max:255',
             'plate_number' => 'required|string|max:100',
             'model_year' => 'required|digits:4',
             'chassis_number' => 'required|string|max:100',
@@ -307,6 +458,8 @@ class TransactionController extends Controller
             'bary_gshty_eng' => 'nullable|string',
             'no_nusraw_puchal' => 'nullable|string',
             'date_nusraw_puchal' => 'nullable|date',
+            'NO_boxfile' => 'nullable|integer|min:0',
+            'NO_boxfile_puchal' => 'nullable|integer|min:0',
         ]);
 
         $transaction = DB::transaction(function () use ($validated, $request) {
@@ -379,6 +532,8 @@ class TransactionController extends Controller
                     'second_driver_name' => $tx->second_driver_name,
                     'second_driver_name_eng' => $tx->second_driver_name_eng,
                     'phone_number' => $tx->phone_number,
+                    'passport_number' => $tx->passport_number,
+                    'address' => $tx->address,
                     'plate_number' => $tx->plate_number,
                     'model_year' => $tx->model_year,
                     'chassis_number' => $tx->chassis_number,
@@ -478,6 +633,8 @@ class TransactionController extends Controller
             'second_driver_name' => 'nullable|string|max:255',
             'second_driver_name_eng' => 'nullable|string|max:255',
             'phone_number' => 'nullable|string|max:50',
+            'passport_number' => 'nullable|string|max:100',
+            'address' => 'nullable|string|max:255',
             'plate_number' => 'required|string|max:100',
             'model_year' => 'required|digits:4',
             'chassis_number' => 'required|string|max:100',
@@ -495,6 +652,8 @@ class TransactionController extends Controller
             'bary_gshty_eng' => 'nullable|string',
             'no_nusraw_puchal' => 'nullable|string',
             'date_nusraw_puchal' => 'nullable|date',
+            'NO_boxfile' => 'nullable|integer|min:0',
+            'NO_boxfile_puchal' => 'nullable|integer|min:0',
         ]);
 
         $numYears = (int)($request->input('num_years', 1));
@@ -737,7 +896,7 @@ class TransactionController extends Controller
         $blocked = BlockedReceiptNumber::where('receipt_number', $receiptNum)->first();
         if ($blocked) {
             $reason = $blocked->cancellation_reason ?? 'دیاری نەکراو';
-            return redirect()->back()->with('error', "ئەم ژمارە پسوولەی ۳۷/أ ({$receiptNum}) پووچەڵکراوەتەوە و بلۆککراوە لە سیستەمدا! ڕێگەپێدراو نییە بەکاربهێنرێتەوە. هۆکاری پووچەڵکردنەوە: {$reason}");
+            return redirect()->back()->with('error', "ئەم ژمارەی پسوولەیە پێشتر بەکارهاتووە و پووچەڵکراوەتەوە! ڕێگەپێدراو نییە بەکاربهێنرێتەوە. (هۆکاری پووچەڵکردنەوە: {$reason})");
         }
 
         $existing = Transaction::with('transactionType')
@@ -766,6 +925,10 @@ class TransactionController extends Controller
 
     public function completeBooklet(Request $request, Transaction $transaction)
     {
+        if (auth()->user()->role === 'data_entry') {
+            return redirect()->back()->with('error', 'کارمەندی داتائەنتەری دەسەڵاتی تۆمارکردنی ژمارەی دەفتەری نییە!');
+        }
+
         if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('transactions.complete_booklet')) {
             return redirect()->back()->with('error', 'تەنها کارمەندی بەشی دەفتەر (Booklet Section) دەتوانێت ژمارەی دەفتەر تۆمار بکات!');
         }
@@ -816,6 +979,11 @@ class TransactionController extends Controller
 
     public function printPaymentReceipt(Transaction $transaction)
     {
+        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+            return redirect()->route('transactions.show', $transaction->id)
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت پسوولەی ۳۷/أ چاپ بکات.');
+        }
+
         if (!auth()->user()->isAdmin() && auth()->user()->role !== 'cashier') {
             return redirect()->back()->with('error', 'تەنها ژمێریار / وەسڵبڕ و ئەدمین دەتوانن پسوولەی پارەدان چاپ بکەن!');
         }
@@ -830,6 +998,14 @@ class TransactionController extends Controller
 
     public function submitArchive(Transaction $transaction)
     {
+        if (auth()->user()->role === 'data_entry') {
+            return redirect()->back()->with('error', 'کارمەندی داتائەنتەری دەسەڵاتی سەبمیت و ئەرشیفکردنی مامەڵەی نییە!');
+        }
+
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'booklet' && !auth()->user()->hasPermission('transactions.submit')) {
+            return redirect()->back()->with('error', 'دەسەڵاتی پێویستت نییە بۆ سەبمیت و ئەرشیفکردنی مامەڵە!');
+        }
+
         if (!$transaction->is_paid) {
             return redirect()->back()->with('error', 'مامەڵەکە سەرجەم قۆناغەکانی تێنەپەڕاندووە (پارەدان تێنەپەڕیوە) بۆ سەبمیت.');
         }
@@ -858,71 +1034,180 @@ class TransactionController extends Controller
         $request->validate([
             'step' => 'required|in:payment,booklet,audit,inspection,all',
             'reversion_reason' => 'required|string|min:4',
+            'receipt_number' => 'nullable|string',
+            'booklet_number' => 'nullable|string',
         ]);
 
         $step = $request->step;
-        $reason = $request->reversion_reason;
+        $reason = trim($request->reversion_reason);
         $oldValues = [];
         $newValues = [];
 
-        if ($step === 'payment' || $step === 'all') {
-            $oldValues = ['is_paid' => $transaction->is_paid, 'receipt_37a_number' => $transaction->receipt_37a_number];
-            
+        if ($step === 'payment') {
             if ($transaction->receipt_37a_number) {
+                $enteredReceipt = trim($request->receipt_number ?? '');
+                if (empty($enteredReceipt)) {
+                    return redirect()->back()->with('error', 'تکایە ژمارەی پسوولەی ۳۷/أ بنووسە بۆ هەڵوەشاندنەوە!');
+                }
+                if ($enteredReceipt !== trim($transaction->receipt_37a_number)) {
+                    return redirect()->back()->with('error', "ژمارەی پسوولەی داواکراو بۆ هەڵوەشاندنەوە ({$enteredReceipt}) هاوتای ژمارەی پسوولەی تۆمارکراو نییە ({$transaction->receipt_37a_number})!");
+                }
+            }
+
+            $oldValues = [
+                'is_paid' => $transaction->is_paid,
+                'receipt_37a_number' => $transaction->receipt_37a_number,
+                'is_audited' => $transaction->is_audited,
+                'is_submitted' => $transaction->is_submitted,
+            ];
+
+            $receiptToBlock = trim($request->receipt_number ?: $transaction->receipt_37a_number);
+            if ($receiptToBlock) {
                 BlockedReceiptNumber::firstOrCreate(
-                    ['receipt_number' => $transaction->receipt_37a_number],
+                    ['receipt_number' => $receiptToBlock],
                     [
-                        'cancellation_reason' => $reason ?? 'ڕێکخستنەوەی قۆناغی پارەدان لەلایەن ئەدمین',
+                        'cancellation_reason' => "هەڵوەشاندنەوەی قۆناغی پارەدان لەلایەن ئەدمین - هۆکار: {$reason}",
                         'blocked_by' => auth()->user()?->name ?? 'ئەدمین',
                         'transaction_id' => $transaction->id,
                     ]
                 );
             }
 
+            // خاڵی ٦.١: هەڵوەشاندنەوەی پارەدان وردبینی چالاک دەکاتەوە بۆ سەرلەنوێ وردبینیکردن
+            // خاڵی ٦.٤: هەڵوەشاندنەوەی سەبمیت ئەگەر پێشتر سەبمیت کرابوو
             $transaction->update([
                 'is_paid' => false,
                 'receipt_37a_number' => null,
                 'paid_by' => null,
                 'paid_at' => null,
+                'is_audited' => false,
+                'audited_by' => null,
+                'audited_at' => null,
+                'is_submitted' => false,
+                'submitted_by' => null,
+                'submitted_at' => null,
             ]);
-            $newValues = ['is_paid' => false, 'receipt_37a_number' => null];
-            $msg = "قۆناغی پارەدان ڕێکخرایەوە (Reset). پسوولەی ۳۷/أ پێشوو کۆتایی پێهات و بلۆککرا.";
+
+            $newValues = [
+                'is_paid' => false,
+                'receipt_37a_number' => null,
+                'is_audited' => false,
+                'is_submitted' => false,
+            ];
+
+            $msg = "قۆناغی پارەدان هەڵوەشێنرایەوە و پسوولەی ۳۷/أ پووچەڵکرا و ناگەڕێتەوە. قۆناغی وردبینی چالاککرایەوە بۆ سەرلەنوێ وردبینیکردن و سەبمیت ڕێکخرایەوە.";
+
         } elseif ($step === 'booklet') {
-            $oldValues = ['is_booklet_completed' => $transaction->is_booklet_completed, 'booklet_number' => $transaction->booklet_number];
+            if ($transaction->booklet_number) {
+                $enteredBooklet = trim($request->booklet_number ?? '');
+                if (empty($enteredBooklet)) {
+                    return redirect()->back()->with('error', 'تکایە ژمارەی دەفتەر بنووسە بۆ هەڵوەشاندنەوە!');
+                }
+                if ($enteredBooklet !== trim($transaction->booklet_number)) {
+                    return redirect()->back()->with('error', "ژمارەی دەفتەری داواکراو بۆ هەڵوەشاندنەوە ({$enteredBooklet}) هاوتای ژمارەی دەفتەری تۆمارکراو نییە ({$transaction->booklet_number})!");
+                }
+            }
+
+            $oldValues = [
+                'is_booklet_completed' => $transaction->is_booklet_completed,
+                'booklet_number' => $transaction->booklet_number,
+                'is_submitted' => $transaction->is_submitted,
+            ];
+
+            $bookletToBlock = trim($request->booklet_number ?: $transaction->booklet_number);
+            if ($bookletToBlock) {
+                BlockedReceiptNumber::firstOrCreate(
+                    ['receipt_number' => $bookletToBlock],
+                    [
+                        'cancellation_reason' => "هەڵوەشاندنەوەی دەفتەر لەلایەن ئەدمین - هۆکار: {$reason}",
+                        'blocked_by' => auth()->user()?->name ?? 'ئەدمین',
+                        'transaction_id' => $transaction->id,
+                    ]
+                );
+            }
+
+            // خاڵی ٦.٤: هەڵوەشاندنەوەی سەبمیت ئەگەر گەشتبووە سەبمیت
             $transaction->update([
                 'is_booklet_completed' => false,
                 'booklet_number' => null,
                 'booklet_by' => null,
                 'booklet_completed_at' => null,
+                'is_submitted' => false,
+                'submitted_by' => null,
+                'submitted_at' => null,
             ]);
-            $newValues = ['is_booklet_completed' => false, 'booklet_number' => null];
-            $msg = "قۆناغی دەفتەر ڕێکخرایەوە (Reset). ژمارەی دەفتەرەکە ڕێسێت کرایەوە.";
+
+            $newValues = [
+                'is_booklet_completed' => false,
+                'booklet_number' => null,
+                'is_submitted' => false,
+            ];
+
+            $msg = "قۆناغی دەفتەر هەڵوەشێنرایەوە و ژمارەی دەفتەر پووچەڵکرایەوە. سەبمیت ڕێکخرایەوە بۆ سەرلەنوێ سەبمیتکردنەوە.";
+
         } elseif ($step === 'audit') {
-            $oldValues = ['is_audited' => $transaction->is_audited];
+            $oldValues = [
+                'is_audited' => $transaction->is_audited,
+                'is_submitted' => $transaction->is_submitted,
+            ];
+
             $transaction->update([
                 'is_audited' => false,
                 'audited_by' => null,
                 'audited_at' => null,
+                'is_submitted' => false,
+                'submitted_by' => null,
+                'submitted_at' => null,
             ]);
-            $newValues = ['is_audited' => false];
-            $msg = "قۆناغی وردبینی ڕێکخرایەوە (Reset).";
+
+            $newValues = ['is_audited' => false, 'is_submitted' => false];
+            $msg = "قۆناغی وردبینی ڕێکخرایەوە و سەبمیت هەڵوەشێنرایەوە.";
+
         } elseif ($step === 'inspection') {
-            $oldValues = ['is_inspected' => $transaction->is_inspected];
+            $oldValues = [
+                'is_inspected' => $transaction->is_inspected,
+                'is_submitted' => $transaction->is_submitted,
+            ];
+
             $transaction->update([
                 'is_inspected' => false,
                 'inspected_by' => null,
                 'inspected_at' => null,
+                'is_submitted' => false,
+                'submitted_by' => null,
+                'submitted_at' => null,
             ]);
-            $newValues = ['is_inspected' => false];
-            $msg = "قۆناغی کەشف و تەخمین ڕێکخرایەوە (Reset).";
+
+            $newValues = ['is_inspected' => false, 'is_submitted' => false];
+            $msg = "قۆناغی کەشف و تەخمین ڕێکخرایەوە و سەبمیت هەڵوەشێنرایەوە.";
+
         } elseif ($step === 'all') {
-            $oldValues = ['is_inspected' => $transaction->is_inspected, 'is_audited' => $transaction->is_audited, 'is_paid' => $transaction->is_paid, 'receipt_37a_number' => $transaction->receipt_37a_number];
-            
+            $oldValues = [
+                'is_inspected' => $transaction->is_inspected,
+                'is_audited' => $transaction->is_audited,
+                'is_paid' => $transaction->is_paid,
+                'receipt_37a_number' => $transaction->receipt_37a_number,
+                'is_booklet_completed' => $transaction->is_booklet_completed,
+                'booklet_number' => $transaction->booklet_number,
+                'is_submitted' => $transaction->is_submitted,
+            ];
+
             if ($transaction->receipt_37a_number) {
                 BlockedReceiptNumber::firstOrCreate(
                     ['receipt_number' => $transaction->receipt_37a_number],
                     [
-                        'cancellation_reason' => $reason ?? 'ڕێکخستنەوەی سەرجەم قۆناغەکان لەلایەن ئەدمین',
+                        'cancellation_reason' => "ڕێکخستنەوەی سەرجەم قۆناغەکان لەلایەن ئەدمین - هۆکار: {$reason}",
+                        'blocked_by' => auth()->user()?->name ?? 'ئەدمین',
+                        'transaction_id' => $transaction->id,
+                    ]
+                );
+            }
+
+            if ($transaction->booklet_number) {
+                BlockedReceiptNumber::firstOrCreate(
+                    ['receipt_number' => $transaction->booklet_number],
+                    [
+                        'cancellation_reason' => "ڕێکخستنەوەی سەرجەم قۆناغەکان لەلایەن ئەدمین - هۆکار: {$reason}",
                         'blocked_by' => auth()->user()?->name ?? 'ئەدمین',
                         'transaction_id' => $transaction->id,
                     ]
@@ -944,10 +1229,14 @@ class TransactionController extends Controller
                 'booklet_number' => null,
                 'booklet_by' => null,
                 'booklet_completed_at' => null,
+                'is_submitted' => false,
+                'submitted_by' => null,
+                'submitted_at' => null,
                 'is_returned' => false,
             ]);
-            $newValues = ['all_reset' => true];
-            $msg = "سەرجەم قۆناغەکانی مامەڵە گەڕێنرانەوە بۆ داتائەنتەری و سەرلەنوێ کرانەوە.";
+
+            $newValues = ['all_reset' => true, 'is_submitted' => false];
+            $msg = "سەرجەم قۆناغەکانی مامەڵە گەڕێنرانەوە بۆ سەرەتا (داتائەنتەری) و سەرلەنوێ کرانەوە.";
         }
 
         AuditLogger::log('ڕێکخستنەوەی قۆناغ (Step Reversion)', Transaction::class, $transaction->id, "ڕێکخستنەوەی قۆناغی [{$step}] لەلایەن ئەدمین - هۆکار: {$reason}", $oldValues, $newValues);
@@ -958,6 +1247,11 @@ class TransactionController extends Controller
 
     public function cancel(Request $request, Transaction $transaction)
     {
+        // تەنها ئەدمین دەتوانێت مامەڵە پووچەڵ بکاتەوە (خاڵی ۳)
+        if (!auth()->check() || !auth()->user()->isAdmin()) {
+            return redirect()->back()->with('error', 'تەنها کارگێڕی گشتی (ئەدمین) دەسەڵاتی پووچەڵکردنەوەی مامەڵەی هەیە.');
+        }
+
         $request->validate([
             'cancellation_reason' => 'required|string',
             'no_nusraw_puchal' => 'nullable|string',
@@ -990,6 +1284,11 @@ class TransactionController extends Controller
 
     public function printReceipt(Transaction $transaction)
     {
+        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+            return redirect()->route('transactions.show', $transaction->id)
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت پسوولەی کەشف و تەخمین چاپ بکات.');
+        }
+
         $user = auth()->user();
 
         // 1. Only Estimator (inspector) or Admin can print
@@ -1013,6 +1312,11 @@ class TransactionController extends Controller
 
     public function printDataEntry(Transaction $transaction)
     {
+        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+            return redirect()->route('transactions.show', $transaction->id)
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت فیشەی داتائەنتەری چاپ بکات.');
+        }
+
         if (!auth()->user()->isAdmin() && auth()->user()->role !== 'data_entry') {
             return redirect()->back()->with('error', 'تەنها کارمەندی داتائەنتەری و ئەدمین دەتوانن فیشەی داتائەنتەری چاپ بکەن!');
         }
@@ -1023,17 +1327,73 @@ class TransactionController extends Controller
 
     public function printBooklet(Transaction $transaction)
     {
+        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+            return redirect()->route('transactions.show', $transaction->id)
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت دەفتەر چاپ بکات.');
+        }
+
+        if (auth()->user()->role === 'data_entry') {
+            return redirect()->back()->with('error', 'کارمەندی داتائەنتەری دەسەڵاتی چاپی دەفتەری نییە!');
+        }
+
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'booklet' && !auth()->user()->hasPermission('transactions.print_booklet')) {
+            return redirect()->back()->with('error', 'تەنها کارمەندی بەشی دەفتەر و ئەدمین دەتوانن دەفتەر چاپ بکەن!');
+        }
+
         if (empty($transaction->booklet_number)) {
             return redirect()->route('transactions.show', $transaction->id)
                 ->with('error', 'هەتا ژمارەی دەفتەر (Booklet Number) وەرنەگرێت، چاپی دەفتەر ئەکتیڤ نابێت و ناتوانرێت چاپ بکرێت!');
         }
 
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
-        return view('transactions.print_booklet', compact('transaction'));
+
+        $templatePath = storage_path('app/booklet_template.json');
+        $savedTemplate = file_exists($templatePath) ? json_decode(file_get_contents($templatePath), true) : null;
+
+        return view('transactions.print_booklet', compact('transaction', 'savedTemplate'));
+    }
+
+    public function saveBookletTemplate(Request $request)
+    {
+        $validated = $request->validate([
+            'template' => 'required|array',
+        ]);
+
+        $path = storage_path('app/booklet_template.json');
+        file_put_contents($path, json_encode($validated['template'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'دیزاینی دەفتەرەکە لەسەر سێرڤەر بە سەرکەوتوویی پاشەکەوت کرا و بۆ هەموو کۆمپیوتەرەکان جێبەجێ بوو!'
+        ]);
+    }
+
+    public function resetBookletTemplate()
+    {
+        $path = storage_path('app/booklet_template.json');
+        if (file_exists($path)) {
+            unlink($path);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'دیزاینی دەفتەرەکە لەسەر سێرڤەر گەڕایەوە بۆ باری بنەڕەتی کارگە!'
+        ]);
     }
 
     public function printPledge(Transaction $transaction)
     {
+        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+            return redirect()->route('transactions.show', $transaction->id)
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت فیشەی بەڵێننامە چاپ بکات.');
+        }
+
+        // تەنها داتائەنتەری، تەخمین و ئەدمین دەتوانن فیشە چاپ بکەن (خاڵی ۲)
+        $user = auth()->user();
+        if (!$user->isAdmin() && !in_array($user->role, ['data_entry', 'inspector'])) {
+            return redirect()->back()->with('error', 'تەنها کارمەندی داتائەنتەری، تەخمین و ئەدمین دەتوانن فیشەی بەڵێننامە چاپ بکەن.');
+        }
+
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor']);
         return view('transactions.print_pledge', compact('transaction'));
     }
@@ -1191,6 +1551,11 @@ class TransactionController extends Controller
 
     public function printCancellation(Transaction $transaction)
     {
+        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+            return redirect()->route('transactions.show', $transaction->id)
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت نوسراوی پووچەڵکردنەوە چاپ بکات.');
+        }
+
         $transaction->update(['is_printed' => true]);
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
         return view('transactions.print_cancellation', compact('transaction'));
@@ -1198,6 +1563,11 @@ class TransactionController extends Controller
 
     public function printRestriction(Transaction $transaction)
     {
+        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+            return redirect()->route('transactions.show', $transaction->id)
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت نوسراوی ڕەفتارنەکردن چاپ بکات.');
+        }
+
         $transaction->update(['is_printed' => true]);
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
         return view('transactions.print_restriction', compact('transaction'));
@@ -1205,6 +1575,11 @@ class TransactionController extends Controller
 
     public function printInspectionLetter(Transaction $transaction)
     {
+        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+            return redirect()->route('transactions.show', $transaction->id)
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت نوسراوی پشکنین چاپ بکات.');
+        }
+
         $transaction->update(['is_printed' => true]);
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
         return view('transactions.print_inspection_letter', compact('transaction'));

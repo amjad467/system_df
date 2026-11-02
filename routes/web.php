@@ -89,6 +89,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions/{transaction}/print-receipt', [TransactionController::class, 'printReceipt'])->name('transactions.print_receipt');
     Route::get('/transactions/{transaction}/print-payment-receipt', [TransactionController::class, 'printPaymentReceipt'])->name('transactions.print_payment_receipt');
     Route::get('/transactions/{transaction}/print-booklet', [TransactionController::class, 'printBooklet'])->name('transactions.print_booklet');
+    Route::post('/transactions/save-booklet-template', [TransactionController::class, 'saveBookletTemplate'])->name('transactions.save_booklet_template');
+    Route::post('/transactions/reset-booklet-template', [TransactionController::class, 'resetBookletTemplate'])->name('transactions.reset_booklet_template');
     Route::get('/transactions/{transaction}/print-pledge', [TransactionController::class, 'printPledge'])->name('transactions.print_pledge');
     Route::get('/transactions/{transaction}/print-cancellation', [TransactionController::class, 'printCancellation'])->name('transactions.print_cancellation');
     Route::get('/transactions/{transaction}/print-restriction', [TransactionController::class, 'printRestriction'])->name('transactions.print_restriction');
