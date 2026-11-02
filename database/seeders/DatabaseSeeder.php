@@ -98,16 +98,17 @@ class DatabaseSeeder extends Seeder
 
         // 8. Employee Demo Users per Role
         $users = [
-            ['name' => 'كارمەند ئازاد (داتا ئەنتەری)', 'user_login' => 'dataentry', 'email' => 'dataentry@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'data_entry'],
-            ['name' => 'ئەندازیار کەمال (تەخمین)', 'user_login' => 'inspector', 'email' => 'inspector@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'inspector'],
-            ['name' => 'وردبین هۆشیار (وردبینی)', 'user_login' => 'auditor', 'email' => 'auditor@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'auditor'],
-            ['name' => 'ژمێریار دیار (وەسڵبڕ)', 'user_login' => 'cashier', 'email' => 'cashier@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'cashier'],
-            ['name' => 'کارمەند سەربەست (بەشی دەفتەر)', 'user_login' => 'booklet', 'email' => 'booklet@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'booklet'],
-            ['name' => 'کارگێڕی گشتی (Admin)', 'user_login' => 'admin', 'email' => 'admin@customs.gov.krd', 'password' => Hash::make('admin123'), 'role' => 'admin'],
+            ['name' => 'كارمەند ئازاد (داتا ئەنتەری)', 'user_login' => 'dataentry', 'email' => 'dataentry@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'data_entry', 'is_active' => true],
+            ['name' => 'ئەندازیار کەمال (تەخمین)', 'user_login' => 'inspector', 'email' => 'inspector@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'inspector', 'is_active' => true],
+            ['name' => 'وردبین هۆشیار (وردبینی)', 'user_login' => 'auditor', 'email' => 'auditor@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'auditor', 'is_active' => true],
+            ['name' => 'ژمێریار دیار (وەسڵبڕ)', 'user_login' => 'cashier', 'email' => 'cashier@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'cashier', 'is_active' => true],
+            ['name' => 'کارمەند سەربەست (بەشی دەفتەر)', 'user_login' => 'booklet', 'email' => 'booklet@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'booklet', 'is_active' => true],
+            ['name' => 'کارگێڕی گشتی (Admin)', 'user_login' => 'admin', 'email' => 'admin@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'admin', 'is_active' => true],
+            ['name' => 'امجد صالح (Admin)', 'user_login' => 'amjad', 'email' => 'amjad@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'admin', 'is_active' => true],
         ];
 
         foreach ($users as $u) {
-            User::updateOrCreate(['email' => $u['email']], $u);
+            User::updateOrCreate(['user_login' => $u['user_login']], $u);
         }
 
         // 9. Sample Transactions

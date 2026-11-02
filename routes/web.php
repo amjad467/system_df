@@ -14,26 +14,12 @@ use App\Http\Controllers\AccountingReportController;
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::get('/quick-login/{role}', [LoginController::class, 'quickLogin'])->name('quick_login');
 
-// دروستکردنی کاتی بۆ ئەدمینی سەرەتایی (لە دەرەوەی auth)
+// دروستکردن و چاکسازی خێرای ئەدمین و ئەکاونتە سەرەکییەکان
 Route::get('/create-admin', function () {
-    $user = \App\Models\User::firstOrCreate(
-        ['email' => 'admin@gmail.com'],
-        [
-            'name' => 'بەڕێوەبەری سیستەم',
-            'username' => 'admin',
-            'password' => \Illuminate\Support\Facades\Hash::make('12345678'),
-            'role' => 'admin',
-            'is_active' => true,
-        ]
-    );
-
-    $user->update([
-        'password' => \Illuminate\Support\Facades\Hash::make('12345678'),
-        'is_active' => true,
-    ]);
-
-    return 'بەکارهێنەر ئامادەیە! ناوی بەکارهێنەر: admin یان ئیمەیڵ: admin@gmail.com | پاسۆرد: 12345678';
+    \App\Http\Controllers\Auth\LoginController::ensureDefaultUsersExist();
+    return response('<h3>سەرکەوتوو بوو! هەموو ئەکاونتەکان بە وشەی تێپەڕی 123456 ئامادەکران:</h3><ul><li>ئەدمین: <strong>admin</strong> | پاسۆرد: <strong>123456</strong></li><li>داتا ئەنتەری: <strong>dataentry</strong> | پاسۆرد: <strong>123456</strong></li><li>تەخمین: <strong>inspector</strong> | پاسۆرد: <strong>123456</strong></li><li>وردبینی: <strong>auditor</strong> | پاسۆرد: <strong>123456</strong></li><li>وەسڵبڕ: <strong>cashier</strong> | پاسۆرد: <strong>123456</strong></li><li>دەفتەر: <strong>booklet</strong> | پاسۆرد: <strong>123456</strong></li></ul><br><a href="/login" style="padding:10px 20px;background:#0284c7;color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;">بڕۆ بۆ پەڕەی چوونەژوورەوە</a>', 200, ['Content-Type' => 'text/html; charset=UTF-8']);
 });
 
 Route::middleware('auth')->group(function () {
