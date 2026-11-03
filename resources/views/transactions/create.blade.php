@@ -298,19 +298,25 @@
 
         <!-- 2.1 Customs Letter Section (For Cancellation / پووچەڵکردنەوە) -->
         <div x-show="isCancellation()" class="bg-rose-950/40 border border-rose-500/50 rounded-2xl p-6 shadow-xl space-y-4">
-            <h3 class="text-base font-bold text-rose-400 border-b border-rose-500/30 pb-2 flex items-center">
-                <i class="fa-solid fa-file-contract ml-2"></i> زانیارییەکانی نووسراوی گومرگ (تایبەت بە پووچەڵکردنەوە)
-            </h3>
+            <div class="flex items-center justify-between border-b border-rose-500/30 pb-2">
+                <h3 class="text-base font-bold text-rose-400 flex items-center">
+                    <i class="fa-solid fa-file-contract ml-2"></i> زانیارییەکانی نووسراوی گومرگ (تایبەت بە پووچەڵکردنەوە)
+                </h3>
+                <span class="text-xs bg-rose-900/60 text-rose-300 border border-rose-700/50 px-2.5 py-1 rounded-lg">
+                    <i class="fa-solid fa-lock ml-1 text-amber-400"></i> تایبەتە بە قۆناغی ئەرشیف و سەپمیت
+                </span>
+            </div>
+            <p class="text-xs text-rose-300/80">تێبینی: ژمارە و بەرواری نووسراوی گومرگ لە قۆناغی کۆتایی لەلایەن فەرمانبەری ئەرشیف/سەپمیت پڕدەکرێتەوە (لە داتائەنتەری لەکارخراوە).</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-rose-200 mb-1.5">ژمارەی نووسراوی گومرگ</label>
-                    <input type="text" name="no_nusraw_puchal" placeholder="ژمارەی فەرمی نووسراوی گومرگ" dir="ltr"
-                           class="w-full bg-slate-900 border border-rose-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-rose-500 focus:outline-none">
+                    <label class="block text-xs font-semibold text-rose-200 mb-1.5">ژمارەی نووسراوی گومرگ (ناچالاککراوە لە داتائەنتەری)</label>
+                    <input type="text" name="no_nusraw_puchal" disabled placeholder="لەلایەن کارمەندی ئەرشیف دیاری دەکرێت" dir="ltr"
+                           class="w-full bg-slate-900/50 border border-rose-700/40 rounded-xl px-3 py-2 text-sm text-slate-400 font-mono cursor-not-allowed opacity-75">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-rose-200 mb-1.5">بەرواری نووسراوی گومرگ</label>
-                    <input type="date" name="date_nusraw_puchal"
-                           class="w-full bg-slate-900 border border-rose-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-rose-500 focus:outline-none">
+                    <label class="block text-xs font-semibold text-rose-200 mb-1.5">بەرواری نووسراوی گومرگ (ناچالاککراوە لە داتائەنتەری)</label>
+                    <input type="date" name="date_nusraw_puchal" disabled
+                           class="w-full bg-slate-900/50 border border-rose-700/40 rounded-xl px-3 py-2 text-sm text-slate-400 font-mono cursor-not-allowed opacity-75">
                 </div>
             </div>
         </div>

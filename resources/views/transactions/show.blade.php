@@ -10,6 +10,7 @@
     showReturnModal: false, 
     showRevertModal: false,
     showAuditModal: false,
+    showSubmitModal: false,
     confirmAuditAmount: '',
     expectedAuditAmount: '{{ (int)$transaction->total_pay }}'
 }">
@@ -119,38 +120,47 @@
                 @endif
             @endif
 
-            <!-- Cashier Payment Receipt Button (Cashier and Admin ONLY - Locked after Submit for non-admin) -->
+            <!-- Cashier Payment Receipt & Inspection Letter (Cashier and Admin ONLY - Locked after Submit for non-admin) -->
             @if(!$transaction->is_cancelled && $transaction->is_paid && (!$transaction->is_submitted || auth()->user()->isAdmin()) && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier'))
                 <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center">
                     <i class="fa-solid fa-receipt ml-1.5 text-emerald-200"></i> چاپی پسوولەی پارەدان (۳۷/أ)
                 </a>
+                <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/30 transition flex items-center" title="چاپی نووسراوی پشکنین">
+                    <i class="fa-solid fa-file-circle-check ml-1.5 text-sky-200"></i> چاپی نووسراوی پشکنین
+                </a>
             @endif
 
-            <!-- Booklet & Letters Printing (Booklet section and Admin ONLY - Excluded for data_entry - Locked after Submit for non-admin) -->
-            @if(!$transaction->is_cancelled && $transaction->is_paid && (!$transaction->is_submitted || auth()->user()->isAdmin()) && auth()->user()->role !== 'data_entry' && (auth()->user()->isAdmin() || auth()->user()->role === 'booklet'))
-                @if($transaction->isCancellation())
-                    <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نوسراوی پووچەڵکردنەوە">
-                        <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نوسراوی پووچەڵکردنەوە
-                    </a>
-                @elseif($transaction->isInspection())
-                    <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نوسراوی پشکنین">
-                        <i class="fa-solid fa-file-circle-check ml-1.5"></i> نوسراوی پشکنین
-                    </a>
-                @else
-                    <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نوسراوی دانانی نیشانەی ڕەفتارنەکردن">
-                        <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> ڕەفتارنەکردن
-                    </a>
+            <!-- Administrative Letters & Booklet Printing (Auditor, Booklet section, and Admin - Excluded for data_entry - Locked after Submit for non-admin) -->
+            @if(!$transaction->is_cancelled && (!$transaction->is_submitted || auth()->user()->isAdmin()) && auth()->user()->role !== 'data_entry')
+                @if(auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->role === 'booklet' || auth()->user()->hasPermission('transactions.audit'))
+                    @if($transaction->is_inspected || $transaction->is_audited || $transaction->is_paid)
+                        @if($transaction->isCancellation())
+                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نوسراوی پووچەڵکردنەوە">
+                                <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نوسراوی پووچەڵکردنەوە
+                            </a>
+                        @else
+                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نوسراوی دانانی نیشانەی ڕەفتارنەکردن (دەرهێنانی دەفتەر)">
+                                <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نووسراوی دەرهێنان
+                            </a>
+                        @endif
+
+                        <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نوسراوی پشکنین">
+                            <i class="fa-solid fa-file-circle-check ml-1.5"></i> نوسراوی پشکنین
+                        </a>
+                    @endif
                 @endif
 
-                @if($transaction->requiresBooklet())
-                    @if(!empty($transaction->booklet_number))
-                        <a href="{{ route('transactions.print_booklet', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center" title="چاپی دەفتەری گەشتیاری ({{ $transaction->booklet_number }})">
-                            <i class="fa-solid fa-passport ml-1.5"></i> چاپی دەفتەر ({{ $transaction->booklet_number }})
-                        </a>
-                    @else
-                        <button type="button" disabled class="px-3 py-2 bg-slate-800 text-slate-500 border border-slate-700 text-xs font-bold rounded-xl cursor-not-allowed opacity-60 flex items-center" title="هەتا ژمارەی دەفتەر وەرنەگرێت، چاپی دەفتەر ئەکتیڤ نابێت">
-                            <i class="fa-solid fa-ban ml-1.5 text-rose-400"></i> چاپی دەفتەر (ناچالاکە - بێ ژمارە)
-                        </button>
+                @if($transaction->requiresBooklet() && (auth()->user()->isAdmin() || auth()->user()->role === 'booklet'))
+                    @if($transaction->is_paid)
+                        @if(!empty($transaction->booklet_number))
+                            <a href="{{ route('transactions.print_booklet', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center" title="چاپی دەفتەری گەشتیاری ({{ $transaction->booklet_number }})">
+                                <i class="fa-solid fa-passport ml-1.5"></i> چاپی دەفتەر ({{ $transaction->booklet_number }})
+                            </a>
+                        @else
+                            <button type="button" disabled class="px-3 py-2 bg-slate-800 text-slate-500 border border-slate-700 text-xs font-bold rounded-xl cursor-not-allowed opacity-60 flex items-center" title="هەتا ژمارەی دەفتەر وەرنەگرێت، چاپی دەفتەر ئەکتیڤ نابێت">
+                                <i class="fa-solid fa-ban ml-1.5 text-rose-400"></i> چاپی دەفتەر (ناچالاکە - بێ ژمارە)
+                            </button>
+                        @endif
                     @endif
                 @endif
             @endif
@@ -661,6 +671,20 @@
                                 <i class="fa-solid fa-clipboard-check ml-1.5"></i> ستێپی ٣: پەسەندکردنی وردبینی
                             </button>
 
+                            <!-- چاپی نوسراوە ئیدارییەکان لە قۆناغی وردبینی -->
+                            @if($transaction->isCancellation())
+                                <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوە لە قۆناغی وردبینی">
+                                    <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نووسراوی پووچەڵکردنەوە
+                                </a>
+                            @else
+                                <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی دەرهێنان (ڕەفتارنەکردن) لە قۆناغی وردبینی">
+                                    <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نووسراوی دەرهێنان
+                                </a>
+                            @endif
+                            <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی پشکنین لە قۆناغی وردبینی">
+                                <i class="fa-solid fa-file-circle-check ml-1.5"></i> نووسراوی پشکنین
+                            </a>
+
                             <button type="button" @click="showReturnModal = true" class="px-4 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/20 transition flex items-center">
                                 <i class="fa-solid fa-rotate-left ml-1.5"></i> گەڕاندنەوە بۆ تەخمین (هەڵە هەیە)
                             </button>
@@ -673,6 +697,20 @@
 
                     <!-- If Audited, but before Payment: Auditor/Admin can Revert Audit or Return to Previous Step -->
                     @if($transaction->is_audited && !$transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->hasPermission('transactions.audit')))
+                        <!-- نوسراوە ئیدارییەکان دوای پەسەندکردنی وردبینی -->
+                        @if($transaction->isCancellation())
+                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوە">
+                                <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نووسراوی پووچەڵکردنەوە
+                            </a>
+                        @else
+                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی دەرهێنان (ڕەفتارنەکردن)">
+                                <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نووسراوی دەرهێنان
+                            </a>
+                        @endif
+                        <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی پشکنین">
+                            <i class="fa-solid fa-file-circle-check ml-1.5"></i> نووسراوی پشکنین
+                        </a>
+
                         <form action="{{ route('transactions.revert_audit', $transaction->id) }}" method="POST" class="inline" onsubmit="return confirm('ئایا دڵنیایت لە هەڵوەشاندنەوەی پەسەندی وردبینی؟ مامەڵەکە دەگەڕێتەوە بۆ چاوەڕوانی وردبینی.');">
                             @csrf
                             <button type="submit" class="px-4 py-2 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-purple-700/25 transition flex items-center">
@@ -695,6 +733,18 @@
                             <span class="px-3 py-1.5 bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center">
                                 <i class="fa-solid fa-hand-holding-dollar ml-1.5 text-emerald-400"></i> چاوەڕێی وەرگرتنی پارەیە (تەنها ژمێریار / وەسڵبڕ دەتوانێت پارە وەربگرێت)
                             </span>
+                        @endif
+                    @endif
+
+                    <!-- قۆناغی پارەدان - دوای وەرگرتنی پارە (چاپی پسوولە و نووسراوی پشکنین بۆ ژمێریار و ئەدمین) -->
+                    @if($transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier'))
+                        @if(!$transaction->is_submitted || auth()->user()->isAdmin())
+                            <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center">
+                                <i class="fa-solid fa-receipt ml-1.5"></i> چاپی پسوولەی ۳۷/أ
+                            </a>
+                            <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نووسراوی پشکنین لە قۆناغی پارەدان">
+                                <i class="fa-solid fa-file-circle-check ml-1.5"></i> چاپی نووسراوی پشکنین
+                            </a>
                         @endif
                     @endif
 
@@ -724,14 +774,17 @@
                         @endif
                     @endif
 
-                    <!-- Final Submit & Archive Button (Excluded for data_entry) -->
-                    @if($transaction->is_paid && !$transaction->is_submitted && (!$requiresBooklet || $transaction->is_booklet_completed) && auth()->user()->role !== 'data_entry' && (auth()->user()->isAdmin() || auth()->user()->role === 'booklet' || auth()->user()->hasPermission('transactions.submit')))
-                        <form action="{{ route('transactions.submit', $transaction->id) }}" method="POST">
-                            @csrf
-                            <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition flex items-center">
+                    <!-- Final Submit & Archive Button (Archiver, Booklet, Admin - Excluded for data_entry) -->
+                    @if($transaction->is_paid && (!$requiresBooklet || $transaction->is_booklet_completed) && auth()->user()->role !== 'data_entry' && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->role === 'booklet' || auth()->user()->hasPermission('transactions.submit')))
+                        @if(!$transaction->is_submitted)
+                            <button type="button" @click="showSubmitModal = true" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/20 transition flex items-center">
                                 <i class="fa-solid fa-box-archive ml-1.5"></i> {{ $requiresBooklet ? 'ستێپی ٦: سەبمیت و ئەرشیفکردنی مامەڵە' : 'ستێپی ٥: سەبمیت و ئەرشیفکردنی مامەڵە' }}
                             </button>
-                        </form>
+                        @else
+                            <button type="button" @click="showSubmitModal = true" class="px-3 py-2 bg-slate-800 text-indigo-300 hover:text-white border border-indigo-500/40 text-xs font-bold rounded-xl transition flex items-center">
+                                <i class="fa-solid fa-pen-to-square ml-1.5"></i> دەستکاری زانیاری ئەرشیف
+                            </button>
+                        @endif
                     @endif
                 </div>
 
@@ -1067,7 +1120,8 @@
                         <option value="booklet">٢. هەڵوەشاندنەوەی دەفتەر (پووچەڵکردن و سڕینەوەی ژمارەی دەفتەر)</option>
                         <option value="audit">٣. هەڵوەشاندنەوەی وردبینی (گەڕاندنەوە بۆ قۆناغی پێشتر)</option>
                         <option value="inspection">٤. هەڵوەشاندنەوەی کەشف و تەخمین (گەڕاندنەوە بۆ سەرەتا)</option>
-                        <option value="all">٥. سەرجەم قۆناغەکان بگەڕێنەرەوە بۆ سەرەتا (داتائەنتەری)</option>
+                        <option value="archive">٥. هەڵوەشاندنەوەی سەبمیت و ئەرشیف (کردنەوەی مامەڵە بۆ چاپی ئاسایی)</option>
+                        <option value="all">٦. سەرجەم قۆناغەکان بگەڕێنەرەوە بۆ سەرەتا (داتائەنتەری)</option>
                     </select>
                 </div>
 
@@ -1209,6 +1263,121 @@
         </div>
     </div>
 
+    <!-- MODAL 7: Submit & Archive Modal (سەبمیت و ئەرشیفکردنی مامەڵە) -->
+    <div x-show="showSubmitModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-indigo-500/50 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl" @click.away="showSubmitModal = false">
+            <div class="flex items-center justify-between border-b border-slate-700/80 pb-3">
+                <h3 class="text-base font-black text-indigo-400 flex items-center">
+                    <i class="fa-solid fa-box-archive ml-2 text-lg"></i>
+                    سەبمیت و ئەرشیفکردنی مامەڵە (قۆناغی کۆتایی)
+                </h3>
+                <button @click="showSubmitModal = false" class="text-slate-400 hover:text-slate-200 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Transaction Summary -->
+            <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4 space-y-2 text-xs">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400">ناوی هاووڵاتی:</span>
+                    <span class="text-slate-100 font-bold">{{ $transaction->visitor_name }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400">ژمارەی تابلۆ:</span>
+                    <span class="font-mono text-sky-400 font-bold" dir="ltr">{{ $transaction->plate_number }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400">جۆری مامەڵە:</span>
+                    <span class="text-indigo-300 font-bold">{{ $transaction->transactionType?->name_kurdish ?? 'دیارینەکراو' }}</span>
+                </div>
+                @if($transaction->booklet_number)
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-400">ژمارەی دەفتەر:</span>
+                        <span class="font-mono text-emerald-300 font-bold">{{ $transaction->booklet_number }}</span>
+                    </div>
+                @endif
+            </div>
+
+            <form action="{{ route('transactions.submit', $transaction->id) }}" method="POST" class="space-y-4">
+                @csrf
+
+                @if((int)$transaction->transaction_type_id === 1)
+                    <!-- Type 1: دەرهێنانی دەفتەر -> ژمارەی بۆکسی دەرهێنان -->
+                    <div class="p-4 bg-indigo-950/40 border border-indigo-500/40 rounded-xl space-y-3">
+                        <div class="flex items-center gap-2 text-indigo-300 text-xs font-bold">
+                            <i class="fa-solid fa-box text-base"></i>
+                            <span>تایبەت بە [دەرهێنانی دەفتەر]: تکایە ژمارەی بۆکسی دەرهێنان بنووسە</span>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-200 mb-1.5">
+                                ژمارەی بۆکسی دەرهێنان (Box File Number) *
+                            </label>
+                            <input type="number" name="NO_boxfile" required min="1"
+                                   value="{{ old('NO_boxfile', $transaction->NO_boxfile) }}"
+                                   placeholder="نموونە: 125" dir="ltr"
+                                   class="w-full bg-slate-950 border border-indigo-500/60 focus:border-indigo-400 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-slate-100 text-center tracking-wider focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                        </div>
+                    </div>
+                @elseif((int)$transaction->transaction_type_id === 5)
+                    <!-- Type 5: پووچەڵکردنەوەی دەفتەر -> نووسراوی گومرگ و بەروار و بۆکسی پووچەڵ -->
+                    <div class="p-4 bg-rose-950/40 border border-rose-500/40 rounded-xl space-y-3">
+                        <div class="flex items-center gap-2 text-rose-300 text-xs font-bold">
+                            <i class="fa-solid fa-file-contract text-base"></i>
+                            <span>تایبەت بە [پووچەڵکردنەوەی دەفتەر]: زانیاری نووسراوی گومرگ و بۆکسی پووچەڵ بنووسە</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-200 mb-1">ژمارەی نووسراوی گومرگ *</label>
+                                <input type="text" name="no_nusraw_puchal" required
+                                       value="{{ old('no_nusraw_puchal', $transaction->no_nusraw_puchal) }}"
+                                       placeholder="ژمارەی فەرمی نووسراو" dir="ltr"
+                                       class="w-full bg-slate-950 border border-rose-500/60 focus:border-rose-400 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-200 mb-1">بەرواری نووسراوی گومرگ *</label>
+                                <input type="date" name="date_nusraw_puchal" required
+                                       value="{{ old('date_nusraw_puchal', $transaction->date_nusraw_puchal?->format('Y-m-d') ?? date('Y-m-d')) }}"
+                                       class="w-full bg-slate-950 border border-rose-500/60 focus:border-rose-400 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-200 mb-1">ژمارەی بۆکسی پووچەڵ (Box File Cancellation) *</label>
+                            <input type="number" name="NO_boxfile_puchal" required min="1"
+                                   value="{{ old('NO_boxfile_puchal', $transaction->NO_boxfile_puchal) }}"
+                                   placeholder="نموونە: 48" dir="ltr"
+                                   class="w-full bg-slate-950 border border-rose-500/60 focus:border-rose-400 rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-slate-100 text-center tracking-wider focus:outline-none focus:ring-2 focus:ring-rose-500/30">
+                        </div>
+                    </div>
+                @else
+                    <!-- Other types: optional boxfile numbers -->
+                    <div class="p-4 bg-slate-800/80 border border-slate-700 rounded-xl space-y-3">
+                        <p class="text-xs text-slate-300">سەرجەم قۆناغەکانی ئەم مامەڵەیە تەواو بوون. دەتوانیت ژمارەی بۆکس تۆمار بکەیت و مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیف بکەیت:</p>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1">ژمارەی بۆکس (ئارەزوومەندانە)</label>
+                            <input type="number" name="NO_boxfile" min="1"
+                                   value="{{ old('NO_boxfile', $transaction->NO_boxfile) }}"
+                                   placeholder="ژمارەی بۆکس..." dir="ltr"
+                                   class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-slate-100 text-center focus:outline-none">
+                        </div>
+                    </div>
+                @endif
+
+                <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[11px] text-amber-300 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-amber-400 text-sm"></i>
+                    <span>تێبینی: دوای ئەنجامدانی سەبمیت، مامەڵەکە ئەرشیف دەبێت و چاپەکان تەنها لە دەسەڵاتی ئەدمین دەمێننەوە.</span>
+                </div>
+
+                <div class="flex items-center justify-end space-x-2 space-x-reverse pt-2">
+                    <button type="button" @click="showSubmitModal = false" class="px-4 py-2 bg-slate-800 text-slate-400 hover:text-slate-200 text-xs font-bold rounded-xl transition">پاشگەزبوونەوە</button>
+                    <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i>
+                        <span>پەسەندکردن و سەبمیتکردنی کۆتایی</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Sticky Bottom Action Bar for Easy Employee Operations (هەڵواسراوی خێرای قۆناغەکان بۆ کارمەندان) -->
     <div class="fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-md border-t border-slate-700/80 px-4 py-3 shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.5)]">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -1283,6 +1452,22 @@
                         </button>
                     @endif
 
+                    <!-- نوسراوە ئیدارییەکان بۆ وردبینی و دەفتەر (پشکنین، ڕەفتارنەکردن، پووچەڵکردنەوە) -->
+                    @if($transaction->is_inspected && (!$transaction->is_submitted || auth()->user()->isAdmin()) && auth()->user()->role !== 'data_entry' && (auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->role === 'booklet'))
+                        @if($transaction->isCancellation())
+                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نوسراوی پووچەڵکردنەوە">
+                                <i class="fa-solid fa-file-circle-xmark"></i> نوسراوی پووچەڵکردنەوە
+                            </a>
+                        @else
+                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نوسراوی دەرهێنان">
+                                <i class="fa-solid fa-file-circle-exclamation"></i> نوسراوی دەرهێنان
+                            </a>
+                        @endif
+                        <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نووسراوی پشکنین">
+                            <i class="fa-solid fa-file-circle-check"></i> نوسراوی پشکنین
+                        </a>
+                    @endif
+
                     <!-- 4. وەرگرتنی پارە و وەسڵی ۳۷/أ (Cashier / Admin) -->
                     @if($transaction->is_audited && !$transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.pay')))
                         <button type="button" @click="showPayModal = true" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center gap-1.5">
@@ -1291,10 +1476,13 @@
                         </button>
                     @endif
 
-                    <!-- 5. چاپی وەسڵی ۳۷/أ (Cashier / Admin - قفڵکراوە دوای سەبمیت) -->
+                    <!-- 5. چاپی وەسڵی ۳۷/أ و نووسراوی پشکنین (Cashier / Admin - قفڵکراوە دوای سەبمیت) -->
                     @if($transaction->is_paid && (!$transaction->is_submitted || auth()->user()->isAdmin()) && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier'))
                         <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow transition flex items-center gap-1">
                             <i class="fa-solid fa-receipt"></i> چاپی ۳۷/أ
+                        </a>
+                        <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نووسراوی پشکنین">
+                            <i class="fa-solid fa-file-circle-check"></i> نوسراوی پشکنین
                         </a>
                     @endif
 
@@ -1313,15 +1501,19 @@
                         </a>
                     @endif
 
-                    <!-- 8. سەبمیت و ئەرشیف (Admin / Booklet - Excluded for data_entry) -->
-                    @if($transaction->is_paid && !$transaction->is_submitted && (!$requiresBooklet || $transaction->is_booklet_completed) && auth()->user()->role !== 'data_entry' && (auth()->user()->isAdmin() || auth()->user()->role === 'booklet' || auth()->user()->hasPermission('transactions.submit')))
-                        <form action="{{ route('transactions.submit', $transaction->id) }}" method="POST" class="inline">
-                            @csrf
-                            <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5">
+                    <!-- 8. سەبمیت و ئەرشیف (Archiver / Admin / Booklet - Excluded for data_entry) -->
+                    @if($transaction->is_paid && (!$requiresBooklet || $transaction->is_booklet_completed) && auth()->user()->role !== 'data_entry' && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->role === 'booklet' || auth()->user()->hasPermission('transactions.submit')))
+                        @if(!$transaction->is_submitted)
+                            <button type="button" @click="showSubmitModal = true" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5">
                                 <i class="fa-solid fa-box-archive"></i>
                                 <span>سەبمیت و ئەرشیف</span>
                             </button>
-                        </form>
+                        @else
+                            <button type="button" @click="showSubmitModal = true" class="px-3 py-2 bg-slate-800 text-indigo-300 hover:text-white border border-indigo-500/40 text-xs font-bold rounded-xl transition flex items-center gap-1">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                                <span>دەستکاری ئەرشیف</span>
+                            </button>
+                        @endif
                     @endif
                 @endif
 

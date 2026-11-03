@@ -30,3 +30,4 @@ php artisan db:seed --force 2>/dev/null || true
 # 7. Start web server
 echo "Starting application server on port ${PORT:-8080}..."
 exec php artisan serve --host 0.0.0.0 --port "${PORT:-8080}"
+

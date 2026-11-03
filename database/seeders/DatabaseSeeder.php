@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
 
         // 1. Security Levels
 
-        $securityLevels = ['کارمەند (Data Entry)', 'لێپرسراوی تەخمین (Inspector)', 'وردبینیکار (Auditor)', 'ژمێریار / وەسڵبڕ (Cashier)', 'بەشی دەفتەر (Booklet Section)', 'بەڕێوەبەر (Admin)'];
+        $securityLevels = ['کارمەند (Data Entry)', 'لێپرسراوی تەخمین (Inspector)', 'وردبینیکار (Auditor)', 'ژمێریار / وەسڵبڕ (Cashier)', 'بەشی دەفتەر (Booklet Section)', 'ئەرشیف و سەپمیت (Archiver)', 'بەڕێوەبەر (Admin)'];
         foreach ($securityLevels as $level) {
             DB::table('security_levels')->updateOrInsert(['name' => $level]);
         }
@@ -103,6 +103,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'وردبین هۆشیار (وردبینی)', 'user_login' => 'auditor', 'email' => 'auditor@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'auditor', 'is_active' => true],
             ['name' => 'ژمێریار دیار (وەسڵبڕ)', 'user_login' => 'cashier', 'email' => 'cashier@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'cashier', 'is_active' => true],
             ['name' => 'کارمەند سەربەست (بەشی دەفتەر)', 'user_login' => 'booklet', 'email' => 'booklet@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'booklet', 'is_active' => true],
+            ['name' => 'کارمەند ئاراس (ئەرشیف و سەپمیت)', 'user_login' => 'archiver', 'email' => 'archiver@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'archiver', 'is_active' => true],
             ['name' => 'کارگێڕی گشتی (Admin)', 'user_login' => 'admin', 'email' => 'admin@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'admin', 'is_active' => true],
             ['name' => 'امجد صالح (Admin)', 'user_login' => 'amjad', 'email' => 'amjad@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'admin', 'is_active' => true],
         ];

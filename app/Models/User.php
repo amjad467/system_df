@@ -39,6 +39,7 @@ class User extends Authenticatable
             'auditor' => 'کارمەندی وردبینی (Step 3)',
             'cashier' => 'ژمێریار / وەسڵبڕ (Step 4)',
             'booklet' => 'بەشی دەفتەر (Step 5)',
+            'archiver' => 'کارمەندی ئەرشیف و سەپمیت (Step 6)',
             'admin' => 'کارگێڕی گشتی / سەرپەرشتیار (Admin)',
             default => 'کارمەند',
         };
@@ -47,6 +48,11 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function isArchiver(): bool
+    {
+        return $this->role === 'archiver';
     }
 
     public function hasPermission(string $permission): bool

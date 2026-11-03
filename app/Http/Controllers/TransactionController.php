@@ -689,6 +689,20 @@ class TransactionController extends Controller
             $validated['bary_gshty_eng'] = null;
         }
 
+        // Preserve archive fields if omitted by data entry
+        if (!$request->has('no_nusraw_puchal')) {
+            unset($validated['no_nusraw_puchal']);
+        }
+        if (!$request->has('date_nusraw_puchal')) {
+            unset($validated['date_nusraw_puchal']);
+        }
+        if (!$request->has('NO_boxfile')) {
+            unset($validated['NO_boxfile']);
+        }
+        if (!$request->has('NO_boxfile_puchal')) {
+            unset($validated['NO_boxfile_puchal']);
+        }
+
         $transaction->update(array_merge($validated, [
             'num_years' => $fees['num_years'],
             'pay_amount_years' => $fees['pay_amount_years'],
@@ -1002,13 +1016,13 @@ class TransactionController extends Controller
         return view('transactions.print_payment_receipt', compact('transaction'));
     }
 
-    public function submitArchive(Transaction $transaction)
+    public function submitArchive(Request $request, Transaction $transaction)
     {
         if (auth()->user()->role === 'data_entry') {
             return redirect()->back()->with('error', 'کارمەندی داتائەنتەری دەسەڵاتی سەبمیت و ئەرشیفکردنی مامەڵەی نییە!');
         }
 
-        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'booklet' && !auth()->user()->hasPermission('transactions.submit')) {
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'archiver' && auth()->user()->role !== 'booklet' && !auth()->user()->hasPermission('transactions.submit')) {
             return redirect()->back()->with('error', 'دەسەڵاتی پێویستت نییە بۆ سەبمیت و ئەرشیفکردنی مامەڵە!');
         }
 
@@ -1020,13 +1034,49 @@ class TransactionController extends Controller
             return redirect()->back()->with('error', 'ئەم مامەڵەیە پێویستی بە چاپی دەفتەر هەیە و دەفتەری بۆ تەواو نەکراوە!');
         }
 
-        $transaction->update([
+        $updateData = [
             'is_submitted' => true,
             'submitted_by' => auth()->user()?->name ?? 'کارمەند',
             'submitted_at' => now(),
-        ]);
+        ];
 
-        AuditLogger::log('سەبمیتکردن و ئەرشیفکردنی مامەڵە (ستێپی کۆتایی)', Transaction::class, $transaction->id, "مامەڵەی بارکۆد {$transaction->barcode} بە تەواوەتی سەبمیت و ئەرشیف کرا");
+        // 1. If transaction is دەرهێنانی دەفتەر (Type 1): only enter NO_boxfile (بۆکسی دەرهێنان)
+        if ((int)$transaction->transaction_type_id === 1) {
+            $request->validate([
+                'NO_boxfile' => 'required|numeric|min:1',
+            ], [
+                'NO_boxfile.required' => 'تکایە ژمارەی بۆکسی دەرهێنان تۆمار بکە.',
+                'NO_boxfile.numeric' => 'ژمارەی بۆکس دەبێت بە ژمارە بێت.',
+            ]);
+            $updateData['NO_boxfile'] = (int)$request->NO_boxfile;
+        } elseif ((int)$transaction->transaction_type_id === 5) {
+            // 2. If transaction is پووچەڵکردنەوەی دەفتەر (Type 5): enter customs letter number, date, and cancellation box number
+            $request->validate([
+                'no_nusraw_puchal' => 'required|string|max:100',
+                'date_nusraw_puchal' => 'required|date',
+                'NO_boxfile_puchal' => 'required|numeric|min:1',
+            ], [
+                'no_nusraw_puchal.required' => 'تکایە ژمارەی نووسراوی گومرگ بنووسە.',
+                'date_nusraw_puchal.required' => 'تکایە بەرواری نووسراوی گومرگ دیاری بکە.',
+                'NO_boxfile_puchal.required' => 'تکایە ژمارەی بۆکسی پووچەڵ بنووسە.',
+                'NO_boxfile_puchal.numeric' => 'ژمارەی بۆکسی پووچەڵ دەبێت بە ژمارە بێت.',
+            ]);
+            $updateData['no_nusraw_puchal'] = trim($request->no_nusraw_puchal);
+            $updateData['date_nusraw_puchal'] = $request->date_nusraw_puchal;
+            $updateData['NO_boxfile_puchal'] = (int)$request->NO_boxfile_puchal;
+        } else {
+            // For other transaction types (renewal, replacement, pledge, etc.)
+            if ($request->filled('NO_boxfile')) {
+                $updateData['NO_boxfile'] = (int)$request->NO_boxfile;
+            }
+            if ($request->filled('NO_boxfile_puchal')) {
+                $updateData['NO_boxfile_puchal'] = (int)$request->NO_boxfile_puchal;
+            }
+        }
+
+        $transaction->update($updateData);
+
+        AuditLogger::log('سەبمیتکردن و ئەرشیفکردنی مامەڵە (ستێپی کۆتایی)', Transaction::class, $transaction->id, "مامەڵەی بارکۆد {$transaction->barcode} لەلایەن " . (auth()->user()?->name ?? 'کارمەند') . " سەبمیت و ئەرشیف کرا");
 
         return redirect()->back()->with('success', 'مامەڵەکە بە سەرکەوتوویی نێردرا بۆ ستێپی کۆتایی (سەبمیت و ئەرشیفکرا).');
     }
@@ -1038,7 +1088,7 @@ class TransactionController extends Controller
         }
 
         $request->validate([
-            'step' => 'required|in:payment,booklet,audit,inspection,all',
+            'step' => 'required|in:payment,booklet,audit,inspection,archive,all',
             'reversion_reason' => 'required|string|min:4',
             'receipt_number' => 'nullable|string',
             'booklet_number' => 'nullable|string',
@@ -1186,6 +1236,22 @@ class TransactionController extends Controller
 
             $newValues = ['is_inspected' => false, 'is_submitted' => false];
             $msg = "قۆناغی کەشف و تەخمین ڕێکخرایەوە و سەبمیت هەڵوەشێنرایەوە.";
+
+        } elseif ($step === 'archive') {
+            $oldValues = [
+                'is_submitted' => $transaction->is_submitted,
+                'submitted_by' => $transaction->submitted_by,
+                'submitted_at' => $transaction->submitted_at,
+            ];
+
+            $transaction->update([
+                'is_submitted' => false,
+                'submitted_by' => null,
+                'submitted_at' => null,
+            ]);
+
+            $newValues = ['is_submitted' => false, 'submitted_by' => null, 'submitted_at' => null];
+            $msg = "سەبمیت و ئەرشیفکردنی مامەڵەکە هەڵوەشێنرایەوە و مامەڵەکە کرایەوە بۆ دەستکاری و چاپی نوێ.";
 
         } elseif ($step === 'all') {
             $oldValues = [

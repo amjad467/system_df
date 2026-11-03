@@ -79,6 +79,14 @@ class LoginController extends Controller
                     'role' => 'booklet',
                     'is_active' => true,
                 ],
+                [
+                    'name' => 'کارمەند ئاراس (ئەرشیف و سەپمیت)',
+                    'user_login' => 'archiver',
+                    'email' => 'archiver@customs.gov.krd',
+                    'password' => Hash::make('123456'),
+                    'role' => 'archiver',
+                    'is_active' => true,
+                ],
             ];
 
             foreach ($defaults as $u) {
