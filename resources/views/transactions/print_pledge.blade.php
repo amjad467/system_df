@@ -60,6 +60,13 @@
         $phoneNumber = $tx->phone_number ?: ($parent?->phone_number ?: '');
         $directorName = $tx->director?->name ?: ($parent?->director?->name ?: 'قادر پیرۆت قادر');
         $txDate = $tx->transaction_date ?: ($parent?->transaction_date ?: now());
+
+        $legalUser = (auth()->check() && auth()->user()->isLegal())
+            ? auth()->user()
+            : \App\Models\User::where('role', 'legal')->first();
+        $legalOfficerName = $legalUser 
+            ? trim(str_replace(['(فەرمانبەری یاسایی)', '（فەرمانبەری یاسایی）'], '', $legalUser->name))
+            : 'یاساناس سامان';
     @endphp
 
     <!-- Top Studio Toolbar (Hidden during printing) -->
@@ -191,10 +198,19 @@
                 </p>
             </div>
 
-            <!-- Director Signature & Barcode Grid -->
+            <!-- Signatures & Barcode Grid -->
             <div class="pt-8 pb-2 px-2 flex items-end justify-between">
                 
-                <!-- Clean Official Barcode (Right / Center) -->
+                <!-- Right: Legal Officer / Organizer (دەستە ڕاست: ڕێکخەر) -->
+                <div class="text-center font-black space-y-1 min-w-[170px]">
+                    <p class="text-lg">ڕێکخەر</p>
+                    <p class="text-sm font-black">{{ $legalOfficerName }}</p>
+                    <p class="pt-1">
+                        <span dir="ltr" class="inline-block font-mono text-sm font-bold">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y/m') : date('Y/m') }}/ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
+                    </p>
+                </div>
+
+                <!-- Center: Clean Official Barcode (ناوەڕاست: بارکۆدی فەرمی) -->
                 <div class="text-center space-y-1">
                     <svg id="pledgeBarcodeSvg" class="max-h-12"></svg>
                     <div class="font-mono text-xs font-bold text-center">
@@ -202,10 +218,10 @@
                     </div>
                 </div>
 
-                <!-- Director Block (Left of the page) -->
-                <div class="text-center font-black space-y-1">
+                <!-- Left: Director Block (دەستە چەپ: بەڕێوەبەر) -->
+                <div class="text-center font-black space-y-1 min-w-[170px]">
                     <p class="text-lg">{{ $directorName }}</p>
-                    <p class="text-sm">بەڕێوەبەری گومرگی سلێمانی</p>
+                    <p class="text-sm font-black">بەڕێوەبەری گومرگی سلێمانی</p>
                     <p class="pt-1">
                         <span dir="ltr" class="inline-block font-mono text-sm font-bold">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y/m') : date('Y/m') }}/ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
                     </p>

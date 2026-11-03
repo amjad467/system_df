@@ -693,7 +693,7 @@
                             }"></i>
                             <span class="font-black text-sm" x-text="previewTx?.stage_name"></span>
                         </div>
-                        <span class="font-bold text-[11px] px-2.5 py-0.5 rounded-lg bg-black/20" x-text="previewTx?.transaction_type"></span>
+                        <span class="font-black text-xs sm:text-sm px-3 py-1 rounded-xl bg-gradient-to-r from-sky-500/20 to-indigo-500/20 text-sky-200 border border-sky-400/40 shadow-sm flex items-center gap-1.5" x-text="previewTx?.transaction_type"></span>
                     </div>
 
                     <!-- ئاگاداری گەڕاندنەوە ئەگەر هەبێت -->

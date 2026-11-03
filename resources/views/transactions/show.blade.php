@@ -3,6 +3,77 @@
 @section('content')
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
+@php
+    $typeId = (int)$transaction->transaction_type_id;
+    $typeName = $transaction->transactionType?->name_kurdish ?? 'مامەڵە';
+
+    $typeTheme = match($typeId) {
+        1 => [ // دەرهێنانی دەفتەر (نوێ)
+            'label' => 'دەرهێنانی دەفتەر (نوێ)',
+            'gradient' => 'from-emerald-950/95 via-slate-900 to-emerald-950/60',
+            'border' => 'border-emerald-500/80 shadow-emerald-500/20 ring-1 ring-emerald-500/30',
+            'pill' => 'bg-emerald-500/25 text-emerald-200 border-emerald-400/60 shadow-sm',
+            'icon' => 'fa-solid fa-passport text-emerald-400',
+            'textColor' => 'text-emerald-300',
+            'iconBg' => 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400 shadow-emerald-500/30',
+        ],
+        2 => [ // نوێکردنەوە / تازەکردنەوە
+            'label' => 'نوێکردنەوەی دەفتەر (تازەکردنەوە)',
+            'gradient' => 'from-sky-950/95 via-slate-900 to-sky-950/60',
+            'border' => 'border-sky-500/80 shadow-sky-500/20 ring-1 ring-sky-500/30',
+            'pill' => 'bg-sky-500/25 text-sky-200 border-sky-400/60 shadow-sm',
+            'icon' => 'fa-solid fa-rotate-right text-sky-400',
+            'textColor' => 'text-sky-300',
+            'iconBg' => 'bg-sky-500/20 border-sky-500/40 text-sky-400 shadow-sky-500/30',
+        ],
+        5 => [ // پووچەڵکردنەوەی دەفتەر
+            'label' => 'پووچەڵکردنەوەی دەفتەر',
+            'gradient' => 'from-rose-950/95 via-slate-900 to-rose-950/60',
+            'border' => 'border-rose-500/90 shadow-rose-500/30 ring-2 ring-rose-500/40',
+            'pill' => 'bg-rose-500/30 text-rose-100 border-rose-400/70 shadow-sm',
+            'icon' => 'fa-solid fa-ban text-rose-400',
+            'textColor' => 'text-rose-300',
+            'iconBg' => 'bg-rose-500/25 border-rose-500/50 text-rose-300 shadow-rose-500/30',
+        ],
+        3 => [ // ناوگۆڕین
+            'label' => 'ناوگۆڕین (گۆڕینی خاوەنداریەتی)',
+            'gradient' => 'from-purple-950/95 via-slate-900 to-purple-950/60',
+            'border' => 'border-purple-500/80 shadow-purple-500/20 ring-1 ring-purple-500/30',
+            'pill' => 'bg-purple-500/25 text-purple-200 border-purple-400/60 shadow-sm',
+            'icon' => 'fa-solid fa-user-pen text-purple-400',
+            'textColor' => 'text-purple-300',
+            'iconBg' => 'bg-purple-500/20 border-purple-500/40 text-purple-400 shadow-purple-500/30',
+        ],
+        4 => [ // دەفتەرگۆڕین
+            'label' => 'دەفتەرگۆڕین (گۆڕینی دەفتەر)',
+            'gradient' => 'from-amber-950/95 via-slate-900 to-amber-950/60',
+            'border' => 'border-amber-500/80 shadow-amber-500/20 ring-1 ring-amber-500/30',
+            'pill' => 'bg-amber-500/25 text-amber-200 border-amber-400/60 shadow-sm',
+            'icon' => 'fa-solid fa-book text-amber-400',
+            'textColor' => 'text-amber-300',
+            'iconBg' => 'bg-amber-500/20 border-amber-500/40 text-amber-400 shadow-amber-500/30',
+        ],
+        6 => [ // بەڵێننامە
+            'label' => 'بەڵێننامە',
+            'gradient' => 'from-amber-950/95 via-yellow-950/60 to-slate-900',
+            'border' => 'border-amber-500/80 shadow-amber-500/20 ring-1 ring-amber-500/30',
+            'pill' => 'bg-amber-500/25 text-amber-200 border-amber-400/60 shadow-sm',
+            'icon' => 'fa-solid fa-file-contract text-amber-400',
+            'textColor' => 'text-amber-300',
+            'iconBg' => 'bg-amber-500/20 border-amber-500/40 text-amber-400 shadow-amber-500/30',
+        ],
+        default => [
+            'label' => $typeName,
+            'gradient' => 'from-indigo-950/95 via-slate-900 to-indigo-950/60',
+            'border' => 'border-indigo-500/80 shadow-indigo-500/20 ring-1 ring-indigo-500/30',
+            'pill' => 'bg-indigo-500/25 text-indigo-200 border-indigo-400/60 shadow-sm',
+            'icon' => 'fa-solid fa-folder-open text-indigo-400',
+            'textColor' => 'text-indigo-300',
+            'iconBg' => 'bg-indigo-500/20 border-indigo-500/40 text-indigo-400 shadow-indigo-500/30',
+        ],
+    };
+@endphp
+
 <div class="max-w-5xl mx-auto space-y-6 pb-24" x-data="{ 
     showPayModal: false, 
     showBookletModal: false, 
@@ -28,9 +99,14 @@
             </div>
 
             <div class="min-w-0">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
                     <span class="font-mono text-xs font-black text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded border border-sky-800/50">
                         {{ $transaction->barcode }}
+                    </span>
+                    <!-- جۆری مامەڵە بە بارزی و گەورەیی لە تەنیشت بارکۆد -->
+                    <span class="px-2.5 py-0.5 rounded-lg text-xs font-black border flex items-center gap-1.5 {{ $typeTheme['pill'] }}" title="جۆری مامەڵەی ئێستا">
+                        <i class="{{ $typeTheme['icon'] }} text-xs"></i>
+                        <span>{{ $typeName }}</span>
                     </span>
                     @if($transaction->is_returned)
                         <span class="px-2.5 py-0.5 bg-rose-500/20 text-rose-300 text-xs font-black rounded-full border border-rose-500/40 animate-pulse flex items-center gap-1">
@@ -220,6 +296,42 @@
         </div>
     </div>
 
+    <!-- HERO: Prominent Transaction Type Showcase (جۆری مامەڵە بە گەورەیی، ڕوونی و بارزی لە کاتی لێدانی بارکۆد) -->
+    <div class="bg-gradient-to-r {{ $typeTheme['gradient'] }} border-2 {{ $typeTheme['border'] }} rounded-2xl p-4 sm:p-5 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-4 w-full md:w-auto">
+            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border flex items-center justify-center shrink-0 shadow-xl {{ $typeTheme['iconBg'] }}">
+                <i class="{{ $typeTheme['icon'] }} text-2xl sm:text-3xl"></i>
+            </div>
+            <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">جۆری مامەڵە (Transaction Type):</span>
+                    <span class="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-black/40 text-slate-300 border border-slate-700">کۆدی مامەڵە: {{ $transaction->transaction_type_id }}</span>
+                </div>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-wide mt-0.5 drop-shadow flex items-center gap-2">
+                    <span>{{ $typeName }}</span>
+                </h2>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 w-full md:w-auto justify-end flex-wrap border-t md:border-t-0 pt-3 md:pt-0 border-slate-800">
+            <!-- دۆخی قۆناغ لە تەنیشت جۆری مامەڵە -->
+            <div class="text-left md:text-right">
+                <span class="text-[10px] text-slate-400 block font-bold">قۆناغی ئێستا:</span>
+                <span class="text-xs sm:text-sm font-black text-white bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-700/80 inline-flex items-center gap-1.5 shadow-inner">
+                    <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+                    {{ $transaction->getCurrentStageName() }}
+                </span>
+            </div>
+            <!-- کۆی تێچوو -->
+            <div class="text-left md:text-right">
+                <span class="text-[10px] text-slate-400 block font-bold">کۆی بڕی تێچوو:</span>
+                <span class="text-sm sm:text-base font-black font-mono text-emerald-400 bg-slate-950/80 px-3 py-1 rounded-xl border border-emerald-900/60 inline-block">
+                    {{ number_format($transaction->total_pay) }} <span class="text-[10px] font-normal text-slate-400">د.ع</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
     <!-- Comprehensive Header Summary Card (کارتی سەرەکی ناسینەوە و کورتەی زانیارییەکان) -->
     <div class="bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 border border-slate-700/80 rounded-2xl p-5 shadow-2xl relative overflow-hidden backdrop-blur-sm">
         <!-- Background decorative ambient glow -->
@@ -232,8 +344,9 @@
                 <div class="flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
                     <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">زانیاری هاووڵاتی / شۆفێر</span>
-                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-sky-300 border border-slate-700 mr-auto">
-                        {{ $transaction->transactionType->name_kurdish ?? 'مامەڵە' }}
+                    <span class="px-3 py-1 rounded-xl text-xs sm:text-sm font-black border shadow-md {{ $typeTheme['pill'] }} mr-auto flex items-center gap-1.5">
+                        <i class="{{ $typeTheme['icon'] }} text-xs"></i>
+                        <span>{{ $typeName }}</span>
                     </span>
                 </div>
 
@@ -480,8 +593,12 @@
                     <i class="fa-solid fa-diagram-project"></i>
                 </div>
                 <div>
-                    <h3 class="text-sm font-black text-white">
-                        قۆناغ و ستێپەکانی کارکردنی مامەڵە (Workflow Stepper)
+                    <h3 class="text-sm font-black text-white flex items-center gap-2 flex-wrap">
+                        <span>قۆناغ و ستێپەکانی کارکردنی مامەڵە (Workflow Stepper)</span>
+                        <span class="text-xs font-black px-2.5 py-0.5 rounded-lg border {{ $typeTheme['pill'] }} inline-flex items-center gap-1">
+                            <i class="{{ $typeTheme['icon'] }} text-[10px]"></i>
+                            <span>{{ $typeName }}</span>
+                        </span>
                     </h3>
                     <p class="text-[11px] text-slate-400">بەدواداچوونی ڕاستەوخۆ بۆ هەنگاوەکانی تەواوبوونی مامەڵە.</p>
                 </div>
@@ -1034,9 +1151,29 @@
     <!-- MODAL 1: Payment Modal (Cashier) -->
     <div x-show="showPayModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <h3 class="text-lg font-bold text-white flex items-center">
-                <i class="fa-solid fa-receipt ml-2 text-emerald-400"></i> تۆمارکردنی وەسڵی ۳۷/أ و پارەدان
-            </h3>
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                <h3 class="text-lg font-bold text-white flex items-center">
+                    <i class="fa-solid fa-receipt ml-2 text-emerald-400"></i> تۆمارکردنی وەسڵی ۳۷/أ و پارەدان
+                </h3>
+                <button type="button" @click="showPayModal = false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- جۆری مامەڵە بە بارزی لە مۆداڵی پارەدان -->
+            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] }} bg-slate-950/90 flex items-center justify-between shadow-lg">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] }}">
+                        <i class="{{ $typeTheme['icon'] }}"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵە:</span>
+                        <span class="text-base font-black text-white">{{ $typeName }}</span>
+                    </div>
+                </div>
+                <span class="font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-black/50 text-sky-300 border border-slate-700">
+                    {{ $transaction->barcode }}
+                </span>
+            </div>
+
             <form action="{{ route('transactions.pay', $transaction->id) }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
@@ -1059,9 +1196,29 @@
     <!-- MODAL 2: Booklet Number Modal -->
     <div x-show="showBookletModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <h3 class="text-lg font-bold text-white flex items-center">
-                <i class="fa-solid fa-book-bookmark ml-2 text-blue-400"></i> تۆمارکردنی ژمارەی دەفتەر
-            </h3>
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                <h3 class="text-lg font-bold text-white flex items-center">
+                    <i class="fa-solid fa-book-bookmark ml-2 text-blue-400"></i> تۆمارکردنی ژمارەی دەفتەر
+                </h3>
+                <button type="button" @click="showBookletModal = false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- جۆری مامەڵە بە بارزی لە مۆداڵی دەفتەر -->
+            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] }} bg-slate-950/90 flex items-center justify-between shadow-lg">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] }}">
+                        <i class="{{ $typeTheme['icon'] }}"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵە:</span>
+                        <span class="text-base font-black text-white">{{ $typeName }}</span>
+                    </div>
+                </div>
+                <span class="font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-black/50 text-sky-300 border border-slate-700">
+                    {{ $transaction->barcode }}
+                </span>
+            </div>
+
             <form action="{{ route('transactions.complete_booklet', $transaction->id) }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
@@ -1081,9 +1238,29 @@
     @if(auth()->check() && auth()->user()->isAdmin())
     <div x-show="showCancelModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <h3 class="text-lg font-bold text-rose-400 flex items-center">
-                <i class="fa-solid fa-ban ml-2"></i> پووچەڵکردنەوەی مامەڵە (تەنها ئەدمین)
-            </h3>
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                <h3 class="text-lg font-bold text-rose-400 flex items-center">
+                    <i class="fa-solid fa-ban ml-2"></i> پووچەڵکردنەوەی مامەڵە (تەنها ئەدمین)
+                </h3>
+                <button type="button" @click="showCancelModal = false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- جۆری مامەڵە بە بارزی -->
+            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] }} bg-slate-950/90 flex items-center justify-between shadow-lg">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] }}">
+                        <i class="{{ $typeTheme['icon'] }}"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵە:</span>
+                        <span class="text-base font-black text-white">{{ $typeName }}</span>
+                    </div>
+                </div>
+                <span class="font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-black/50 text-sky-300 border border-slate-700">
+                    {{ $transaction->barcode }}
+                </span>
+            </div>
+
             <form action="{{ route('transactions.cancel', $transaction->id) }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
@@ -1110,6 +1287,23 @@
                 <span><i class="fa-solid fa-rotate-left ml-2"></i> گەڕاندنەوەی مامەڵە بۆ تەخمین / داتائەنتەری</span>
                 <button @click="showReturnModal = false" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
             </h3>
+
+            <!-- جۆری مامەڵە بە بارزی -->
+            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] }} bg-slate-950/90 flex items-center justify-between shadow-lg">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] }}">
+                        <i class="{{ $typeTheme['icon'] }}"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵە:</span>
+                        <span class="text-base font-black text-white">{{ $typeName }}</span>
+                    </div>
+                </div>
+                <span class="font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-black/50 text-sky-300 border border-slate-700">
+                    {{ $transaction->barcode }}
+                </span>
+            </div>
+
             <form action="{{ route('transactions.return', $transaction->id) }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
@@ -1133,6 +1327,22 @@
                 <span><i class="fa-solid fa-arrow-rotate-left ml-2"></i> هەڵوەشاندنەوە و ڕێکخستنەوەی قۆناغ (Admin Step Reversion)</span>
                 <button @click="showRevertModal = false" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
             </h3>
+
+            <!-- جۆری مامەڵە بە بارزی -->
+            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] }} bg-slate-950/90 flex items-center justify-between shadow-lg">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] }}">
+                        <i class="{{ $typeTheme['icon'] }}"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵە:</span>
+                        <span class="text-base font-black text-white">{{ $typeName }}</span>
+                    </div>
+                </div>
+                <span class="font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-black/50 text-sky-300 border border-slate-700">
+                    {{ $transaction->barcode }}
+                </span>
+            </div>
             <form action="{{ route('transactions.revert_step', $transaction->id) }}" method="POST" class="space-y-4">
                 @csrf
                 <div>
@@ -1216,15 +1426,31 @@
                 </button>
             </div>
 
+            <!-- جۆری مامەڵە بە بارزی لە مۆداڵی وردبینی -->
+            <div class="p-3.5 rounded-xl border-2 {{ $typeTheme['border'] }} bg-slate-950/90 flex items-center justify-between shadow-lg">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] }}">
+                        <i class="{{ $typeTheme['icon'] }}"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵەی ژێر وردبینی:</span>
+                        <span class="text-lg font-black text-white">{{ $typeName }}</span>
+                    </div>
+                </div>
+                <span class="font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-black/50 text-sky-300 border border-slate-700">
+                    {{ $transaction->barcode }}
+                </span>
+            </div>
+
             <!-- Transaction Details Summary Card -->
-            <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4 space-y-3">
+            <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4 space-y-2.5">
                 <div class="flex justify-between items-center text-xs">
                     <span class="text-slate-400">ناوی هاوڵاتی:</span>
                     <span class="text-slate-100 font-bold text-sm">{{ $transaction->visitor_name }}</span>
                 </div>
                 <div class="flex justify-between items-center text-xs">
-                    <span class="text-slate-400">جۆری مامەڵە:</span>
-                    <span class="text-purple-300 font-bold">{{ $transaction->transactionType?->name_kurdish ?? 'دیارینەکراو' }}</span>
+                    <span class="text-slate-400">ژمارەی تابلۆ:</span>
+                    <span class="font-mono text-sky-400 font-bold" dir="ltr">{{ $transaction->plate_number }}</span>
                 </div>
                 @if(in_array((int)$transaction->transaction_type_id, [1, 2]))
                     <div class="flex justify-between items-center text-xs">
@@ -1298,19 +1524,31 @@
                 </button>
             </div>
 
+            <!-- جۆری مامەڵە بە بارزی لە مۆداڵی سەبمیت و ئەرشیف -->
+            <div class="p-3.5 rounded-xl border-2 {{ $typeTheme['border'] }} bg-slate-950/90 flex items-center justify-between shadow-lg">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] }}">
+                        <i class="{{ $typeTheme['icon'] }}"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵە:</span>
+                        <span class="text-lg font-black text-white">{{ $typeName }}</span>
+                    </div>
+                </div>
+                <span class="font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-black/50 text-sky-300 border border-slate-700">
+                    {{ $transaction->barcode }}
+                </span>
+            </div>
+
             <!-- Transaction Summary -->
-            <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4 space-y-2 text-xs">
+            <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3.5 space-y-2 text-xs">
                 <div class="flex justify-between items-center">
                     <span class="text-slate-400">ناوی هاووڵاتی:</span>
-                    <span class="text-slate-100 font-bold">{{ $transaction->visitor_name }}</span>
+                    <span class="text-slate-100 font-bold text-sm">{{ $transaction->visitor_name }}</span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-slate-400">ژمارەی تابلۆ:</span>
                     <span class="font-mono text-sky-400 font-bold" dir="ltr">{{ $transaction->plate_number }}</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-slate-400">جۆری مامەڵە:</span>
-                    <span class="text-indigo-300 font-bold">{{ $transaction->transactionType?->name_kurdish ?? 'دیارینەکراو' }}</span>
                 </div>
                 @if($transaction->booklet_number)
                     <div class="flex justify-between items-center">
@@ -1408,6 +1646,11 @@
                 <div class="flex items-center gap-2">
                     <span class="font-mono font-bold text-sky-400 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 text-xs">
                         <i class="fa-solid fa-barcode text-[10px] ml-1"></i>{{ $transaction->barcode }}
+                    </span>
+                    <!-- جۆری مامەڵە بە بارزی لە باری خێرای قۆناغەکان -->
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-black border flex items-center gap-1.5 {{ $typeTheme['pill'] }}" title="جۆری مامەڵە">
+                        <i class="{{ $typeTheme['icon'] }} text-[10px]"></i>
+                        <span>{{ $typeName }}</span>
                     </span>
                     <x-vehicle-plate :plate="$transaction->plate_number" :type="$transaction->plateType" size="sm" />
                 </div>
