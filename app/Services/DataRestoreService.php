@@ -40,7 +40,8 @@ class DataRestoreService
                 if (is_array($makes)) {
                     foreach ($makes as $m) {
                         try {
-                            DB::table('car_makes')->updateOrInsert(['id' => $m['id']], (array)$m);
+                            $mArr = (array)$m;
+                            DB::table('car_makes')->updateOrInsert(['id' => $mArr['id']], $mArr);
                             $stats['car_makes']++;
                         } catch (\Throwable $e) {
                             $stats['errors'][] = "CarMake {$m['id']}: " . $e->getMessage();
@@ -56,7 +57,8 @@ class DataRestoreService
                 if (is_array($seqs)) {
                     foreach ($seqs as $s) {
                         try {
-                            DB::table('barcode_sequences')->updateOrInsert(['id' => $s['id']], (array)$s);
+                            $sArr = (array)$s;
+                            DB::table('barcode_sequences')->updateOrInsert(['id' => $sArr['id']], $sArr);
                             $stats['barcode_sequences']++;
                         } catch (\Throwable $e) {
                             $stats['errors'][] = "BarcodeSeq {$s['id']}: " . $e->getMessage();
@@ -65,7 +67,7 @@ class DataRestoreService
                 }
             }
 
-            // Step 3: Transactions (All 84 records - MUST RUN BEFORE blocked receipts)
+            // Step 3: Transactions (All 84 records)
             $txFile = database_path('seeders/transactions_backup.json');
             if (file_exists($txFile)) {
                 $txList = json_decode(file_get_contents($txFile), true);
@@ -102,12 +104,38 @@ class DataRestoreService
                         }
 
                         try {
-                            DB::table('transactions')->updateOrInsert(['barcode' => $barcode], $txArr);
+                            // Check if barcode already exists
+                            $existing = DB::table('transactions')->where('barcode', $barcode)->first();
+                            if ($existing) {
+                                // Update existing record without changing primary key
+                                unset($txArr['id']);
+                                DB::table('transactions')->where('barcode', $barcode)->update($txArr);
+                            } else {
+                                // Try inserting with original ID, fallback without ID if collision
+                                try {
+                                    DB::table('transactions')->insert($txArr);
+                                } catch (\Throwable $idErr) {
+                                    unset($txArr['id']);
+                                    DB::table('transactions')->insert($txArr);
+                                }
+                            }
                             $stats['transactions']++;
                         } catch (\Throwable $e) {
                             $stats['errors'][] = "Tx {$barcode}: " . $e->getMessage();
                             Log::error("Failed to restore transaction {$barcode}: " . $e->getMessage());
                         }
+                    }
+
+                    // Fix linked dual pledge parent transaction if needed
+                    try {
+                        $parentTx = DB::table('transactions')->where('barcode', '2611010001')->first();
+                        if ($parentTx) {
+                            DB::table('transactions')
+                                ->where('barcode', '2611010002')
+                                ->update(['parent_transaction_id' => $parentTx->id]);
+                        }
+                    } catch (\Throwable $pErr) {
+                        // Non-critical
                     }
                 }
             }
@@ -119,17 +147,24 @@ class DataRestoreService
                 if (is_array($blocked)) {
                     foreach ($blocked as $b) {
                         try {
-                            DB::table('blocked_receipt_numbers')->updateOrInsert(['id' => $b['id']], (array)$b);
+                            $bArr = (array)$b;
+                            // Verify transaction exists before referencing
+                            if (!empty($bArr['transaction_id'])) {
+                                $txExists = DB::table('transactions')->where('id', $bArr['transaction_id'])->exists();
+                                if (!$txExists) {
+                                    $bArr['transaction_id'] = null;
+                                }
+                            }
+                            DB::table('blocked_receipt_numbers')->updateOrInsert(['receipt_number' => $bArr['receipt_number']], $bArr);
                             $stats['blocked_receipt_numbers']++;
                         } catch (\Throwable $e) {
-                            // If transaction_id still doesn't exist, insert with null transaction_id to preserve the blocked receipt record
                             try {
                                 $bArr = (array)$b;
                                 $bArr['transaction_id'] = null;
-                                DB::table('blocked_receipt_numbers')->updateOrInsert(['id' => $b['id']], $bArr);
+                                DB::table('blocked_receipt_numbers')->updateOrInsert(['receipt_number' => $bArr['receipt_number']], $bArr);
                                 $stats['blocked_receipt_numbers']++;
                             } catch (\Throwable $e2) {
-                                $stats['errors'][] = "BlockedReceipt {$b['id']}: " . $e2->getMessage();
+                                $stats['errors'][] = "BlockedReceipt {$b['receipt_number']}: " . $e2->getMessage();
                             }
                         }
                     }

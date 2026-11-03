@@ -17,10 +17,10 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
 
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
-    && chmod -R 777 /var/www/storage /var/www/bootstrap/cache
+RUN chmod +x /var/www/entrypoint.sh \
+    && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/database \
+    && chmod -R 777 /var/www/storage /var/www/bootstrap/cache /var/www/database
 
 EXPOSE 8080
 
-# کارپێکردنی مایکگرەیشن و سیدەر و سێرڤەر
-CMD mkdir -p database && if [ ! -s database/database.sqlite ] && [ -f database/database_seed.sqlite ]; then cp database/database_seed.sqlite database/database.sqlite; else touch database/database.sqlite; fi && chmod 777 database database/database.sqlite && php artisan migrate --force && php artisan db:seed --force && php artisan config:clear && php artisan serve --host 0.0.0.0 --port ${PORT:-8080}
+CMD ["/bin/sh", "/var/www/entrypoint.sh"]
