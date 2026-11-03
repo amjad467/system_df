@@ -26,7 +26,15 @@ Route::get('/create-admin', function () {
 Route::get('/restore-records', function () {
     \App\Http\Controllers\Auth\LoginController::ensureDefaultUsersExist();
     $stats = \App\Services\DataRestoreService::restoreAll();
-    return redirect()->route('transactions.index', ['date_filter' => 'all'])->with('success', "سەرکەوتوو بوو! هەموو {$stats['transactions']} تۆمارەکە (تۆمارە کۆنەکان و داتاکانی ئەکسێس) بە سەرکەوتوویی گەڕێنرانەوە بۆ سیستەم.");
+    
+    if (!empty($stats['errors'])) {
+        $firstErr = $stats['errors'][0];
+        return redirect()->route('transactions.index', ['date_filter' => 'all'])
+            ->with('warning', "گەڕێنرانەوە: {$stats['transactions']} تۆمار. تێبینی: " . $firstErr);
+    }
+
+    return redirect()->route('transactions.index', ['date_filter' => 'all'])
+        ->with('success', "سەرکەوتوو بوو! هەموو {$stats['transactions']} تۆمارەکە (تۆمارە کۆنەکان و داتاکانی ئەکسێس) بە سەرکەوتوویی گەڕێنرانەوە بۆ سیستەم.");
 })->name('restore_records');
 
 Route::middleware('auth')->group(function () {
