@@ -208,12 +208,8 @@ class TransactionController extends Controller
 
     public function officialPrintIndex(Request $request)
     {
-        if (auth()->user()->role === 'data_entry') {
-            return redirect()->route('dashboard')->with('error', 'کارمەندی داتائەنتەری دەسەڵاتی بینینی چاپی نوسراوەکانی نییە!');
-        }
-
-        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'booklet') {
-            return redirect()->route('dashboard')->with('error', 'تەنها کارمەندی بەشی دەفتەر و ئەدمین دەتوانن سەردانی چاپی نوسراوەکان بکەن!');
+        if (!auth()->user()->hasPermission('prints.official_index')) {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی چاپی نوسراوە فەرمییەکانت نییە بەپێی پێرمشنەکان!');
         }
 
         $tab = $request->get('tab', 'pending');
@@ -290,8 +286,8 @@ class TransactionController extends Controller
 
     public function create(Request $request)
     {
-        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'data_entry') {
-            return redirect()->route('dashboard')->with('error', 'تەنها کارمەندی داتائەنتەری و ئەدمین دەتوانن مامەڵەی نوێ تۆمار بکەن!');
+        if (!auth()->user()->hasPermission('transactions.create')) {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی تۆمارکردنی مامەڵەی نوێت نییە بەپێی پێرمشنەکان!');
         }
 
         $directorates = TrafficDirectorate::all();
@@ -431,8 +427,8 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
-        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'data_entry') {
-            return redirect()->route('dashboard')->with('error', 'تەنها کارمەندی داتائەنتەری و ئەدمین دەتوانن مامەڵەی نوێ تۆمار بکەن!');
+        if (!auth()->user()->hasPermission('transactions.create')) {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی تۆمارکردنی مامەڵەی نوێت نییە بەپێی پێرمشنەکان!');
         }
 
         $validated = $request->validate([
@@ -1015,8 +1011,8 @@ class TransactionController extends Controller
                 ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت پسوولەی ۳۷/أ چاپ بکات.');
         }
 
-        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'cashier') {
-            return redirect()->back()->with('error', 'تەنها ژمێریار / وەسڵبڕ و ئەدمین دەتوانن پسوولەی پارەدان چاپ بکەن!');
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.receipt')) {
+            return redirect()->back()->with('error', 'دەسەڵاتی چاپی پسوولەی ۳۷/أ (پارەدان)ت نییە بەپێی پێرمشنەکان!');
         }
 
         if (!$transaction->is_paid) {
@@ -1029,12 +1025,8 @@ class TransactionController extends Controller
 
     public function submitArchive(Request $request, Transaction $transaction)
     {
-        if (auth()->user()->role === 'data_entry') {
-            return redirect()->back()->with('error', 'کارمەندی داتائەنتەری دەسەڵاتی سەبمیت و ئەرشیفکردنی مامەڵەی نییە!');
-        }
-
-        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'archiver' && auth()->user()->role !== 'booklet' && !auth()->user()->hasPermission('transactions.submit')) {
-            return redirect()->back()->with('error', 'دەسەڵاتی پێویستت نییە بۆ سەبمیت و ئەرشیفکردنی مامەڵە!');
+        if (!auth()->user()->hasPermission('transactions.submit')) {
+            return redirect()->back()->with('error', 'دەسەڵاتی پێویستت نییە بۆ سەبمیت و ئەرشیفکردنی مامەڵە بەپێی پێرمشنەکان!');
         }
 
         if (!$transaction->is_paid) {
@@ -1330,9 +1322,8 @@ class TransactionController extends Controller
 
     public function cancel(Request $request, Transaction $transaction)
     {
-        // تەنها ئەدمین دەتوانێت مامەڵە پووچەڵ بکاتەوە (خاڵی ۳)
-        if (!auth()->check() || !auth()->user()->isAdmin()) {
-            return redirect()->back()->with('error', 'تەنها کارگێڕی گشتی (ئەدمین) دەسەڵاتی پووچەڵکردنەوەی مامەڵەی هەیە.');
+        if (!auth()->check() || !auth()->user()->hasPermission('transactions.cancel')) {
+            return redirect()->back()->with('error', 'دەسەڵاتی پووچەڵکردنەوەی مامەڵەت نییە بەپێی پێرمشنەکان.');
         }
 
         $request->validate([
@@ -1374,9 +1365,9 @@ class TransactionController extends Controller
 
         $user = auth()->user();
 
-        // 1. Only Estimator (inspector) or Admin can print
-        if (!$user->isAdmin() && $user->role !== 'inspector') {
-            return redirect()->back()->with('error', 'تەنها فەرمانبەری کەشف و تەخمین دەتوانێت پسولەی کەشف و خەمڵاندن چاپ بکات.');
+        // 1. Only Estimator (inspector) or Admin, or user with permission
+        if (!$user->isAdmin() && !$user->hasPermission('prints.inspection')) {
+            return redirect()->back()->with('error', 'دەسەڵاتی چاپی پسولەی کەشف و خەمڵاندنت نییە بەپێی پێرمشنەکان.');
         }
 
         // 2. Must be approved by Estimator first
@@ -1400,8 +1391,8 @@ class TransactionController extends Controller
                 ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت فیشەی داتائەنتەری چاپ بکات.');
         }
 
-        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'data_entry') {
-            return redirect()->back()->with('error', 'تەنها کارمەندی داتائەنتەری و ئەدمین دەتوانن فیشەی داتائەنتەری چاپ بکەن!');
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.data_entry')) {
+            return redirect()->back()->with('error', 'دەسەڵاتی چاپی فیشەی داتائەنتەریت نییە بەپێی پێرمشنەکان!');
         }
 
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director', 'parentTransaction', 'relatedTransactions']);
@@ -1415,12 +1406,8 @@ class TransactionController extends Controller
                 ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت دەفتەر چاپ بکات.');
         }
 
-        if (auth()->user()->role === 'data_entry') {
-            return redirect()->back()->with('error', 'کارمەندی داتائەنتەری دەسەڵاتی چاپی دەفتەری نییە!');
-        }
-
-        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'booklet' && !auth()->user()->hasPermission('transactions.print_booklet')) {
-            return redirect()->back()->with('error', 'تەنها کارمەندی بەشی دەفتەر و ئەدمین دەتوانن دەفتەر چاپ بکەن!');
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.booklet')) {
+            return redirect()->back()->with('error', 'دەسەڵاتی چاپی دەفتەرت نییە بەپێی پێرمشنەکان!');
         }
 
         if (empty($transaction->booklet_number)) {
@@ -1467,8 +1454,8 @@ class TransactionController extends Controller
     public function printPledge(Transaction $transaction)
     {
         $user = auth()->user();
-        if (!$user->isAdmin() && !$user->isLegal()) {
-            return redirect()->back()->with('error', 'تەنها فەرمانبەری یاسایی و ئەدمین دەتوانن بەڵێننامە چاپ بکەن.');
+        if (!$user->isAdmin() && !$user->hasPermission('prints.pledge')) {
+            return redirect()->back()->with('error', 'دەسەڵاتی چاپی بەڵێننامەت نییە بەپێی پێرمشنەکان.');
         }
 
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director', 'parentTransaction']);
@@ -1556,8 +1543,8 @@ class TransactionController extends Controller
 
     public function destroy(Transaction $transaction)
     {
-        if (!auth()->user()->isAdmin()) {
-            return redirect()->back()->with('error', 'دەسەڵاتی سڕینەوەی کاتیت نییە!');
+        if (!auth()->user()->hasPermission('transactions.delete')) {
+            return redirect()->back()->with('error', 'دەسەڵاتی سڕینەوەی کاتیت نییە بەپێی پێرمشنەکان!');
         }
 
         $barcode = $transaction->barcode;
@@ -1571,8 +1558,8 @@ class TransactionController extends Controller
 
     public function restore($id)
     {
-        if (!auth()->user()->isAdmin()) {
-            return redirect()->back()->with('error', 'دەسەڵاتی گەڕاندنەوەی مامەڵەی سڕدراوەت نییە!');
+        if (!auth()->user()->hasPermission('transactions.restore')) {
+            return redirect()->back()->with('error', 'دەسەڵاتی گەڕاندنەوەی مامەڵەی سڕدراوەت نییە بەپێی پێرمشنەکان!');
         }
 
         $transaction = Transaction::onlyTrashed()->findOrFail($id);
@@ -1638,6 +1625,10 @@ class TransactionController extends Controller
                 ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت نوسراوی پووچەڵکردنەوە چاپ بکات.');
         }
 
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.cancellation')) {
+            return redirect()->back()->with('error', 'دەسەڵاتی چاپی نووسراوی پووچەڵکردنەوەت نییە بەپێی پێرمشنەکان!');
+        }
+
         $transaction->update(['is_printed' => true]);
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
         return view('transactions.print_cancellation', compact('transaction'));
@@ -1650,6 +1641,10 @@ class TransactionController extends Controller
                 ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت نوسراوی ڕەفتارنەکردن چاپ بکات.');
         }
 
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.restriction')) {
+            return redirect()->back()->with('error', 'دەسەڵاتی چاپی نووسراوی ڕەفتارنەکردنت نییە بەپێی پێرمشنەکان!');
+        }
+
         $transaction->update(['is_printed' => true]);
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
         return view('transactions.print_restriction', compact('transaction'));
@@ -1660,6 +1655,10 @@ class TransactionController extends Controller
         if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
             return redirect()->route('transactions.show', $transaction->id)
                 ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت نوسراوی پشکنین چاپ بکات.');
+        }
+
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.inspection_letter')) {
+            return redirect()->back()->with('error', 'دەسەڵاتی چاپی نووسراوی پشکنینت نییە بەپێی پێرمشنەکان!');
         }
 
         if (!$transaction->is_paid) {

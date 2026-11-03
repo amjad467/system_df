@@ -19,6 +19,12 @@ class User extends Authenticatable
         'role',
         'is_active',
         'traffic_directorate_id',
+        'custom_permissions',
+    ];
+
+    protected $casts = [
+        'custom_permissions' => 'array',
+        'is_active' => 'boolean',
     ];
 
     protected $hidden = [
@@ -63,7 +69,7 @@ class User extends Authenticatable
 
     public function hasPermission(string $permission): bool
     {
-        return \App\Services\PermissionService::hasPermission($this->role, $permission);
+        return \App\Services\PermissionService::userHasPermission($this, $permission);
     }
 }
 

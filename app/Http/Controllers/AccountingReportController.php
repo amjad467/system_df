@@ -13,8 +13,8 @@ class AccountingReportController extends Controller
 {
     public function index(Request $request)
     {
-        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'cashier') {
-            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی ڕاپۆرتی محاسبة ٦٦ تەنها بۆ ژمێریار / وەسڵبڕ و ئەدمینە!');
+        if (!auth()->user()->hasPermission('reports.accounting_66')) {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی ڕاپۆرتی محاسبة ٦٦ت نییە بەپێی پێرمشنەکان!');
         }
 
         $data = $this->prepareReportData($request);
@@ -27,8 +27,8 @@ class AccountingReportController extends Controller
 
     public function print(Request $request)
     {
-        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'cashier') {
-            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی چاپی محاسبة ٦٦ تەنها بۆ ژمێریار / وەسڵبڕ و ئەدمینە!');
+        if (!auth()->user()->hasPermission('reports.accounting_66')) {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی چاپی محاسبة ٦٦ت نییە بەپێی پێرمشنەکان!');
         }
 
         $data = $this->prepareReportData($request);
@@ -37,6 +37,9 @@ class AccountingReportController extends Controller
 
     public function exportCsv(Request $request)
     {
+        if (!auth()->user()->hasPermission('reports.accounting_export')) {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی داگرتنی داتای محاسبة ٦٦ت نییە بەپێی پێرمشنەکان!');
+        }
         $data = $this->prepareReportData($request);
         $transactions = $data['transactions'];
 

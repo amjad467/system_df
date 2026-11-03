@@ -184,7 +184,35 @@
                     <a href="{{ route('transactions.index') }}" class="text-xs text-sky-600 dark:text-sky-400 hover:underline font-bold">بینینی گشتی &larr;</a>
                 </div>
 
-                <div class="overflow-x-auto w-full rounded-xl border border-slate-200 dark:border-slate-700/70">
+                <!-- Mobile Cards for Recent Transactions -->
+                <div class="md:hidden space-y-2.5">
+                    @forelse($recentTransactions as $tx)
+                        <div class="bg-slate-50 dark:bg-slate-900/80 p-3 rounded-xl border border-slate-200 dark:border-slate-700/70 flex items-center justify-between gap-3 shadow-sm">
+                            <div class="space-y-1 min-w-0 pr-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono text-xs font-bold text-sky-600 dark:text-sky-400">{{ $tx->barcode }}</span>
+                                    <span class="text-[10px] text-slate-400 font-mono">{{ $tx->created_at ? $tx->created_at->format('H:i') : '' }}</span>
+                                </div>
+                                <span class="text-xs font-bold text-slate-800 dark:text-white block truncate">{{ $tx->visitor_name }}</span>
+                                <div class="flex items-center gap-2 text-[10px]">
+                                    <span class="text-slate-500">{{ $tx->transactionType->name_kurdish ?? '-' }}</span>
+                                    <span class="text-emerald-500 font-mono font-bold">{{ number_format($tx->total_pay) }} د.ع</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end gap-1.5 shrink-0">
+                                <x-vehicle-plate :plate="$tx->plate_number" :type="$tx->plateType" size="sm" />
+                                <a href="{{ route('transactions.show', $tx->id) }}" class="px-2.5 py-1 bg-sky-600 text-white rounded-lg text-[11px] font-bold shadow">
+                                    بینین
+                                </a>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-xs text-slate-400 text-center py-4">هیچ مامەڵەیەک نەدۆزرایەوە.</p>
+                    @endforelse
+                </div>
+
+                <!-- Desktop / Tablet Table for Recent Transactions -->
+                <div class="hidden md:block overflow-x-auto w-full rounded-xl border border-slate-200 dark:border-slate-700/70">
                     <table class="w-full text-right text-xs text-slate-700 dark:text-slate-300 min-w-[600px]">
                         <thead class="bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700 font-bold">
                             <tr>

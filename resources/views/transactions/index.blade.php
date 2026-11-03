@@ -2,6 +2,7 @@
 
 @section('content')
 <div class="space-y-5" x-data="{ 
+    tableViewMode: (window.innerWidth < 768 ? 'cards' : 'table'),
     showAdvancedSearch: {{ in_array($dateFilter, ['custom', 'yesterday', 'this_week', 'all']) || request()->filled('from_date') || request()->filled('to_date') ? 'true' : 'false' }},
     showDrawer: false,
     previewTx: null,
@@ -327,7 +328,7 @@
 
     <!-- خشتەی ڕێکخراو و پاکی مامەڵەکان (Clean, Professional & Uncluttered Table) -->
     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-        <!-- زانیاری پەڕە و ژمارە لە سەرەوەی خشتە -->
+        <!-- زانیاری پەڕە و ژمارە لە سەرەوەی خشتە بە دوگمەی گۆڕینی دیمەن (کارت / خشتە) -->
         <div class="px-4 py-2.5 bg-slate-950/60 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
             <div class="flex items-center gap-2 flex-wrap">
                 <i class="fa-solid fa-table-list text-sky-400"></i>
@@ -353,42 +354,175 @@
                     @endif
                 </span>
             </div>
-            <div class="text-[11px] text-slate-500">
-                قۆناغ: <span class="text-sky-300 font-bold">
-                    @if(($stage ?? 'all') === 'inspection') ١. کەشف و تەخمین
-                    @elseif(($stage ?? '') === 'audit') ٢. وردبینی
-                    @elseif(($stage ?? '') === 'payment') ٣. ژمێریاری
-                    @elseif(($stage ?? '') === 'booklet') ٤. بەشی دەفتەر
-                    @elseif(($stage ?? '') === 'completed') تەواوکراوەکان
-                    @elseif(($stage ?? '') === 'cancelled') پووچەڵکراوەکان
-                    @else گشت قۆناغەکان
-                    @endif
-                </span>
-            </div>
-        </div>
-            <div class="flex items-center gap-2">
-                <i class="fa-solid fa-table-list text-sky-400"></i>
-                <span>پیشاندانی 
-                    <strong class="font-mono text-white">{{ $transactions->firstItem() ?? 0 }}</strong> تا 
-                    <strong class="font-mono text-white">{{ $transactions->lastItem() ?? 0 }}</strong> 
-                    لە کۆی <strong class="font-mono text-emerald-400">{{ number_format($transactions->total()) }}</strong> مامەڵە
-                </span>
-            </div>
-            <div class="text-[11px] text-slate-500">
-                قۆناغ: <span class="text-sky-300 font-bold">
-                    @if(($stage ?? 'all') === 'inspection') ١. کەشف و تەخمین
-                    @elseif(($stage ?? '') === 'audit') ٢. وردبینی
-                    @elseif(($stage ?? '') === 'payment') ٣. ژمێریاری
-                    @elseif(($stage ?? '') === 'booklet') ٤. بەشی دەفتەر
-                    @elseif(($stage ?? '') === 'completed') تەواوکراوەکان
-                    @elseif(($stage ?? '') === 'cancelled') پووچەڵکراوەکان
-                    @else گشت قۆناغەکان
-                    @endif
-                </span>
+
+            <!-- View Switcher (Cards / Table) & Stage Indicator -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1">
+                    <button type="button" @click="tableViewMode = 'cards'" :class="tableViewMode === 'cards' ? 'bg-sky-600 text-white shadow' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                        <i class="fa-solid fa-grip"></i>
+                        <span>کارت</span>
+                    </button>
+                    <button type="button" @click="tableViewMode = 'table'" :class="tableViewMode === 'table' ? 'bg-sky-600 text-white shadow' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                        <i class="fa-solid fa-table-list"></i>
+                        <span>خشتە</span>
+                    </button>
+                </div>
+
+                <div class="text-[11px] text-slate-500 hidden sm:block">
+                    قۆناغ: <span class="text-sky-300 font-bold">
+                        @if(($stage ?? 'all') === 'inspection') ١. کەشف و تەخمین
+                        @elseif(($stage ?? '') === 'audit') ٢. وردبینی
+                        @elseif(($stage ?? '') === 'payment') ٣. ژمێریاری
+                        @elseif(($stage ?? '') === 'booklet') ٤. بەشی دەفتەر
+                        @elseif(($stage ?? '') === 'completed') تەواوکراوەکان
+                        @elseif(($stage ?? '') === 'cancelled') پووچەڵکراوەکان
+                        @else گشت قۆناغەکان
+                        @endif
+                    </span>
+                </div>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- نیشاندانی کارتی مۆبایل و تابلێت (Responsive Cards View) -->
+        <div x-show="tableViewMode === 'cards'" class="p-3 sm:p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+            @forelse($transactions as $index => $tx)
+                @php
+                    $txPayload = [
+                        'id' => $tx->id,
+                        'barcode' => $tx->barcode,
+                        'visitor_name' => $tx->visitor_name,
+                        'visitor_name_eng' => $tx->visitor_name_eng,
+                        'phone_number' => $tx->phone_number,
+                        'second_driver_name' => $tx->second_driver_name,
+                        'plate_number' => $tx->plate_number,
+                        'plate_type' => $tx->plateType->name_kurdish ?? 'تایبەت',
+                        'car_make' => $tx->carMake->name_kurdish ?? '',
+                        'car_color' => $tx->carColor->name_kurdish ?? '',
+                        'model_year' => $tx->model_year,
+                        'chassis_number' => $tx->chassis_number,
+                        'transaction_type' => $tx->transactionType->name_kurdish ?? '',
+                        'total_pay' => number_format($tx->total_pay),
+                        'receipt_37a' => $tx->receipt_37a_number,
+                        'booklet_number' => $tx->booklet_number,
+                        'boxfile' => $tx->NO_boxfile,
+                        'boxfile_puchal' => $tx->NO_boxfile_puchal,
+                        'stage_name' => $tx->getCurrentStageName(),
+                        'is_cancelled' => (bool)$tx->is_cancelled,
+                        'is_inspected' => (bool)$tx->is_inspected,
+                        'is_audited' => (bool)$tx->is_audited,
+                        'is_paid' => (bool)$tx->is_paid,
+                        'is_booklet_completed' => (bool)$tx->is_booklet_completed,
+                        'is_submitted' => (bool)$tx->is_submitted,
+                        'is_returned' => (bool)$tx->is_returned,
+                        'return_reason' => $tx->return_reason,
+                        'user_input' => $tx->user_input,
+                        'date' => $tx->transaction_date ? $tx->transaction_date->format('Y-m-d') : ($tx->created_at ? $tx->created_at->format('Y-m-d') : ''),
+                        'show_url' => route('transactions.show', $tx->id),
+                    ];
+                @endphp
+                <div class="bg-slate-950/70 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 space-y-3 transition shadow-lg flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <!-- Top Row: Barcode + Date + Stage Pill -->
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" @click="openPreview({{ json_encode($txPayload) }})" 
+                                        class="font-mono text-xs font-black text-sky-400 bg-sky-950/80 px-2.5 py-1 rounded-xl border border-sky-800/60 shadow-sm">
+                                    {{ $tx->barcode }}
+                                </button>
+                                <span class="text-[10px] text-slate-400 font-mono">
+                                    {{ $tx->transaction_date ? $tx->transaction_date->format('Y-m-d') : ($tx->created_at ? $tx->created_at->format('Y-m-d') : '-') }}
+                                </span>
+                            </div>
+                            <div>
+                                @if($tx->is_cancelled)
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/20 text-rose-300 border border-rose-500/40">پووچەڵکراوە</span>
+                                @elseif($tx->is_booklet_completed)
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">تەواوکراوە</span>
+                                @elseif($tx->is_paid)
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/40">دەفتەر</span>
+                                @elseif($tx->is_audited)
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40">وەسڵ و پارە</span>
+                                @elseif($tx->is_inspected)
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/40">وردبینی</span>
+                                @else
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-orange-500/20 text-orange-300 border border-orange-500/40">کەشف و تەخمین</span>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Citizen Name & Phone -->
+                        <div class="flex items-center justify-between gap-2 border-t border-slate-800/80 pt-2">
+                            <div class="min-w-0">
+                                <button type="button" @click="openPreview({{ json_encode($txPayload) }})" class="text-xs font-black text-white hover:text-sky-400 transition text-right block truncate cursor-pointer">
+                                    {{ $tx->visitor_name }}
+                                </button>
+                                @if($tx->second_driver_name)
+                                    <span class="text-[10px] text-slate-400 block truncate">شۆفێری ٢: {{ $tx->second_driver_name }}</span>
+                                @endif
+                            </div>
+                            @if($tx->phone_number)
+                                <a href="tel:{{ $tx->phone_number }}" class="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-[11px] font-mono font-bold flex items-center gap-1 shrink-0" dir="ltr" title="پەیوەندیکردن">
+                                    <i class="fa-solid fa-phone text-[9px]"></i>
+                                    <span>{{ $tx->phone_number }}</span>
+                                </a>
+                            @endif
+                        </div>
+
+                        <!-- Vehicle Plate Graphic & Model -->
+                        <div class="flex items-center justify-between gap-2 bg-slate-900/90 p-2.5 rounded-xl border border-slate-800/80">
+                            <div>
+                                <x-vehicle-plate :plate="$tx->plate_number" :type="$tx->plateType" size="sm" />
+                            </div>
+                            <div class="text-left min-w-0">
+                                <span class="text-xs font-bold text-slate-200 block truncate">{{ $tx->carMake->name_kurdish ?? 'ئۆتۆمبێل' }}</span>
+                                <span class="text-[10px] font-mono text-slate-400 block truncate">{{ $tx->model_year ?? '-' }} | {{ $tx->carColor->name_kurdish ?? '' }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Meta Info Grid -->
+                        <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-slate-800/60">
+                            <div>
+                                <span class="text-slate-500 block text-[10px]">جۆری مامەڵە:</span>
+                                <span class="font-bold text-slate-300 truncate block">{{ $tx->transactionType->name_kurdish ?? '-' }}</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-500 block text-[10px]">بڕی پارە:</span>
+                                <span class="font-mono font-black text-emerald-400">{{ number_format($tx->total_pay) }} د.ع</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-500 block text-[10px]">ژمارەی دەفتەر:</span>
+                                <span class="font-mono font-bold text-amber-400">{{ $tx->booklet_number ?? '-' }}</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-500 block text-[10px]">ژمارەی بۆکس:</span>
+                                <span class="font-mono font-bold text-sky-400">{{ $tx->NO_boxfile ?? ($tx->NO_boxfile_puchal ?? '-') }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Touch Buttons -->
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800">
+                        <button type="button" @click="openPreview({{ json_encode($txPayload) }})" 
+                                class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded-xl text-xs font-bold border border-slate-700 flex items-center justify-center gap-1.5 transition">
+                            <i class="fa-solid fa-eye text-xs"></i>
+                            <span>پێشبینی</span>
+                        </button>
+                        <a href="{{ route('transactions.show', $tx->id) }}" 
+                           class="py-2 px-3 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-black shadow-md shadow-sky-600/30 flex items-center justify-center gap-1.5 transition">
+                            <span>بینین / قۆناغ</span>
+                            <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+            @empty
+                <div class="col-span-full py-10 text-center text-slate-400 text-xs">
+                    هیچ مامەڵەیەک نەدۆزرایەوە.
+                </div>
+            @endforelse
+        </div>
+
+        <!-- نیشاندانی خشتەی تەقلیدی بۆ دێسکتۆپ و تابلێت (Table View) -->
+        <div x-show="tableViewMode === 'table'" class="overflow-x-auto">
             <table class="w-full text-right text-xs text-slate-300 border-collapse">
                 <thead class="bg-slate-950 text-slate-400 text-[11px] font-black uppercase tracking-wider border-b border-slate-800">
                     <tr>

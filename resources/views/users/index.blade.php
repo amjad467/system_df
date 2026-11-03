@@ -10,9 +10,14 @@
             </h2>
             <p class="text-xs text-slate-400">دروستکردن، دەستکاریکردن، گۆڕینی پاسوۆرد و دیاریکردنی جۆری کاری فەرمانبەران.</p>
         </div>
-        <button @click="showUserModal = true" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center">
-            <i class="fa-solid fa-user-plus ml-2"></i> دروستکردنی فەرمانبەری نوێ
-        </button>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('settings.permissions') }}" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center">
+                <i class="fa-solid fa-shield-halved ml-2"></i> خشتەی پێرمشنەکان (Permissions)
+            </a>
+            <button @click="showUserModal = true" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center">
+                <i class="fa-solid fa-user-plus ml-2"></i> دروستکردنی فەرمانبەری نوێ
+            </button>
+        </div>
     </div>
 
     <!-- Users Table -->
@@ -38,7 +43,12 @@
                             <td class="p-3.5 font-bold text-slate-100">{{ $user->name }}</td>
                             <td class="p-3.5 font-mono text-xs text-sky-400 font-semibold">{{ $user->user_login ?? '-' }}</td>
                             <td class="p-3.5 font-mono text-xs text-slate-300" dir="ltr">{{ $user->email }}</td>
-                            <td class="p-3.5 text-xs font-bold text-indigo-300">{{ $user->role_name_kurdish }}</td>
+                            <td class="p-3.5 text-xs font-bold text-indigo-300">
+                                {{ $user->role_name_kurdish }}
+                                @if(!empty($user->custom_permissions))
+                                    <span class="block text-[10px] text-amber-400 font-normal mt-0.5"><i class="fa-solid fa-sliders"></i> دەسەڵاتی تایبەتمەند</span>
+                                @endif
+                            </td>
                             <td class="p-3.5 text-xs text-slate-400">{{ $user->trafficDirectorate->name_kurdish ?? 'گشتی' }}</td>
                             <td class="p-3.5 text-center">
                                 @if($user->is_active)
@@ -48,10 +58,18 @@
                                 @endif
                             </td>
                             <td class="p-3.5 text-center">
-                                <div class="flex items-center justify-center gap-2">
+                                <div class="flex items-center justify-center gap-1.5">
+                                    <a href="{{ route('settings.permissions', ['user_id' => $user->id, 'tab' => 'user']) }}" 
+                                       class="px-2.5 py-1 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 text-xs font-bold rounded-lg transition flex items-center gap-1"
+                                       title="ڕێکخستنی دەسەڵاتە تایبەتەکانی ئەم بەکارهێنەرە">
+                                        <i class="fa-solid fa-shield-halved text-[11px]"></i> پێرمشن
+                                        @if(!empty($user->custom_permissions))
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block animate-pulse"></span>
+                                        @endif
+                                    </a>
                                     <button @click="editingUser = { id: {{ $user->id }}, name: '{{ $user->name }}', user_login: '{{ $user->user_login }}', email: '{{ $user->email }}', role: '{{ $user->role }}', traffic_directorate_id: '{{ $user->traffic_directorate_id }}' }; showEditModal = true;" 
-                                            class="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1">
-                                        <i class="fa-solid fa-user-pen"></i> دەستکاری / پاسوۆرد
+                                            class="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1">
+                                        <i class="fa-solid fa-user-pen"></i> دەستکاری
                                     </button>
                                     <form action="{{ route('users.toggle', $user->id) }}" method="POST" class="inline">
                                         @csrf

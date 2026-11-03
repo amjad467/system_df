@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پەیوەندی ئۆفلاین - بەڕێوەبەرایەتی گومرگی سلێمانی</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Vazirmatn', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            color: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 24px;
+            padding: 40px 30px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(12px);
+        }
+        .icon-box {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 2px solid rgba(239, 68, 68, 0.4);
+            color: #ef4444;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 20px;
+            animation: pulse 2s infinite;
+        }
+        h1 { font-size: 20px; font-weight: 900; margin-bottom: 10px; color: #ffffff; }
+        p { font-size: 13px; color: #94a3b8; line-height: 1.7; margin-bottom: 25px; }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 12px 28px;
+            border-radius: 14px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(2, 132, 199, 0.3);
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -5px rgba(2, 132, 199, 0.4);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon-box">
+            <i class="fa-solid fa-wifi-slash"></i>
+        </div>
+        <h1>پەیوەندی ئینتەرنێت پچڕاوە</h1>
+        <p>
+            تکایە دڵنیابەرەوە لە پەیوەستبوونی مۆبایلەکەت بە هێڵی ئینتەرنێت یان وایفای ناوخۆیی بەڕێوەبەرایەتی گومرگ. کاتێک هێڵەکە چاک بووەوە، دوگمەی خوارەوە لێبدە.
+        </p>
+        <button class="btn" onclick="window.location.reload()">
+            <i class="fa-solid fa-rotate-right"></i>
+            دووبارە تاقیبکەرەوە
+        </button>
+    </div>
+</body>
+</html>
+

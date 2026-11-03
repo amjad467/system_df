@@ -125,6 +125,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/settings/pricing', [SettingsController::class, 'updatePricing'])->name('settings.pricing.update');
     Route::get('/settings/lookups', [SettingsController::class, 'lookups'])->name('settings.lookups');
 
+    // Permissions Matrix & Access Control (Admin ONLY)
+    Route::get('/settings/permissions', [\App\Http\Controllers\PermissionController::class, 'index'])->name('settings.permissions');
+    Route::post('/settings/permissions/roles', [\App\Http\Controllers\PermissionController::class, 'updateRolePermissions'])->name('settings.permissions.roles');
+    Route::post('/settings/permissions/user/{user}', [\App\Http\Controllers\PermissionController::class, 'updateUserPermissions'])->name('settings.permissions.user');
+    Route::post('/settings/permissions/reset', [\App\Http\Controllers\PermissionController::class, 'resetDefaults'])->name('settings.permissions.reset');
+
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');

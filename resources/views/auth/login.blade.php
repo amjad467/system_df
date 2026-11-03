@@ -2,19 +2,115 @@
 <html lang="ckb" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
     <title>چوونەنەژوورەوەی فەرمانبەران - بەڕێوەبەرایەتی گومرگی سلێمانی</title>
+    
+    <!-- PWA Meta Tags & Icons -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="دەفتەری گومرگ">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style> body { font-family: 'Vazirmatn', sans-serif; } </style>
+    <style> 
+        body { 
+            font-family: 'Vazirmatn', sans-serif;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        } 
+        [x-cloak] { display: none !important; }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950 min-h-screen flex items-center justify-center p-4 selection:bg-sky-500 selection:text-white">
+<body x-data="{
+    deferredPrompt: null,
+    showIosModal: false,
+    canInstall: false,
+    isInstalled: (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true,
+    isIos: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream,
+    initPwa() {
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            this.deferredPrompt = e;
+            this.canInstall = true;
+        });
+        window.addEventListener('appinstalled', () => {
+            this.isInstalled = true;
+            this.canInstall = false;
+        });
+    },
+    async promptInstall() {
+        if (this.deferredPrompt) {
+            this.deferredPrompt.prompt();
+            const { outcome } = await this.deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                this.isInstalled = true;
+            }
+            this.deferredPrompt = null;
+        } else if (this.isIos) {
+            this.showIosModal = true;
+        } else {
+            alert('بۆ دابەزاندنی ئەم ئەپە لەسەر شاشەی مۆبایلەکەت، لە مێنۆی وێبگەڕەکەت (سێ خاڵەکەی سەرەوە) کلیک لە [Install app / Add to Home screen] بکە.');
+        }
+    }
+}" x-init="initPwa()" class="bg-gradient-to-br from-slate-950 via-slate-900 to-sky-950 min-h-screen flex items-center justify-center p-4 selection:bg-sky-500 selection:text-white">
 
-    <div class="max-w-md w-full space-y-5">
+    <div class="max-w-md w-full space-y-4">
+        <!-- PWA Install Card for Mobile & Desktop -->
+        <div x-show="!isInstalled" x-cloak class="bg-gradient-to-r from-sky-950/90 via-indigo-950/90 to-slate-900/90 border border-sky-500/40 rounded-2xl p-3 shadow-xl flex items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-lg shadow-sky-500/30">
+                    <i class="fa-solid fa-mobile-screen-button text-lg"></i>
+                </div>
+                <div class="min-w-0">
+                    <span class="text-xs font-black text-white block truncate">دابەزاندنی ئەپڵیکەیشن (App)</span>
+                    <span class="text-[10px] text-sky-200 block truncate">بۆ کارپێکردنی خێرا لەسەر مۆبایل و کۆمپیوتەر</span>
+                </div>
+            </div>
+            <button type="button" @click="promptInstall()" class="px-3.5 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-black text-xs rounded-xl shadow-lg shadow-sky-500/30 transition flex items-center gap-1.5 shrink-0 active:scale-95 animate-pulse">
+                <i class="fa-solid fa-download text-xs"></i>
+                <span>دابەزاندنی ئەپ</span>
+            </button>
+        </div>
+
+        <!-- iOS Install Helper Modal -->
+        <div x-show="showIosModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-700 rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+                <div class="w-14 h-14 rounded-2xl bg-sky-500/20 border border-sky-500/40 text-sky-400 flex items-center justify-center mx-auto text-2xl shadow-inner">
+                    <i class="fa-brands fa-apple"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-black text-white">دامەزراندن لەسەر iPhone و iPad</h3>
+                    <p class="text-xs text-slate-400 mt-1">بۆ کارپێکردن وەک ئەپی سەربەخۆ لەسەر مۆبایلەکەت:</p>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-3.5 text-right space-y-3 text-xs text-slate-200">
+                    <div class="flex items-start gap-2.5">
+                        <span class="w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">١</span>
+                        <span>لە بنی وێبگەڕی Safari کلیک لە دوگمەی <strong>هاوبەشکردن (Share <i class="fa-solid fa-arrow-up-from-bracket text-sky-400"></i>)</strong> بکە.</span>
+                    </div>
+                    <div class="flex items-start gap-2.5">
+                        <span class="w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">٢</span>
+                        <span>بڕۆ خوارەوە و کلیک لە <strong>زیادکردن بۆ شاشەی سەرەکی (Add to Home Screen <i class="fa-regular fa-square-plus text-emerald-400"></i>)</strong> بکە.</span>
+                    </div>
+                    <div class="flex items-start gap-2.5">
+                        <span class="w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">٣</span>
+                        <span>لە سەرەوە کلیک لە <strong>Add</strong> بکە. پیرۆزە، وەک ئەپ زیاد بوو!</span>
+                    </div>
+                </div>
+                <button type="button" @click="showIosModal = false" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl transition">
+                    تێگەیشتم (داخستن)
+                </button>
+            </div>
+        </div>
         <!-- Logo Header -->
         <div class="text-center space-y-2">
             <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center mx-auto shadow-2xl shadow-sky-500/30">
@@ -115,5 +211,13 @@
         </div>
     </div>
 
+    <!-- Service Worker Registration for PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            });
+        }
+    </script>
 </body>
 </html>

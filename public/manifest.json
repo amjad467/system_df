@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "name": "سیستەمی دەرهێنانی دەفتەری ئۆتۆمبێلی گەشتیاری",
+  "short_name": "دەفتەری گومرگ",
+  "description": "سیستەمی فەرمی بەڕێوەبردن و دەرهێنانی دەفتەری ئۆتۆمبێلی گەشتیاری - بەڕێوەبەرایەتی گومرگی سلێمانی",
+  "id": "/?pwa=1",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay", "minimal-ui", "browser"],
+  "background_color": "#0f172a",
+  "theme_color": "#0284c7",
+  "orientation": "any",
+  "lang": "ckb",
+  "dir": "rtl",
+  "categories": ["government", "productivity", "business", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "داشبۆرد",
+      "short_name": "داشبۆرد",
+      "description": "بینینی ئامارەکان و داشبۆرد",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "مامەڵەکان",
+      "short_name": "مامەڵەکان",
+      "description": "لیستی سەرجەم مامەڵەکان بەپێی قۆناغ",
+      "url": "/transactions",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "مامەڵەی نوێ",
+      "short_name": "تۆماری نوێ",
+      "description": "تۆمارکردنی مامەڵەیەکی نوێی دەفتەر",
+      "url": "/transactions/create",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "چاپی نوسراوەکان",
+      "short_name": "چاپەکان",
+      "description": "چاپی نوسراوە فەرمییەکانی گومرگ",
+      "url": "/transactions/official-prints",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}
+
