@@ -133,7 +133,7 @@
                 <!-- Left: Date (Year & Month only) -->
                 <div>
                     <span>ڕێکەوتی: </span>
-                    <span class="font-mono text-base">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y/m') : date('Y/m') }}/ &nbsp; &nbsp; &nbsp;</span>
+                    <span dir="ltr" class="inline-block font-mono text-base font-bold">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y/m') : date('Y/m') }}/ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
                 </div>
             </div>
 
@@ -187,7 +187,7 @@
             <!-- Legal Officer Attestation Block -->
             <div class="pt-6 px-2 text-justify text-sm font-bold leading-loose border-t border-gray-300">
                 <p>
-                    ئامادەبوو لەپێشم بەڵێندەر ( <span class="font-black text-base">{{ $visitorName }}</span> ) دوای دڵنیابوون لەناسنامەکەی و دەقی بەڵێننامەکەم بۆ خوێندەوە و دانی بەناوەڕۆکەکەی نا دوای ئەوە لەبەردەمم واژۆی کرد منیش پەسەندم کرد لە ڕێکەوتی ( <span class="font-black font-mono text-base">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y \ m') : date('Y \ m') }} \ &nbsp; &nbsp;</span> )
+                    ئامادەبوو لەپێشم بەڵێندەر ( <span class="font-black text-base">{{ $visitorName }}</span> ) دوای دڵنیابوون لەناسنامەکەی و دەقی بەڵێننامەکەم بۆ خوێندەوە و دانی بەناوەڕۆکەکەی نا دوای ئەوە لەبەردەمم واژۆی کرد منیش پەسەندم کرد لە ڕێکەوتی ( <span dir="ltr" class="inline-block font-black font-mono text-base">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y/m') : date('Y/m') }}/ &nbsp; &nbsp; &nbsp; &nbsp;</span> )
                 </p>
             </div>
 
@@ -206,7 +206,9 @@
                 <div class="text-center font-black space-y-1">
                     <p class="text-lg">{{ $directorName }}</p>
                     <p class="text-sm">بەڕێوەبەری گومرگی سلێمانی</p>
-                    <p class="font-mono text-sm font-bold pt-1">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y-m') : date('Y-m') }}</p>
+                    <p class="pt-1">
+                        <span dir="ltr" class="inline-block font-mono text-sm font-bold">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y/m') : date('Y/m') }}/ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
+                    </p>
                 </div>
 
             </div>

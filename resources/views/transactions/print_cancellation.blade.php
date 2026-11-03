@@ -111,9 +111,7 @@
             </div>
             <div>
                 <span>ڕێکەوتی: </span>
-                <span class="font-mono text-base">
-                    {{ $transaction->date_nusraw_puchal ? $transaction->date_nusraw_puchal->format('Y/MM/d') : date('Y/m/d') }}
-                </span>
+                <span dir="ltr" class="inline-block font-mono text-base font-bold">{{ $transaction->date_nusraw_puchal ? $transaction->date_nusraw_puchal->format('Y/m') : date('Y/m') }}/ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
             </div>
         </div>
 
@@ -180,7 +178,9 @@
             <div class="text-center font-black space-y-1">
                 <p class="text-lg">{{ $transaction->director->name ?? 'قادر پیرۆت قادر' }}</p>
                 <p class="text-base">بەڕێوەبەری گومرگی سلیمانی</p>
-                <p class="font-mono text-sm font-bold pt-1">{{ date('Y-m-d') }}</p>
+                <p class="pt-1">
+                    <span dir="ltr" class="inline-block font-mono text-sm font-bold">{{ date('Y/m') }}/ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
+                </p>
             </div>
         </div>
 
