@@ -130,23 +130,25 @@
                 </a>
             @endif
 
-            <!-- Administrative Letters & Booklet Printing (Auditor, Booklet section, and Admin - Excluded for data_entry - Locked after Submit for non-admin) -->
+            <!-- Administrative Letters (Auditing Stage: نیشانەی ڕەفتارنەکردن & نووسراوی پووچەڵکردنەوە) -->
             @if(!$transaction->is_cancelled && (!$transaction->is_submitted || auth()->user()->isAdmin()) && auth()->user()->role !== 'data_entry')
                 @if(auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->role === 'booklet' || auth()->user()->hasPermission('transactions.audit'))
                     @if($transaction->is_inspected || $transaction->is_audited || $transaction->is_paid)
                         @if($transaction->isCancellation())
-                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نوسراوی پووچەڵکردنەوە">
-                                <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نوسراوی پووچەڵکردنەوە
+                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوەی دەفتەر">
+                                <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نووسراوی پووچەڵکردنەوە
+                            </a>
+                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-600/40 text-xs font-bold rounded-xl transition flex items-center" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن">
+                                <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نیشانەی ڕەفتارنەکردن
                             </a>
                         @else
-                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نوسراوی دانانی نیشانەی ڕەفتارنەکردن (دەرهێنانی دەفتەر)">
-                                <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نووسراوی دەرهێنان
+                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن">
+                                <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نیشانەی ڕەفتارنەکردن
+                            </a>
+                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-600/40 text-xs font-bold rounded-xl transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوەی دەفتەر">
+                                <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نووسراوی پووچەڵکردنەوە
                             </a>
                         @endif
-
-                        <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نوسراوی پشکنین">
-                            <i class="fa-solid fa-file-circle-check ml-1.5"></i> نوسراوی پشکنین
-                        </a>
                     @endif
                 @endif
 
@@ -671,19 +673,22 @@
                                 <i class="fa-solid fa-clipboard-check ml-1.5"></i> ستێپی ٣: پەسەندکردنی وردبینی
                             </button>
 
-                            <!-- چاپی نوسراوە ئیدارییەکان لە قۆناغی وردبینی -->
+                            <!-- چاپی دوو نوسراوە ئیدارییەکە لە قۆناغی وردبینی (نیشانەی ڕەفتارنەکردن & نووسراوی پووچەڵکردنەوە) -->
                             @if($transaction->isCancellation())
-                                <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوە لە قۆناغی وردبینی">
+                                <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوەی دەفتەر لە قۆناغی وردبینی">
                                     <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نووسراوی پووچەڵکردنەوە
                                 </a>
+                                <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-600/40 text-xs font-bold rounded-xl transition flex items-center" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن">
+                                    <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نیشانەی ڕەفتارنەکردن
+                                </a>
                             @else
-                                <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی دەرهێنان (ڕەفتارنەکردن) لە قۆناغی وردبینی">
-                                    <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نووسراوی دەرهێنان
+                                <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن لە قۆناغی وردبینی">
+                                    <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نیشانەی ڕەفتارنەکردن
+                                </a>
+                                <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-600/40 text-xs font-bold rounded-xl transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوەی دەفتەر">
+                                    <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نووسراوی پووچەڵکردنەوە
                                 </a>
                             @endif
-                            <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی پشکنین لە قۆناغی وردبینی">
-                                <i class="fa-solid fa-file-circle-check ml-1.5"></i> نووسراوی پشکنین
-                            </a>
 
                             <button type="button" @click="showReturnModal = true" class="px-4 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/20 transition flex items-center">
                                 <i class="fa-solid fa-rotate-left ml-1.5"></i> گەڕاندنەوە بۆ تەخمین (هەڵە هەیە)
@@ -697,19 +702,22 @@
 
                     <!-- If Audited, but before Payment: Auditor/Admin can Revert Audit or Return to Previous Step -->
                     @if($transaction->is_audited && !$transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->hasPermission('transactions.audit')))
-                        <!-- نوسراوە ئیدارییەکان دوای پەسەندکردنی وردبینی -->
+                        <!-- دوو نوسراوە ئیدارییەکە پاش پەسەندکردنی وردبینی (نیشانەی ڕەفتارنەکردن & نووسراوی پووچەڵکردنەوە) -->
                         @if($transaction->isCancellation())
                             <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوە">
                                 <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نووسراوی پووچەڵکردنەوە
                             </a>
+                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-600/40 text-xs font-bold rounded-xl transition flex items-center" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن">
+                                <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نیشانەی ڕەفتارنەکردن
+                            </a>
                         @else
-                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی دەرهێنان (ڕەفتارنەکردن)">
-                                <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نووسراوی دەرهێنان
+                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن">
+                                <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نیشانەی ڕەفتارنەکردن
+                            </a>
+                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-600/40 text-xs font-bold rounded-xl transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوە">
+                                <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نووسراوی پووچەڵکردنەوە
                             </a>
                         @endif
-                        <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی پشکنین">
-                            <i class="fa-solid fa-file-circle-check ml-1.5"></i> نووسراوی پشکنین
-                        </a>
 
                         <form action="{{ route('transactions.revert_audit', $transaction->id) }}" method="POST" class="inline" onsubmit="return confirm('ئایا دڵنیایت لە هەڵوەشاندنەوەی پەسەندی وردبینی؟ مامەڵەکە دەگەڕێتەوە بۆ چاوەڕوانی وردبینی.');">
                             @csrf
@@ -1452,20 +1460,23 @@
                         </button>
                     @endif
 
-                    <!-- نوسراوە ئیدارییەکان بۆ وردبینی و دەفتەر (پشکنین، ڕەفتارنەکردن، پووچەڵکردنەوە) -->
+                    <!-- نوسراوە ئیدارییەکان بۆ وردبینی (نیشانەی ڕەفتارنەکردن & نووسراوی پووچەڵکردنەوە) -->
                     @if($transaction->is_inspected && (!$transaction->is_submitted || auth()->user()->isAdmin()) && auth()->user()->role !== 'data_entry' && (auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->role === 'booklet'))
                         @if($transaction->isCancellation())
-                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نوسراوی پووچەڵکردنەوە">
-                                <i class="fa-solid fa-file-circle-xmark"></i> نوسراوی پووچەڵکردنەوە
+                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نووسراوی پووچەڵکردنەوە">
+                                <i class="fa-solid fa-file-circle-xmark"></i> نووسراوی پووچەڵکردنەوە
+                            </a>
+                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-600/40 text-xs font-bold rounded-xl transition flex items-center gap-1" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن">
+                                <i class="fa-solid fa-file-circle-exclamation"></i> نیشانەی ڕەفتارنەکردن
                             </a>
                         @else
-                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نوسراوی دەرهێنان">
-                                <i class="fa-solid fa-file-circle-exclamation"></i> نوسراوی دەرهێنان
+                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن">
+                                <i class="fa-solid fa-file-circle-exclamation"></i> نیشانەی ڕەفتارنەکردن
+                            </a>
+                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-600/40 text-xs font-bold rounded-xl transition flex items-center gap-1" title="چاپی نووسراوی پووچەڵکردنەوە">
+                                <i class="fa-solid fa-file-circle-xmark"></i> نووسراوی پووچەڵکردنەوە
                             </a>
                         @endif
-                        <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نووسراوی پشکنین">
-                            <i class="fa-solid fa-file-circle-check"></i> نوسراوی پشکنین
-                        </a>
                     @endif
 
                     <!-- 4. وەرگرتنی پارە و وەسڵی ۳۷/أ (Cashier / Admin) -->

@@ -1652,6 +1652,11 @@ class TransactionController extends Controller
                 ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت نوسراوی پشکنین چاپ بکات.');
         }
 
+        if (!$transaction->is_paid) {
+            return redirect()->route('transactions.show', $transaction->id)
+                ->with('error', 'نووسراوی پشکنین تەنها لە قۆناغی پارەدان چاپ دەکرێت دوای وەرگرتنی پارە، لەبەر تۆمارکردنی ژمارەی پسوولەی ۳۷/أ و بەرواری پارەدان.');
+        }
+
         $transaction->update(['is_printed' => true]);
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
         return view('transactions.print_inspection_letter', compact('transaction'));
