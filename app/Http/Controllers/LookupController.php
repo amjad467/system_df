@@ -227,5 +227,14 @@ class LookupController extends Controller
 
         return response()->json(['success' => true, 'item' => $passportIssuePlace]);
     }
+
+    public function destroyPassportIssuePlace(\App\Models\PassportIssuePlace $passportIssuePlace)
+    {
+        $name = $passportIssuePlace->name;
+        $passportIssuePlace->delete();
+        AuditLogger::log('سڕینەوەی شوێنی دەرچوونی پاسپۆرت', \App\Models\PassportIssuePlace::class, $passportIssuePlace->id, $name);
+
+        return response()->json(['success' => true]);
+    }
 }
 

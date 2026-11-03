@@ -118,6 +118,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/lookup/passport-issue-place', [LookupController::class, 'storePassportIssuePlace'])->name('lookup.passport_issue_place');
     Route::put('/lookup/passport-issue-place/{passportIssuePlace}', [LookupController::class, 'updatePassportIssuePlace'])->name('lookup.passport_issue_place.update');
+    Route::delete('/lookup/passport-issue-place/{passportIssuePlace}', [LookupController::class, 'destroyPassportIssuePlace'])->name('lookup.passport_issue_place.destroy');
 
     // Super Admin Settings & User Management
     Route::get('/settings/pricing', [SettingsController::class, 'pricing'])->name('settings.pricing');

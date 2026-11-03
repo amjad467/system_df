@@ -11,3 +11,4 @@ class PassportIssuePlace extends Model
 
     protected $fillable = ['name'];
 }
+

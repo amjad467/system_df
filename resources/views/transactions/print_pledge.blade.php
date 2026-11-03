@@ -125,13 +125,15 @@
 
             <!-- Date & Number Bar (Dashed Border) -->
             <div class="border-y-2 border-dashed border-black py-2 px-2 flex items-center justify-between text-sm font-bold">
-                <div>
-                    <span>ڕێکەوتی: </span>
-                    <span class="font-mono text-base">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y/m/d') : date('Y/m/d') }}</span>
-                </div>
+                <!-- Right: Number -->
                 <div>
                     <span>ژمارە: </span>
                     <span class="font-mono text-base tracking-widest text-gray-500">..............................</span>
+                </div>
+                <!-- Left: Date (Year & Month only) -->
+                <div>
+                    <span>ڕێکەوتی: </span>
+                    <span class="font-mono text-base">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y/m') : date('Y/m') }}/ &nbsp; &nbsp; &nbsp;</span>
                 </div>
             </div>
 
@@ -185,26 +187,26 @@
             <!-- Legal Officer Attestation Block -->
             <div class="pt-6 px-2 text-justify text-sm font-bold leading-loose border-t border-gray-300">
                 <p>
-                    ئامادەبوو لەپێشم بەڵێندەر ( <span class="font-black text-base">{{ $visitorName }}</span> ) دوای دڵنیابوون لەناسنامەکەی و دەقی بەڵێننامەکەم بۆ خوێندەوە و دانی بەناوەڕۆکەکەی نا دوای ئەوە لەبەردەمم واژۆی کرد منیش پەسەندم کرد لە ڕێکەوتی ( <span class="font-black font-mono text-base">{{ date('Y / m / d') }}</span> )
+                    ئامادەبوو لەپێشم بەڵێندەر ( <span class="font-black text-base">{{ $visitorName }}</span> ) دوای دڵنیابوون لەناسنامەکەی و دەقی بەڵێننامەکەم بۆ خوێندەوە و دانی بەناوەڕۆکەکەی نا دوای ئەوە لەبەردەمم واژۆی کرد منیش پەسەندم کرد لە ڕێکەوتی ( <span class="font-black font-mono text-base">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y \ m') : date('Y \ m') }} \ &nbsp; &nbsp;</span> )
                 </p>
             </div>
 
             <!-- Director Signature & Barcode Grid -->
             <div class="pt-8 pb-2 px-2 flex items-end justify-between">
                 
-                <!-- Director Block (Left) -->
-                <div class="text-center font-black space-y-1">
-                    <p class="text-lg">{{ $directorName }}</p>
-                    <p class="text-sm">بەڕێوەبەری گومرگی سلێمانی</p>
-                    <p class="font-mono text-xs font-bold pt-1">{{ date('Y-m-d') }}</p>
-                </div>
-
-                <!-- Clean Official Barcode (Bottom Right / Center) -->
+                <!-- Clean Official Barcode (Right / Center) -->
                 <div class="text-center space-y-1">
                     <svg id="pledgeBarcodeSvg" class="max-h-12"></svg>
                     <div class="font-mono text-xs font-bold text-center">
                         * {{ $transaction->barcode }} *
                     </div>
+                </div>
+
+                <!-- Director Block (Left of the page) -->
+                <div class="text-center font-black space-y-1">
+                    <p class="text-lg">{{ $directorName }}</p>
+                    <p class="text-sm">بەڕێوەبەری گومرگی سلێمانی</p>
+                    <p class="font-mono text-sm font-bold pt-1">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y-m') : date('Y-m') }}</p>
                 </div>
 
             </div>

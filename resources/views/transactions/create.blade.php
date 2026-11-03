@@ -874,23 +874,56 @@
 
     <!-- INLINE MODAL 7: Manage & Add Passport Issue Place -->
     <div x-show="showPassportPlaceModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl max-h-[85vh] flex flex-col">
             <h3 class="text-base font-bold text-white flex items-center justify-between border-b border-slate-700 pb-3">
-                <span><i class="fa-solid fa-map-location-dot ml-2 text-sky-400"></i> زیادکردنی شوێنی دەرچوونی نوێ</span>
+                <span><i class="fa-solid fa-map-location-dot ml-2 text-sky-400"></i> بەڕێوەبردن و دەستکاریکردنی شوێنەکانی دەرچوون</span>
                 <button type="button" @click="showPassportPlaceModal = false" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
             </h3>
 
-            <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1.5">ناوی شوێنی دەرچوون (شار / پارێزگا / فەرمانگە) *</label>
-                <input type="text" x-model="newPassportPlaceName" @keydown.enter.prevent="addPassportPlace()" placeholder="مثلاً: سلێمانی، هەولێر، دهۆک..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-sky-500 focus:outline-none">
+            <!-- Existing Places List (Table with Edit and Delete) -->
+            <div class="overflow-y-auto flex-1 space-y-2 max-h-56 border-b border-slate-800 pb-3">
+                <table class="w-full text-right text-xs text-slate-200">
+                    <thead class="bg-slate-800 text-slate-400">
+                        <tr>
+                            <th class="p-2">#</th>
+                            <th class="p-2">ناوی شوێن / پارێزگا</th>
+                            <th class="p-2 text-center">پاشەکەوت</th>
+                            <th class="p-2 text-center">سڕینەوە</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800" id="passportPlacesTableBody">
+                        @foreach($passportIssuePlaces as $place)
+                            <tr id="passport_place_row_{{ $place->id }}">
+                                <td class="p-2 font-mono text-slate-500">{{ $loop->iteration }}</td>
+                                <td class="p-2">
+                                    <input type="text" id="place_input_{{ $place->id }}" value="{{ $place->name }}" class="bg-slate-800 border border-slate-700 rounded px-2.5 py-1 text-xs w-full text-white focus:border-sky-500 focus:outline-none font-bold">
+                                </td>
+                                <td class="p-2 text-center">
+                                    <button type="button" @click="updatePassportPlace({{ $place->id }})" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-[11px] font-bold transition">پاشەکەوت</button>
+                                </td>
+                                <td class="p-2 text-center">
+                                    <button type="button" @click="deletePassportPlace({{ $place->id }})" class="px-2.5 py-1 bg-rose-600/80 hover:bg-rose-600 text-white rounded text-[11px] font-bold transition" title="سڕینەوە"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
 
-            <div class="flex items-center justify-end gap-2 pt-2">
+            <!-- Form to add new -->
+            <div class="space-y-2 pt-1">
+                <h4 class="text-xs font-bold text-sky-400">+ زیادکردنی شوێنی نوێ</h4>
+                <div class="flex gap-2">
+                    <input type="text" x-model="newPassportPlaceName" @keydown.enter.prevent="addPassportPlace()" placeholder="ناوی شوێنی دەرچوون (شار، پارێزگا)..." class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:border-sky-500 focus:outline-none">
+                    <button type="button" @click="addPassportPlace()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 whitespace-nowrap">
+                        <i class="fa-solid fa-plus"></i> زیادکردن
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end pt-2 border-t border-slate-800">
                 <button type="button" @click="showPassportPlaceModal = false" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition">
                     داخستن
-                </button>
-                <button type="button" @click="addPassportPlace()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/30 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-plus"></i> زیادکردن و دیاریکردن
                 </button>
             </div>
         </div>
@@ -1413,12 +1446,74 @@
                 });
             },
 
+            updatePassportPlace(id) {
+                const input = document.getElementById('place_input_' + id);
+                if (!input || !input.value.trim()) return;
+                const newName = input.value.trim();
+                const oldName = input.defaultValue;
+
+                fetch(`/lookup/passport-issue-place/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    body: JSON.stringify({ name: newName })
+                })
+                .then(res => this.handleResponse(res))
+                .then(data => {
+                    if (data && data.success) {
+                        const sel = document.getElementById('passportIssuePlaceSelect');
+                        if (sel) {
+                            Array.from(sel.options).forEach(opt => {
+                                if (opt.value === oldName || opt.text === oldName) {
+                                    opt.value = newName;
+                                    opt.text = newName;
+                                }
+                            });
+                        }
+                        if (this.passportIssuePlace === oldName) {
+                            this.passportIssuePlace = newName;
+                        }
+                        input.defaultValue = newName;
+                        alert('ناوی شوێنی دەرچوون بە سەرکەوتوویی نوێکرایەوە!');
+                    }
+                });
+            },
+
+            deletePassportPlace(id) {
+                const input = document.getElementById('place_input_' + id);
+                const name = input ? input.value : '';
+                if (!confirm(`ئایا دڵنیایت لە سڕینەوەی شوێنی (${name})؟`)) return;
+
+                fetch(`/lookup/passport-issue-place/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+                })
+                .then(res => this.handleResponse(res))
+                .then(data => {
+                    if (data && data.success) {
+                        const row = document.getElementById('passport_place_row_' + id);
+                        if (row) row.remove();
+                        const sel = document.getElementById('passportIssuePlaceSelect');
+                        if (sel) {
+                            Array.from(sel.options).forEach(opt => {
+                                if (opt.value === name || opt.text === name) {
+                                    opt.remove();
+                                }
+                            });
+                        }
+                        if (this.passportIssuePlace === name) {
+                            this.passportIssuePlace = '';
+                        }
+                    }
+                });
+            },
+
             addPassportPlace() {
                 if (!this.newPassportPlaceName.trim()) return;
+                const nameToAdd = this.newPassportPlaceName.trim();
                 fetch('{{ route("lookup.passport_issue_place") }}', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-                    body: JSON.stringify({ name: this.newPassportPlaceName.trim() })
+                    body: JSON.stringify({ name: nameToAdd })
                 })
                 .then(res => this.handleResponse(res))
                 .then(data => {
@@ -1431,14 +1526,34 @@
                             opt.selected = true;
                             sel.appendChild(opt);
                         }
+                        const tbody = document.getElementById('passportPlacesTableBody');
+                        if (tbody) {
+                            const count = tbody.children.length + 1;
+                            const tr = document.createElement('tr');
+                            tr.id = 'passport_place_row_' + data.item.id;
+                            tr.innerHTML = `
+                                <td class="p-2 font-mono text-slate-500">${count}</td>
+                                <td class="p-2">
+                                    <input type="text" id="place_input_${data.item.id}" value="${data.item.name}" class="bg-slate-800 border border-slate-700 rounded px-2.5 py-1 text-xs w-full text-white focus:border-sky-500 focus:outline-none font-bold">
+                                </td>
+                                <td class="p-2 text-center">
+                                    <button type="button" onclick="window.activeTxForm?.updatePassportPlace(${data.item.id})" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-[11px] font-bold transition">پاشەکەوت</button>
+                                </td>
+                                <td class="p-2 text-center">
+                                    <button type="button" onclick="window.activeTxForm?.deletePassportPlace(${data.item.id})" class="px-2.5 py-1 bg-rose-600/80 hover:bg-rose-600 text-white rounded text-[11px] font-bold transition" title="سڕینەوە"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            `;
+                            tbody.appendChild(tr);
+                        }
                         this.passportIssuePlace = data.item.name;
-                        this.showPassportPlaceModal = false;
                         this.newPassportPlaceName = '';
+                        alert('شوێنی نوێ بە سەرکەوتوویی زیادکرا و دیاریکرا!');
                     }
                 });
             },
 
             init() {
+                window.activeTxForm = this;
                 if (initialTx) {
                     this.populateFromPrevious(initialTx, targetTypeId ? parseInt(targetTypeId) : null);
                     this.chassisFound = true;
