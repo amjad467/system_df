@@ -522,8 +522,8 @@
         </div>
 
         <!-- نیشاندانی خشتەی تەقلیدی بۆ دێسکتۆپ و تابلێت (Table View) -->
-        <div x-show="tableViewMode === 'table'" class="overflow-x-auto">
-            <table class="w-full text-right text-xs text-slate-300 border-collapse">
+        <div x-show="tableViewMode === 'table'" class="overflow-x-auto w-full touch-scroll">
+            <table class="w-full text-right text-xs text-slate-300 border-collapse min-w-[950px]">
                 <thead class="bg-slate-950 text-slate-400 text-[11px] font-black uppercase tracking-wider border-b border-slate-800">
                     <tr>
                         <th class="py-2.5 px-3.5 text-center w-12">#</th>
@@ -593,9 +593,9 @@
                             </td>
 
                             <!-- ناوی هاووڵاتی -->
-                            <td class="py-2.5 px-3.5 max-w-[180px]">
+                            <td class="py-2.5 px-3.5 whitespace-nowrap min-w-[160px]">
                                 <button type="button" @click="openPreview({{ json_encode($txPayload) }})" 
-                                        class="font-bold text-white text-xs hover:text-sky-400 transition text-right truncate block w-full cursor-pointer" 
+                                        class="font-bold text-white text-xs hover:text-sky-400 transition text-right block w-full cursor-pointer" 
                                         title="کلیک بکە بۆ پێشبینی خێرا">
                                     {{ $tx->visitor_name }}
                                 </button>

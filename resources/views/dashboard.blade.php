@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="space-y-6 w-full max-w-full overflow-hidden">
+<div class="space-y-6 w-full max-w-full">
     <!-- Header Banner -->
     <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-700/80 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div class="space-y-1 min-w-0">
@@ -212,8 +212,8 @@
                 </div>
 
                 <!-- Desktop / Tablet Table for Recent Transactions -->
-                <div class="hidden md:block overflow-x-auto w-full rounded-xl border border-slate-200 dark:border-slate-700/70">
-                    <table class="w-full text-right text-xs text-slate-700 dark:text-slate-300 min-w-[600px]">
+                <div class="hidden md:block overflow-x-auto w-full touch-scroll rounded-xl border border-slate-200 dark:border-slate-700/70">
+                    <table class="w-full text-right text-xs text-slate-700 dark:text-slate-300 min-w-[700px]">
                         <thead class="bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700 font-bold">
                             <tr>
                                 <th class="p-2.5">بارکۆد</th>
@@ -229,7 +229,7 @@
                             @forelse($recentTransactions as $tx)
                                 <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
                                     <td class="p-2.5 font-mono text-xs text-sky-600 dark:text-sky-400 font-bold whitespace-nowrap">{{ $tx->barcode }}</td>
-                                    <td class="p-2.5 font-bold text-slate-800 dark:text-slate-100 max-w-[130px] truncate">{{ $tx->visitor_name }}</td>
+                                    <td class="p-2.5 font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap">{{ $tx->visitor_name }}</td>
                                     <td class="p-2.5 text-slate-500 dark:text-slate-400 whitespace-nowrap">{{ $tx->transactionType->name_kurdish ?? '-' }}</td>
                                     <td class="p-2.5 whitespace-nowrap">
                                         <x-vehicle-plate :plate="$tx->plate_number" :type="$tx->plateType" size="sm" />
