@@ -116,6 +116,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/lookup/transaction-type', [LookupController::class, 'storeTransactionType'])->name('lookup.transaction_type');
     Route::put('/lookup/transaction-type/{transactionType}', [LookupController::class, 'updateTransactionType'])->name('lookup.transaction_type.update');
 
+    Route::post('/lookup/passport-issue-place', [LookupController::class, 'storePassportIssuePlace'])->name('lookup.passport_issue_place');
+    Route::put('/lookup/passport-issue-place/{passportIssuePlace}', [LookupController::class, 'updatePassportIssuePlace'])->name('lookup.passport_issue_place.update');
+
     // Super Admin Settings & User Management
     Route::get('/settings/pricing', [SettingsController::class, 'pricing'])->name('settings.pricing');
     Route::post('/settings/pricing', [SettingsController::class, 'updatePricing'])->name('settings.pricing.update');

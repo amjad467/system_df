@@ -110,6 +110,7 @@
                             <option value="cashier">٤. ژمێریار / وەسڵبڕ (Step 4)</option>
                             <option value="booklet">٥. بەشی دەفتەر (Step 5)</option>
                             <option value="archiver">٦. کارمەندی ئەرشیف و سەپمیت (Step 6)</option>
+                            <option value="legal">فەرمانبەری یاسایی (Legal Officer - بەڵێننامە)</option>
                             <option value="admin">سەرپەرشتیار / کارگێڕی (Admin)</option>
                         </select>
                     </div>
@@ -170,6 +171,7 @@
                             <option value="cashier">٤. ژمێریار / وەسڵبڕ (Step 4)</option>
                             <option value="booklet">٥. بەشی دەفتەر (Step 5)</option>
                             <option value="archiver">٦. کارمەندی ئەرشیف و سەپمیت (Step 6)</option>
+                            <option value="legal">فەرمانبەری یاسایی (Legal Officer - بەڵێننامە)</option>
                             <option value="admin">سەرپەرشتیار / کارگێڕی (Admin)</option>
                         </select>
                     </div>

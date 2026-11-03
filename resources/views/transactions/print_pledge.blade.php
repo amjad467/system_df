@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فیشەی بەڵێننامەی یاسایی - {{ $transaction->barcode }}</title>
+    <title>بەڵێننامە - {{ $transaction->barcode }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -34,219 +34,202 @@
                 border: 2px solid #000000 !important;
                 width: 100% !important;
                 max-width: 100% !important;
-                padding: 14px !important;
+                padding: 18px !important;
                 margin: 0 auto !important;
+                min-height: 285mm;
             }
         }
 
-        .header-bg {
-            background-color: #f1f5f9 !important;
-        }
-        .gray-label-bg {
-            background-color: #f8fafc !important;
-        }
-        .black-cell-border {
-            border: 1.5px solid #000000 !important;
+        .print-card {
+            min-height: 285mm;
         }
     </style>
 </head>
 <body class="p-4">
 
     @php
-        $linkedBooklet = $transaction->parentTransaction ?? $transaction->relatedTransactions->first();
+        $tx = $transaction;
+        $parent = $tx->parentTransaction;
+        $plateNumber = $tx->plate_number ?: $parent?->plate_number;
+        $carMakeName = $tx->carMake?->name_kurdish ?: ($parent?->carMake?->name_kurdish ?: ($tx->carMake?->name_english ?: $parent?->carMake?->name_english));
+        $visitorName = $tx->visitor_name ?: $parent?->visitor_name;
+        $passportNo = $tx->passport_number ?: ($parent?->passport_number ?: '');
+        $passportIssueDate = $tx->passport_issue_date ?: ($parent?->passport_issue_date ?: null);
+        $passportIssuePlace = $tx->passport_issue_place ?: ($parent?->passport_issue_place ?: '');
+        $address = $tx->address ?: ($parent?->address ?: '');
+        $phoneNumber = $tx->phone_number ?: ($parent?->phone_number ?: '');
+        $directorName = $tx->director?->name ?: ($parent?->director?->name ?: 'قادر پیرۆت قادر');
+        $txDate = $tx->transaction_date ?: ($parent?->transaction_date ?: now());
     @endphp
 
     <!-- Top Studio Toolbar (Hidden during printing) -->
     <x-print-layout-studio 
         docId="letter_pledge" 
         targetId="pledgePrintArea" 
-        title="فیشەی بەڵێننامەی یاسایی • {{ $transaction->barcode }}" 
+        title="بەڵێننامە • {{ $transaction->barcode }}" 
         initialTop="0" 
         initialRight="0" 
         initialZoom="100" />
 
-    @if($linkedBooklet)
-        <div class="no-print max-w-4xl mx-auto my-2 p-2.5 bg-blue-900/40 border border-blue-500/40 rounded-xl flex items-center justify-between text-xs text-blue-200">
-            <span class="font-bold">ئەم بەڵێننامەیە بەستراوەتەوە بە دەفتەری سەرەکی:</span>
-            <a href="{{ route('transactions.print_data_entry', $linkedBooklet->id) }}" target="_blank" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-lg transition inline-flex items-center">
-                <svg class="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 000-4H9a2 2 0 000 4zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                چاپکردنی فیشەی دەفتەر ({{ $linkedBooklet->barcode }})
-            </a>
+    <!-- MAIN REPORT PRINT CARD (Exact match to official template) -->
+    <div id="pledgePrintArea" class="print-card bg-white border-2 border-black p-8 rounded-none shadow-xl max-w-4xl mx-auto space-y-4 text-black mt-3 relative flex flex-col justify-between">
+
+        <!-- Subtle Background Watermark of Kurdistan Emblem -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.07] z-0">
+            <img src="{{ asset('images/krg_logo.png') }}" class="w-96 h-96 object-contain" alt="KRG Watermark">
         </div>
-    @endif
 
-    <!-- MAIN FORM PORTRAIT ROUTING CARD (Exact same frame & standard format as print_data_entry) -->
-    <div id="pledgePrintArea" class="print-card bg-white border-2 border-black p-6 rounded-md shadow-xl max-w-4xl mx-auto space-y-4 mt-3">
+        <div class="relative z-10 space-y-4">
+            <!-- Emblem & Header Grid -->
+            <div class="border-2 border-black p-3.5 rounded-none">
+                <div class="grid grid-cols-3 items-center text-center">
+                    
+                    <!-- Right Title: Kurdish -->
+                    <div class="text-right text-[13px] font-bold leading-tight">
+                        <p class="font-black text-sm">حکومەتی هەرێمی کوردستان \عێراق</p>
+                        <p>سەرۆکایەتی ئەنجومەنی وەزیران</p>
+                        <p>وەزارەتی دارایی و ئابوری</p>
+                        <p>بەڕێوەبەرایەتی گشتی گومرگ</p>
+                        <p class="font-black">بەڕێوەبەرایەتی گومرگی سلێمانی</p>
+                        <p>هۆبەی ئۆتۆمبێل</p>
+                    </div>
 
-        <!-- Header Section -->
-        <div class="border-b-2 border-black pb-3 flex items-center justify-between">
-            <div class="space-y-1">
-                <h1 class="text-lg font-black text-black">حکومەتی هەرێمی کوردستان - عێراق</h1>
-                <h2 class="text-sm font-bold text-gray-800">وەزارەتی دارایی و ئابووری / بەڕێوەبەرایەتی گشتی گومرگ</h2>
-                <h3 class="text-base font-black text-black">بەڕێوەبەرایەتی گومرگی سلێمانی</h3>
+                    <!-- Center Emblem & English Title -->
+                    <div class="flex flex-col items-center justify-center space-y-1">
+                        <div class="w-16 h-16 flex items-center justify-center">
+                            <img src="{{ asset('images/krg_logo.png') }}" 
+                                 alt="Kurdish Region Emblem" 
+                                 class="max-h-16 object-contain">
+                        </div>
+                        <div class="text-[10px] font-bold text-center leading-tight">
+                            <p class="font-extrabold text-[11px]">Kurdish Region</p>
+                            <p>Presidency council of ministries</p>
+                            <p>ministry of finance economy</p>
+                            <p>General directorate customs</p>
+                            <p class="font-bold">Department of (Automobiles)</p>
+                        </div>
+                    </div>
+
+                    <!-- Left Title: Arabic -->
+                    <div class="text-left text-[13px] font-bold leading-tight" dir="rtl">
+                        <p class="font-black text-sm">حکومة اقلیم کوردستان \العراق</p>
+                        <p>رئاسة مجلس الوزراء</p>
+                        <p>وزارة المالية والاقتصاد</p>
+                        <p>المدیریة العامة للجمارك</p>
+                        <p class="font-black">مدیریة كمرك السلیمانیة</p>
+                        <p>قسم السیارات</p>
+                    </div>
+
+                </div>
             </div>
-            
-            <div class="text-center space-y-1">
-                <h2 class="text-xl font-black text-black bg-gray-200 border-2 border-black px-4 py-1 inline-block">
-                    فیشەی بەڵێننامەی یاسایی
+
+            <!-- Date & Number Bar (Dashed Border) -->
+            <div class="border-y-2 border-dashed border-black py-2 px-2 flex items-center justify-between text-sm font-bold">
+                <div>
+                    <span>ڕێکەوتی: </span>
+                    <span class="font-mono text-base">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y/m/d') : date('Y/m/d') }}</span>
+                </div>
+                <div>
+                    <span>ژمارە: </span>
+                    <span class="font-mono text-base tracking-widest text-gray-500">..............................</span>
+                </div>
+            </div>
+
+            <!-- Title & Subject (Centered) -->
+            <div class="text-center space-y-2 pt-2">
+                <h2 class="text-2xl font-black tracking-wide">
+                    بەڵێننامە
                 </h2>
-                <p class="text-xs font-bold text-gray-700 block">بەشی یاسایی و بەڵێننامەکان</p>
+                <h3 class="text-lg font-black underline underline-offset-4">
+                    بابەت /دەفتەری ڕێپێدانی بردنه ده‌ره‌وه‌ی ئۆتۆمبێل
+                </h3>
             </div>
 
-            <div class="text-center space-y-1">
-                <div class="border-2 border-black p-1 bg-white inline-block">
-                    <svg id="barcodePledgeSvg" class="mx-auto max-h-14"></svg>
-                </div>
-                <p class="text-[11px] font-mono font-bold text-gray-600">بەرواری پێشکەشکردن: {{ $transaction->transaction_date ? $transaction->transaction_date->format('Y-m-d H:i') : date('Y-m-d') }}</p>
-            </div>
-        </div>
-
-        <!-- Linked Transactions Notice -->
-        @if($transaction->parentTransaction || $transaction->relatedTransactions->count() > 0)
-            <div class="bg-blue-50 border-2 border-blue-600 p-2.5 rounded text-xs font-bold flex items-center justify-between">
-                <div class="flex items-center space-x-2 space-x-reverse text-blue-950">
-                    <span class="bg-blue-600 text-white px-2 py-0.5 rounded font-black">ئاگاداری بەستنەوە:</span>
-                    <span>ئەم بەڵێننامەیە بەستراوەتەوە بە مامەڵەی بنەڕەتی (دەرهێنانی دەفتەر) بە بارکۆدی:</span>
-                </div>
-                <div class="flex items-center space-x-2 space-x-reverse font-mono text-sm">
-                    @if($transaction->parentTransaction)
-                        <span class="bg-white border border-blue-700 px-2 py-0.5 rounded font-black text-blue-900">{{ $transaction->parentTransaction->barcode }} (مامەڵەی بنەڕەتی)</span>
-                    @endif
-                    @foreach($transaction->relatedTransactions as $rel)
-                        <span class="bg-white border border-blue-700 px-2 py-0.5 rounded font-black text-blue-900">{{ $rel->barcode }} (مامەڵەی بەستراوە)</span>
-                    @endforeach
-                </div>
-            </div>
-        @endif
-
-        <!-- Section 1: Transaction & Driver Information Grid -->
-        <div class="space-y-1.5">
-            <h4 class="text-sm font-black border-b border-black pb-1 flex items-center">
-                <span>زانیارییە سەرەکییەکانی بەڵێندەر و ئۆتۆمبێل</span>
-            </h4>
-            <table class="w-full border-collapse text-xs font-bold">
-                <tbody>
-                    <tr>
-                        <td class="black-cell-border gray-label-bg p-2 w-1/6">ناوی بەڵێندەر (شۆفێر):</td>
-                        <td class="black-cell-border p-2 font-black text-sm w-2/6">{{ $transaction->visitor_name }} @if($transaction->visitor_name_eng) ({{ $transaction->visitor_name_eng }}) @endif</td>
-                        <td class="black-cell-border gray-label-bg p-2 w-1/6">جۆری مامەڵە:</td>
-                        <td class="black-cell-border p-2 font-black text-sm w-2/6 text-amber-900">{{ $transaction->transactionType->name_kurdish ?? 'بەڵێننامە' }}</td>
-                    </tr>
-                    <tr>
-                        <td class="black-cell-border gray-label-bg p-2">ژمارەی تابلۆ:</td>
-                        <td class="black-cell-border p-2 font-mono font-black text-sm">{{ $transaction->plate_number }} ({{ $transaction->plateType->name_kurdish ?? 'تایبەت' }})</td>
-                        <td class="black-cell-border gray-label-bg p-2">مارکە و مۆدێل:</td>
-                        <td class="black-cell-border p-2 font-bold">{{ $transaction->carMake->name_kurdish ?? '' }} - {{ $transaction->model_year }} ({{ $transaction->piston_count }} Piston)</td>
-                    </tr>
-                    <tr>
-                        <td class="black-cell-border gray-label-bg p-2">ژمارەی شاسی:</td>
-                        <td class="black-cell-border p-2 font-mono font-black uppercase text-sm">{{ $transaction->chassis_number }}</td>
-                        <td class="black-cell-border gray-label-bg p-2">ڕەنگی ئۆتۆمبێل:</td>
-                        <td class="black-cell-border p-2 font-bold">{{ $transaction->carColor->name_kurdish ?? '' }}</td>
-                    </tr>
-                    <tr>
-                        <td class="black-cell-border gray-label-bg p-2">شۆفێری دووەم:</td>
-                        <td class="black-cell-border p-2 font-bold">{{ $transaction->second_driver_name ?? 'دیاری نەکراوە' }} @if($transaction->second_driver_name_eng) ({{ $transaction->second_driver_name_eng }}) @endif</td>
-                        <td class="black-cell-border gray-label-bg p-2">ژمارەی مۆبایل:</td>
-                        <td class="black-cell-border p-2 font-mono font-bold">{{ $transaction->phone_number ?? '---' }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Section 2: Official Legal Pledge Declaration Box -->
-        <div class="border-2 border-black p-4 rounded-sm bg-gray-50/70 space-y-2">
-            <h4 class="text-sm font-black border-b border-black pb-1 text-center text-black">
-                دەقی بەڵێننامەی یاسایی و پابەندبوونی فەرمی
-            </h4>
-            <div class="text-xs leading-relaxed font-bold text-gray-900 space-y-2 text-justify">
+            <!-- Official Pledge Body Text -->
+            <div class="text-base font-bold leading-loose px-2 pt-2 text-justify">
                 <p>
-                    من کە ئیمزا و پەنجەمۆرم لە خوارەوە کراوە، (<strong>{{ $transaction->visitor_name }}</strong>) خاوەن / شۆفێری ئۆتۆمبێلی ژمارە (<strong>{{ $transaction->plate_number }}</strong>) شاسی (<strong>{{ $transaction->chassis_number }}</strong>)، بەڵێننامەی یاسایی دەدەم بە بەڕێوەبەرایەتی گومرگی سلێمانی بەوەی کە:
+                    من کە لەخوارەوە ناوم هاتووە و واژۆم کردووە بەڵێن دەدەم کە ئۆتۆمبێلی ژمارە ( <span class="font-black text-lg">{{ $plateNumber }}</span> ) جۆری ( <span class="font-black text-lg">{{ $carMakeName }}</span> ) بگەڕێنمەوە لەماوەی دیاری کراویدا وەخۆم بەرپرسم لە هەرکێشەیەک کە رووبدات وەخۆم خاوەنیم مافی هیچ کەسێکی بەسەرەوە نییە بەپێچەوانەوە خۆم بەرپرس دەبم بەڕامبەر بەیاسا و ڕێنماییەکان .
                 </p>
-                <ul class="list-decimal list-inside space-y-1 text-gray-800 pr-2">
-                    <li>تەنها بۆ مەبەستی گەشتیاری و کاتی ئۆتۆمبێلەکەم دەبەمە دەرەوەی خاکی هەرێمی کوردستان / عێراق.</li>
-                    <li>بەڵێن دەدەم لە ماوەی ڕێگەپێدراوی دیاریکراوی دەفتەرەکەدا ئۆتۆمبێلەکە بگەڕێنمەوە بۆ ناو خاکی هەرێمی کوردستان.</li>
-                    <li>پابەندی تەواوی ڕێنماییە یاساییەکانی وەزارەتی دارایی و بەڕێوەبەرایەتی گومرگی سلێمانی دەبم، و بە پێچەوانەوە بەرپرسیارێتی تەواوی یاسایی و مادی دەگرمە ئەستۆ.</li>
-                </ul>
             </div>
-        </div>
 
-        <!-- Section 3: Financial Receipt Breakdown Table -->
-        <div class="space-y-1.5">
-            <h4 class="text-sm font-black border-b border-black pb-1 flex items-center justify-between">
-                <span>تەفسیلی ڕسوومات و کرێی بەڵێننامە</span>
-                <span class="text-xs font-mono">کۆی وەرگیراو: {{ number_format($transaction->total_pay) }} د.ع</span>
-            </h4>
-            <table class="w-full border-collapse text-xs font-bold text-center">
-                <thead class="gray-label-bg">
-                    <tr>
-                        <th class="black-cell-border p-1.5">کرێی پول (Stamp)</th>
-                        <th class="black-cell-border p-1.5">کرێی فۆڕم (Form)</th>
-                        <th class="black-cell-border p-1.5">سزای دواکەوتن</th>
-                        <th class="black-cell-border p-1.5">کۆی گشتی ڕسوومات</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="black-cell-border p-2 font-mono">{{ number_format($transaction->pay_stamp) }} د.ع</td>
-                        <td class="black-cell-border p-2 font-mono">{{ number_format($transaction->pay_form) }} د.ع</td>
-                        <td class="black-cell-border p-2 font-mono text-amber-900">{{ number_format($transaction->pay_fine) }} د.ع</td>
-                        <td class="black-cell-border p-2 font-mono font-black text-sm bg-gray-100">{{ number_format($transaction->total_pay) }} دینار ({{ \App\Services\KurdishNumberToWords::convert($transaction->total_pay) }})</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Section 4: Official Signatures & Fingerprint Grid -->
-        <div class="pt-4 border-t-2 border-black">
-            <div class="grid grid-cols-2 gap-4 text-xs font-bold text-center">
+            <!-- Citizen Identification Block -->
+            <div class="pt-6 px-2 space-y-3 font-bold text-sm leading-relaxed">
+                <p class="font-black text-base">واژۆی بەڵێندەر:</p>
                 
-                <!-- Box 1: Driver Fingerprint & Signature -->
-                <div class="border-2 border-black p-3 space-y-2 rounded-sm bg-white">
-                    <p class="font-black text-sm text-black">١. ئیمزا و پەنجەمۆری بەڵێندەر (شۆفێر)</p>
-                    <div class="w-24 h-24 border-2 border-dashed border-gray-400 mx-auto my-2 flex flex-col items-center justify-center text-[10px] text-gray-500 bg-gray-50">
-                        <span>پەنجەمۆری</span>
-                        <span>شۆفێر</span>
+                <p class="text-base">
+                    ناوی سیانی ( <span class="font-black text-lg">{{ $visitorName }}</span> )
+                </p>
+
+                <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+                    <div>
+                        ژمارەی ناسنامە ( <span class="font-black font-mono text-base">{{ $passportNo ?: '....................' }}</span> )
                     </div>
-                    <p class="text-black font-black">{{ $transaction->visitor_name }}</p>
-                    <p class="text-[11px] text-gray-600 font-mono">بەروار: {{ date('Y-m-d') }}</p>
+                    <div>
+                        ڕێکەوتی دەرچوونی: ( <span class="font-black font-mono text-base">{{ $passportIssueDate ? \Carbon\Carbon::parse($passportIssueDate)->format('Y / m / d') : '.... / .. / ..' }}</span> )
+                    </div>
+                    <div>
+                        دەرچووە لە ( <span class="font-black text-base">{{ $passportIssuePlace ?: '....................' }}</span> )
+                    </div>
                 </div>
 
-                <!-- Box 2: Legal Officer Signature & Stamp -->
-                <div class="border-2 border-black p-3 space-y-2 rounded-sm bg-white flex flex-col justify-between">
+                <div class="flex flex-wrap items-center gap-x-8 gap-y-2 text-sm pt-1">
                     <div>
-                        <p class="font-black text-sm text-black">٢. لێپرسراوی بەشی یاسایی و بەڵێننامەکان</p>
-                        <p class="text-xs text-gray-700 mt-2">پەسەندکرانی بەڵێننامە و ئیمزای یاسایی</p>
+                        ناونیشان: ( <span class="font-black text-base">{{ $address ?: '........................................................' }}</span> )
                     </div>
-                    <div class="py-6 border-t border-gray-300">
-                        <p class="text-gray-500 text-[11px]">ئیمزا و مۆری فەرمی</p>
-                        <p class="text-[11px] text-gray-400 mt-4">........................................</p>
+                    <div>
+                        مۆبایل ( <span class="font-black font-mono text-base">{{ $phoneNumber ?: '....................' }}</span> )
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legal Officer Attestation Block -->
+            <div class="pt-6 px-2 text-justify text-sm font-bold leading-loose border-t border-gray-300">
+                <p>
+                    ئامادەبوو لەپێشم بەڵێندەر ( <span class="font-black text-base">{{ $visitorName }}</span> ) دوای دڵنیابوون لەناسنامەکەی و دەقی بەڵێننامەکەم بۆ خوێندەوە و دانی بەناوەڕۆکەکەی نا دوای ئەوە لەبەردەمم واژۆی کرد منیش پەسەندم کرد لە ڕێکەوتی ( <span class="font-black font-mono text-base">{{ date('Y / m / d') }}</span> )
+                </p>
+            </div>
+
+            <!-- Director Signature & Barcode Grid -->
+            <div class="pt-8 pb-2 px-2 flex items-end justify-between">
+                
+                <!-- Director Block (Left) -->
+                <div class="text-center font-black space-y-1">
+                    <p class="text-lg">{{ $directorName }}</p>
+                    <p class="text-sm">بەڕێوەبەری گومرگی سلێمانی</p>
+                    <p class="font-mono text-xs font-bold pt-1">{{ date('Y-m-d') }}</p>
+                </div>
+
+                <!-- Clean Official Barcode (Bottom Right / Center) -->
+                <div class="text-center space-y-1">
+                    <svg id="pledgeBarcodeSvg" class="max-h-12"></svg>
+                    <div class="font-mono text-xs font-bold text-center">
+                        * {{ $transaction->barcode }} *
                     </div>
                 </div>
 
             </div>
         </div>
 
-        <!-- Footer Notice -->
-        <div class="pt-4 border-t border-black flex items-center justify-between text-[11px] font-bold text-gray-600">
-            <span>سیستەمی ئەلیکترۆنی بەڕێوەبردنی ئۆتۆمبێلی گەشتیاری - بەڕێوەبەرایەتی گومرگی سلێمانی</span>
-            <span class="font-mono">کاتی چاپ: {{ date('Y-m-d H:i:s') }}</span>
+        <!-- Footer Address & Date -->
+        <div class="pt-3 border-t-2 border-black flex items-center justify-between text-xs font-bold text-gray-800 relative z-10">
+            <div class="border border-gray-400 px-3 py-0.5 text-center font-mono text-[11px]">
+                {{ date('Y-m-d') }}
+            </div>
+            <div>
+                حکومەتی هەرێمی کوردستان\ ناونیشان سلێمانی تەنیشت باخی بەختیاری
+            </div>
         </div>
 
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            JsBarcode("#barcodePledgeSvg", "{{ $transaction->barcode }}", {
+            JsBarcode("#pledgeBarcodeSvg", "*{{ $transaction->barcode }}*", {
                 format: "CODE128",
                 lineColor: "#000",
-                width: 2,
-                height: 42,
-                displayValue: true,
-                fontSize: 13,
-                fontOptions: "bold",
-                font: "Vazirmatn",
-                textMargin: 2
+                width: 1.8,
+                height: 38,
+                displayValue: false
             });
         });
     </script>

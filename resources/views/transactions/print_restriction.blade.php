@@ -99,7 +99,7 @@
         <div class="border-b-2 border-dashed border-black pb-2 flex items-center justify-between text-sm font-bold">
             <div>
                 <span>ژمارە: </span>
-                <span class="font-mono text-base">{{ $transaction->no_nusraw_puchal ?? $transaction->barcode }}</span>
+                <span class="font-mono text-base tracking-widest text-gray-500">..............................</span>
             </div>
             <div>
                 <span>ڕێکەوتی: </span>

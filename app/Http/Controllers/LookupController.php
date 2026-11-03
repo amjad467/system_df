@@ -198,5 +198,34 @@ class LookupController extends Controller
 
         return response()->json(['success' => true, 'item' => $transactionType]);
     }
+
+    // 7. Passport Issue Places
+    public function storePassportIssuePlace(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:passport_issue_places,name',
+        ], [
+            'name.unique' => 'ئەم شوێنە پێشتر تۆمارکراوە!'
+        ]);
+
+        $item = \App\Models\PassportIssuePlace::create($validated);
+        AuditLogger::log('زیادکردنی شوێنی دەرچوونی پاسپۆرت', \App\Models\PassportIssuePlace::class, $item->id, $item->name);
+
+        return response()->json(['success' => true, 'item' => $item]);
+    }
+
+    public function updatePassportIssuePlace(Request $request, \App\Models\PassportIssuePlace $passportIssuePlace)
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255', Rule::unique('passport_issue_places', 'name')->ignore($passportIssuePlace->id)],
+        ], [
+            'name.unique' => 'ئەم شوێنە پێشتر هەبووە!'
+        ]);
+
+        $passportIssuePlace->update($validated);
+        AuditLogger::log('دەستکاریکردنی شوێنی دەرچوونی پاسپۆرت', \App\Models\PassportIssuePlace::class, $passportIssuePlace->id, $passportIssuePlace->name);
+
+        return response()->json(['success' => true, 'item' => $passportIssuePlace]);
+    }
 }
 

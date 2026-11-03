@@ -115,6 +115,33 @@
                     <input type="text" name="address" value="{{ old('address', $transaction->address) }}" placeholder="ناونیشانی نیشتەجێبوون (شار، گەڕەک)..." 
                            class="w-full bg-slate-900 border border-slate-700 focus:border-sky-400 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none">
                 </div>
+
+                <!-- بەرواری دەرچوونی ناسنامە / پاسپۆرت (تەنها لەگەڵ دەرهێنانی دەفتەر) -->
+                <div x-show="parseInt(typeId) === 1" x-cloak>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center">
+                        <i class="fa-solid fa-calendar-day ml-1.5 text-amber-400"></i> بەرواری دەرچوونی ناسنامە / پاسپۆرت
+                    </label>
+                    <input type="date" name="passport_issue_date" value="{{ old('passport_issue_date', $transaction->passport_issue_date?->format('Y-m-d')) }}" 
+                           class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:outline-none">
+                </div>
+
+                <!-- شوێنی دەرچوونی ناسنامە / پاسپۆرت (تەنها لەگەڵ دەرهێنانی دەفتەر) -->
+                <div x-show="parseInt(typeId) === 1" x-cloak>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-semibold text-slate-300 flex items-center">
+                            <i class="fa-solid fa-building-columns ml-1.5 text-sky-400"></i> شوێنی دەرچوون (Place of Issue)
+                        </label>
+                        <button type="button" @click="showPassportPlaceModal = true" class="text-xs text-sky-400 hover:text-sky-300 font-bold flex items-center">
+                            <i class="fa-solid fa-plus-circle ml-1"></i> زیادکردنی شوێن
+                        </button>
+                    </div>
+                    <select name="passport_issue_place" x-model="passportIssuePlace" id="passportIssuePlaceSelectEdit" class="w-full bg-slate-900 border border-slate-700 focus:border-sky-400 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none">
+                        <option value="">-- دیاریکردنی شوێنی دەرچوون --</option>
+                        @foreach($passportIssuePlaces as $place)
+                            <option value="{{ $place->name }}" {{ old('passport_issue_place', $transaction->passport_issue_place) == $place->name ? 'selected' : '' }}>{{ $place->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -124,28 +151,28 @@
                 <h3 class="text-base font-bold text-rose-400 flex items-center">
                     <i class="fa-solid fa-file-contract ml-2"></i> زانیارییەکانی نووسراوی گومرگ (تایبەت بە پووچەڵکردنەوە)
                 </h3>
-                @if(auth()->user()->role === 'data_entry')
+                @if(auth()->user()?->role === 'data_entry')
                     <span class="text-xs bg-rose-900/60 text-rose-300 border border-rose-700/50 px-2.5 py-1 rounded-lg">
                         <i class="fa-solid fa-lock ml-1 text-amber-400"></i> تەنها لەلایەن کارمەندی ئەرشیف/سەپمیت دەستکاری دەکرێت
                     </span>
                 @endif
             </div>
-            @if(auth()->user()->role === 'data_entry')
+            @if(auth()->user()?->role === 'data_entry')
                 <p class="text-xs text-rose-300/80">تێبینی: ژمارە و بەرواری نووسراوی گومرگ لە قۆناغی کۆتایی لەلایەن فەرمانبەری ئەرشیف/سەپمیت پڕدەکرێتەوە.</p>
             @endif
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-rose-200 mb-1.5">ژمارەی نووسراوی گومرگ @if(auth()->user()->role === 'data_entry')(ناچالاککراوە لە داتائەنتەری)@endif</label>
+                    <label class="block text-xs font-semibold text-rose-200 mb-1.5">ژمارەی نووسراوی گومرگ @if(auth()->user()?->role === 'data_entry')(ناچالاککراوە لە داتائەنتەری)@endif</label>
                     <input type="text" name="no_nusraw_puchal" value="{{ old('no_nusraw_puchal', $transaction->no_nusraw_puchal) }}" 
-                           @if(auth()->user()->role === 'data_entry') disabled @endif
+                           @if(auth()->user()?->role === 'data_entry') disabled @endif
                            placeholder="ژمارەی فەرمی نووسراوی گومرگ" dir="ltr"
-                           class="w-full bg-slate-900 border border-rose-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-rose-500 focus:outline-none @if(auth()->user()->role === 'data_entry') cursor-not-allowed opacity-70 @endif">
+                           class="w-full bg-slate-900 border border-rose-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-rose-500 focus:outline-none @if(auth()->user()?->role === 'data_entry') cursor-not-allowed opacity-70 @endif">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-rose-200 mb-1.5">بەرواری نووسراوی گومرگ @if(auth()->user()->role === 'data_entry')(ناچالاککراوە لە داتائەنتەری)@endif</label>
+                    <label class="block text-xs font-semibold text-rose-200 mb-1.5">بەرواری نووسراوی گومرگ @if(auth()->user()?->role === 'data_entry')(ناچالاککراوە لە داتائەنتەری)@endif</label>
                     <input type="date" name="date_nusraw_puchal" value="{{ old('date_nusraw_puchal', $transaction->date_nusraw_puchal?->format('Y-m-d')) }}"
-                           @if(auth()->user()->role === 'data_entry') disabled @endif
-                           class="w-full bg-slate-900 border border-rose-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-rose-500 focus:outline-none @if(auth()->user()->role === 'data_entry') cursor-not-allowed opacity-70 @endif">
+                           @if(auth()->user()?->role === 'data_entry') disabled @endif
+                           class="w-full bg-slate-900 border border-rose-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-rose-500 focus:outline-none @if(auth()->user()?->role === 'data_entry') cursor-not-allowed opacity-70 @endif">
                 </div>
             </div>
         </div>
@@ -243,6 +270,30 @@
             </button>
         </div>
     </form>
+
+    <!-- INLINE MODAL: Manage & Add Passport Issue Place -->
+    <div x-show="showPassportPlaceModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <h3 class="text-base font-bold text-white flex items-center justify-between border-b border-slate-700 pb-3">
+                <span><i class="fa-solid fa-map-location-dot ml-2 text-sky-400"></i> زیادکردنی شوێنی دەرچوونی نوێ</span>
+                <button type="button" @click="showPassportPlaceModal = false" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+            </h3>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1.5">ناوی شوێنی دەرچوون (شار / پارێزگا / فەرمانگە) *</label>
+                <input type="text" x-model="newPassportPlaceName" @keydown.enter.prevent="addPassportPlace()" placeholder="مثلاً: سلێمانی، هەولێر، دهۆک..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-sky-500 focus:outline-none">
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button type="button" @click="showPassportPlaceModal = false" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition">
+                    داخستن
+                </button>
+                <button type="button" @click="addPassportPlace()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/30 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i> زیادکردن و دیاریکردن
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -253,6 +304,9 @@
             plateTypeId: '{{ $transaction->plate_type_id }}',
             carMakeId: '{{ $transaction->car_make_id }}',
             carColorId: '{{ $transaction->car_color_id }}',
+            passportIssuePlace: '{{ old("passport_issue_place", $transaction->passport_issue_place) }}',
+            showPassportPlaceModal: false,
+            newPassportPlaceName: '',
             startDate: '{{ $transaction->start_date?->format("Y-m-d") ?? date("Y-m-d") }}',
             endDate: '{{ $transaction->end_date?->format("Y-m-d") ?? date("Y-m-d", strtotime("+1 year")) }}',
 
@@ -295,6 +349,34 @@
                         if (data.start_date) this.startDate = data.start_date;
                         if (data.end_date) this.endDate = data.end_date;
                     });
+            },
+
+            addPassportPlace() {
+                if (!this.newPassportPlaceName.trim()) return;
+                fetch('{{ route("lookup.passport_issue_place") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    body: JSON.stringify({ name: this.newPassportPlaceName.trim() })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.success && data.item) {
+                        const sel = document.getElementById('passportIssuePlaceSelectEdit');
+                        if (sel) {
+                            const opt = document.createElement('option');
+                            opt.value = data.item.name;
+                            opt.textContent = data.item.name;
+                            opt.selected = true;
+                            sel.appendChild(opt);
+                        }
+                        this.passportIssuePlace = data.item.name;
+                        this.showPassportPlaceModal = false;
+                        this.newPassportPlaceName = '';
+                    } else if (data && data.errors && data.errors.name) {
+                        alert(data.errors.name[0]);
+                    }
+                })
+                .catch(() => alert('هەڵەیەک ڕوویدا لە کاتی زیادکردنی شوێن!'));
             }
         }
     }

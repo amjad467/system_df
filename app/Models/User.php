@@ -40,6 +40,7 @@ class User extends Authenticatable
             'cashier' => 'ژمێریار / وەسڵبڕ (Step 4)',
             'booklet' => 'بەشی دەفتەر (Step 5)',
             'archiver' => 'کارمەندی ئەرشیف و سەپمیت (Step 6)',
+            'legal' => 'فەرمانبەری یاسایی (Legal Officer)',
             'admin' => 'کارگێڕی گشتی / سەرپەرشتیار (Admin)',
             default => 'کارمەند',
         };
@@ -53,6 +54,11 @@ class User extends Authenticatable
     public function isArchiver(): bool
     {
         return $this->role === 'archiver';
+    }
+
+    public function isLegal(): bool
+    {
+        return $this->role === 'legal';
     }
 
     public function hasPermission(string $permission): bool

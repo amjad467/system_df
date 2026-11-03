@@ -311,6 +311,8 @@ class TransactionController extends Controller
 
         $targetTypeId = $request->get('target_type');
 
+        $passportIssuePlaces = \App\Models\PassportIssuePlace::orderBy('name')->get();
+
         return view('transactions.create', compact(
             'directorates',
             'directors',
@@ -318,6 +320,7 @@ class TransactionController extends Controller
             'carMakes',
             'carColors',
             'transactionTypes',
+            'passportIssuePlaces',
             'defaultDirectorateId',
             'defaultDirectorId',
             'fromTransaction',
@@ -447,6 +450,8 @@ class TransactionController extends Controller
             'phone_number' => 'nullable|string|max:50',
             'passport_number' => 'nullable|string|max:100',
             'address' => 'nullable|string|max:255',
+            'passport_issue_date' => 'nullable|date',
+            'passport_issue_place' => 'nullable|string|max:255',
             'plate_number' => 'required|string|max:100',
             'model_year' => 'required|digits:4',
             'chassis_number' => 'required|string|max:100',
@@ -540,6 +545,8 @@ class TransactionController extends Controller
                     'phone_number' => $tx->phone_number,
                     'passport_number' => $tx->passport_number,
                     'address' => $tx->address,
+                    'passport_issue_date' => $tx->passport_issue_date,
+                    'passport_issue_place' => $tx->passport_issue_place,
                     'plate_number' => $tx->plate_number,
                     'model_year' => $tx->model_year,
                     'chassis_number' => $tx->chassis_number,
@@ -608,6 +615,7 @@ class TransactionController extends Controller
         $carMakes = CarMake::all();
         $carColors = CarColor::all();
         $transactionTypes = TransactionType::all();
+        $passportIssuePlaces = \App\Models\PassportIssuePlace::orderBy('name')->get();
 
         return view('transactions.edit', compact(
             'transaction',
@@ -616,7 +624,8 @@ class TransactionController extends Controller
             'plateTypes',
             'carMakes',
             'carColors',
-            'transactionTypes'
+            'transactionTypes',
+            'passportIssuePlaces'
         ));
     }
 
@@ -641,6 +650,8 @@ class TransactionController extends Controller
             'phone_number' => 'nullable|string|max:50',
             'passport_number' => 'nullable|string|max:100',
             'address' => 'nullable|string|max:255',
+            'passport_issue_date' => 'nullable|date',
+            'passport_issue_place' => 'nullable|string|max:255',
             'plate_number' => 'required|string|max:100',
             'model_year' => 'required|digits:4',
             'chassis_number' => 'required|string|max:100',
@@ -1455,18 +1466,12 @@ class TransactionController extends Controller
 
     public function printPledge(Transaction $transaction)
     {
-        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
-            return redirect()->route('transactions.show', $transaction->id)
-                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت فیشەی بەڵێننامە چاپ بکات.');
-        }
-
-        // تەنها داتائەنتەری، تەخمین و ئەدمین دەتوانن فیشە چاپ بکەن (خاڵی ۲)
         $user = auth()->user();
-        if (!$user->isAdmin() && !in_array($user->role, ['data_entry', 'inspector'])) {
-            return redirect()->back()->with('error', 'تەنها کارمەندی داتائەنتەری، تەخمین و ئەدمین دەتوانن فیشەی بەڵێننامە چاپ بکەن.');
+        if (!$user->isAdmin() && !$user->isLegal()) {
+            return redirect()->back()->with('error', 'تەنها فەرمانبەری یاسایی و ئەدمین دەتوانن بەڵێننامە چاپ بکەن.');
         }
 
-        $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor']);
+        $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director', 'parentTransaction']);
         return view('transactions.print_pledge', compact('transaction'));
     }
 
@@ -1490,6 +1495,11 @@ class TransactionController extends Controller
                 'visitor_name_eng' => $transaction->visitor_name_eng,
                 'second_driver_name' => $transaction->second_driver_name,
                 'second_driver_name_eng' => $transaction->second_driver_name_eng,
+                'phone_number' => $transaction->phone_number,
+                'passport_number' => $transaction->passport_number,
+                'address' => $transaction->address,
+                'passport_issue_date' => $transaction->passport_issue_date,
+                'passport_issue_place' => $transaction->passport_issue_place,
                 'plate_number' => $transaction->plate_number,
                 'model_year' => $transaction->model_year,
                 'chassis_number' => $transaction->chassis_number,

@@ -104,6 +104,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'ژمێریار دیار (وەسڵبڕ)', 'user_login' => 'cashier', 'email' => 'cashier@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'cashier', 'is_active' => true],
             ['name' => 'کارمەند سەربەست (بەشی دەفتەر)', 'user_login' => 'booklet', 'email' => 'booklet@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'booklet', 'is_active' => true],
             ['name' => 'کارمەند ئاراس (ئەرشیف و سەپمیت)', 'user_login' => 'archiver', 'email' => 'archiver@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'archiver', 'is_active' => true],
+            ['name' => 'یاساناس سامان (فەرمانبەری یاسایی)', 'user_login' => 'legal', 'email' => 'legal@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'legal', 'is_active' => true],
             ['name' => 'کارگێڕی گشتی (Admin)', 'user_login' => 'admin', 'email' => 'admin@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'admin', 'is_active' => true],
             ['name' => 'امجد صالح (Admin)', 'user_login' => 'amjad', 'email' => 'amjad@customs.gov.krd', 'password' => Hash::make('123456'), 'role' => 'admin', 'is_active' => true],
         ];

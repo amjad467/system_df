@@ -120,6 +120,13 @@
                 @endif
             @endif
 
+            <!-- Legal Officer Pledge Document (Legal and Admin ONLY - Available right after Data Entry) -->
+            @if(!$transaction->is_cancelled && (auth()->user()->isAdmin() || auth()->user()->isLegal()))
+                <a href="{{ route('transactions.print_pledge', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-black rounded-xl shadow-lg shadow-amber-600/30 transition flex items-center" title="چاپی بەڵێننامەی یاسایی">
+                    <i class="fa-solid fa-file-contract ml-1.5 text-amber-200"></i> چاپی بەڵێننامەی یاسایی
+                </a>
+            @endif
+
             <!-- Cashier Payment Receipt & Inspection Letter (Cashier and Admin ONLY - Locked after Submit for non-admin) -->
             @if(!$transaction->is_cancelled && $transaction->is_paid && (!$transaction->is_submitted || auth()->user()->isAdmin()) && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier'))
                 <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center">
@@ -633,6 +640,13 @@
         @if(!$transaction->is_cancelled)
             <div class="pt-4 border-t border-slate-700 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex flex-wrap items-center gap-2">
+
+                    <!-- فەرمانبەری یاسایی: چاپی بەڵێننامە (ڕاستەوخۆ دوای داتائەنتەری) -->
+                    @if(auth()->user()->isAdmin() || auth()->user()->isLegal())
+                        <a href="{{ route('transactions.print_pledge', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-black rounded-xl shadow-lg shadow-amber-600/30 transition flex items-center gap-1.5" title="چاپی بەڵێننامەی یاسایی لەلایەن فەرمانبەری یاسایی">
+                            <i class="fa-solid fa-file-contract text-amber-200"></i> چاپی بەڵێننامەی یاسایی
+                        </a>
+                    @endif
 
                     <!-- Step 2: Inspection (Inspector / Admin) -->
                     @if(!$transaction->is_inspected)
@@ -1461,6 +1475,12 @@
                     @endif
 
                     <!-- نوسراوە ئیدارییەکان بۆ وردبینی (نیشانەی ڕەفتارنەکردن & نووسراوی پووچەڵکردنەوە) -->
+                    @if(auth()->user()->isAdmin() || auth()->user()->isLegal())
+                        <a href="{{ route('transactions.print_pledge', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-black rounded-xl shadow transition flex items-center gap-1" title="چاپی بەڵێننامەی یاسایی">
+                            <i class="fa-solid fa-file-contract"></i> بەڵێننامە (یاسایی)
+                        </a>
+                    @endif
+
                     @if($transaction->is_inspected && (!$transaction->is_submitted || auth()->user()->isAdmin()) && auth()->user()->role !== 'data_entry' && (auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->role === 'booklet'))
                         @if($transaction->isCancellation())
                             <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نووسراوی پووچەڵکردنەوە">

@@ -77,7 +77,7 @@ class DataRestoreService
                         'is_pledge_completed', 'is_printed', 'is_submitted', 'is_returned',
                     ];
                     $dateCols = [
-                        'transaction_date', 'start_date', 'end_date', 'date_nusraw_puchal',
+                        'transaction_date', 'start_date', 'end_date', 'date_nusraw_puchal', 'passport_issue_date',
                         'user_edit_date', 'inspected_at', 'audited_at', 'paid_at',
                         'booklet_completed_at', 'cancelled_at', 'submitted_at', 'deleted_at',
                     ];

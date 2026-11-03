@@ -293,6 +293,33 @@
                     <input type="text" name="address" x-model="address" placeholder="ناونیشانی نیشتەجێبوون (شار، گەڕەک)..." 
                            class="w-full bg-slate-900 border border-slate-700 focus:border-sky-400 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none">
                 </div>
+
+                <!-- 9. بەرواری دەرچوونی ناسنامە / پاسپۆرت (تەنها لەگەڵ دەرهێنانی دەفتەر) -->
+                <div x-show="parseInt(typeId) === 1" x-cloak>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center">
+                        <i class="fa-solid fa-calendar-day ml-1.5 text-amber-400"></i> بەرواری دەرچوونی ناسنامە / پاسپۆرت
+                    </label>
+                    <input type="date" name="passport_issue_date" x-model="passportIssueDate" 
+                           class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:outline-none">
+                </div>
+
+                <!-- 10. شوێنی دەرچوونی ناسنامە / پاسپۆرت (تەنها لەگەڵ دەرهێنانی دەفتەر) -->
+                <div x-show="parseInt(typeId) === 1" x-cloak>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-semibold text-slate-300 flex items-center">
+                            <i class="fa-solid fa-building-columns ml-1.5 text-sky-400"></i> شوێنی دەرچوون (Place of Issue)
+                        </label>
+                        <button type="button" @click="showPassportPlaceModal = true" class="text-xs text-sky-400 hover:text-sky-300 font-bold flex items-center">
+                            <i class="fa-solid fa-plus-circle ml-1"></i> زیادکردنی شوێن
+                        </button>
+                    </div>
+                    <select name="passport_issue_place" x-model="passportIssuePlace" id="passportIssuePlaceSelect" class="w-full bg-slate-900 border border-slate-700 focus:border-sky-400 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none">
+                        <option value="">-- هەڵبژاردنی شوێنی دەرچوون --</option>
+                        @foreach($passportIssuePlaces as $place)
+                            <option value="{{ $place->name }}">{{ $place->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -844,6 +871,30 @@
             </div>
         </div>
     </div>
+
+    <!-- INLINE MODAL 7: Manage & Add Passport Issue Place -->
+    <div x-show="showPassportPlaceModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <h3 class="text-base font-bold text-white flex items-center justify-between border-b border-slate-700 pb-3">
+                <span><i class="fa-solid fa-map-location-dot ml-2 text-sky-400"></i> زیادکردنی شوێنی دەرچوونی نوێ</span>
+                <button type="button" @click="showPassportPlaceModal = false" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+            </h3>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1.5">ناوی شوێنی دەرچوون (شار / پارێزگا / فەرمانگە) *</label>
+                <input type="text" x-model="newPassportPlaceName" @keydown.enter.prevent="addPassportPlace()" placeholder="مثلاً: سلێمانی، هەولێر، دهۆک..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:border-sky-500 focus:outline-none">
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button type="button" @click="showPassportPlaceModal = false" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition">
+                    داخستن
+                </button>
+                <button type="button" @click="addPassportPlace()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/30 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus"></i> زیادکردن و دیاریکردن
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -862,6 +913,8 @@
             phoneNumber: initialTx ? (initialTx.phone_number || '') : '',
             passportNumber: initialTx ? (initialTx.passport_number || '') : '',
             address: initialTx ? (initialTx.address || '') : '',
+            passportIssueDate: initialTx ? (initialTx.passport_issue_date || '') : '',
+            passportIssuePlace: initialTx ? (initialTx.passport_issue_place || '') : '',
 
             // Vehicle inputs
             plateNumber: initialTx ? (initialTx.plate_number || '') : '',
@@ -928,6 +981,8 @@
                 this.phoneNumber = record.phone_number || '';
                 this.passportNumber = record.passport_number || '';
                 this.address = record.address || '';
+                this.passportIssueDate = record.passport_issue_date ? record.passport_issue_date.substring(0, 10) : '';
+                this.passportIssuePlace = record.passport_issue_place || '';
                 this.plateNumber = record.plate_number || '';
                 this.plateTypeId = record.plate_type_id || 1;
                 this.carMakeId = record.car_make_id || '';
@@ -957,6 +1012,8 @@
                 this.chassisPreviousInfo = null;
                 this.passportNumber = '';
                 this.address = '';
+                this.passportIssueDate = '';
+                this.passportIssuePlace = '';
             },
 
             lookupByChassis() {
@@ -1011,6 +1068,7 @@
             showPlateTypeModal: false,
             showCarMakeModal: false,
             showCarColorModal: false,
+            showPassportPlaceModal: false,
 
             carMakeSearch: '',
 
@@ -1022,6 +1080,7 @@
             newMakeEnglish: '',
             newColorKurdish: '',
             newColorEnglish: '',
+            newPassportPlaceName: '',
 
             fees: {
                 pay_amount_years: 80000,
@@ -1350,6 +1409,31 @@
                         this.showTxTypeModal = false;
                         this.newTxTypeName = '';
                         this.calculateFees();
+                    }
+                });
+            },
+
+            addPassportPlace() {
+                if (!this.newPassportPlaceName.trim()) return;
+                fetch('{{ route("lookup.passport_issue_place") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                    body: JSON.stringify({ name: this.newPassportPlaceName.trim() })
+                })
+                .then(res => this.handleResponse(res))
+                .then(data => {
+                    if (data && data.success && data.item) {
+                        const sel = document.getElementById('passportIssuePlaceSelect');
+                        if (sel) {
+                            const opt = document.createElement('option');
+                            opt.value = data.item.name;
+                            opt.textContent = data.item.name;
+                            opt.selected = true;
+                            sel.appendChild(opt);
+                        }
+                        this.passportIssuePlace = data.item.name;
+                        this.showPassportPlaceModal = false;
+                        this.newPassportPlaceName = '';
                     }
                 });
             },

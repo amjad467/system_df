@@ -15,6 +15,7 @@ class PermissionService
         'transactions.return' => 'گەڕاندنەوەی مامەڵەی هەڵە بۆ تەخمین',
         'transactions.pay' => 'تۆمارکردنی وەسڵ و وەرگرتنی پارە',
         'transactions.complete_booklet' => 'تۆمارکردنی دەفتەر و چاپکردن',
+        'transactions.pledge' => 'چاپی بەڵێننامەی یاسایی',
         'transactions.submit' => 'سەپمیت و ئەرشیفکردنی مامەڵە (قۆناغی کۆتایی)',
         'transactions.cancel' => 'پووچەڵکردنەوەی مامەڵە',
         'transactions.delete' => 'سڕینەوەی کاتی (Soft Delete) یان ئەرشیف',
@@ -32,6 +33,7 @@ class PermissionService
         'cashier' => ['transactions.pay'],
         'booklet' => ['transactions.complete_booklet', 'transactions.submit'],
         'archiver' => ['transactions.submit'],
+        'legal' => ['transactions.pledge'],
     ];
 
     public static function hasPermission(string $role, string $permission): bool

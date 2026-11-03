@@ -97,9 +97,10 @@
                     </a>
                 </div>
 
-                <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 pt-1 text-[11px]">
+                <div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5 pt-1 text-[11px]">
                     <a href="{{ route('quick_login', 'data_entry') }}" class="py-1.5 px-1 bg-slate-900 hover:bg-slate-700/80 border border-slate-700 text-slate-300 rounded-lg text-center transition font-semibold" title="کارمەندی داتائەنتەری">داتائەنتەری</a>
                     <a href="{{ route('quick_login', 'inspector') }}" class="py-1.5 px-1 bg-slate-900 hover:bg-slate-700/80 border border-slate-700 text-slate-300 rounded-lg text-center transition font-semibold" title="لێپرسراوی تەخمین">تەخمین</a>
+                    <a href="{{ route('quick_login', 'legal') }}" class="py-1.5 px-1 bg-amber-950/70 hover:bg-amber-900/80 border border-amber-700/70 text-amber-300 rounded-lg text-center transition font-bold" title="فەرمانبەری یاسایی (بەڵێننامە)">یاسایی</a>
                     <a href="{{ route('quick_login', 'auditor') }}" class="py-1.5 px-1 bg-slate-900 hover:bg-slate-700/80 border border-slate-700 text-slate-300 rounded-lg text-center transition font-semibold" title="وردبینی">وردبینی</a>
                     <a href="{{ route('quick_login', 'cashier') }}" class="py-1.5 px-1 bg-slate-900 hover:bg-slate-700/80 border border-slate-700 text-slate-300 rounded-lg text-center transition font-semibold" title="ژمێریار و وەسڵبڕ">وەسڵبڕ</a>
                     <a href="{{ route('quick_login', 'booklet') }}" class="py-1.5 px-1 bg-slate-900 hover:bg-slate-700/80 border border-slate-700 text-slate-300 rounded-lg text-center transition font-semibold" title="بەشی دەفتەر">دەفتەر</a>

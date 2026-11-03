@@ -18,6 +18,7 @@ class Transaction extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'date_nusraw_puchal' => 'date',
+        'passport_issue_date' => 'date',
         'user_edit_date' => 'datetime',
         'inspected_at' => 'datetime',
         'audited_at' => 'datetime',
