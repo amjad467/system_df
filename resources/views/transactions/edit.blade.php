@@ -201,9 +201,10 @@
                     <input type="text" 
                            name="passport_number" 
                            value="{{ old('passport_number', $transaction->passport_number) }}" 
-                           oninput="this.value = this.value.toUpperCase()" 
+                           @input="onEnglishInput($event)" 
                            placeholder="مثلاً: A12345678" 
                            dir="ltr" 
+                           lang="en"
                            style="text-transform: uppercase;" 
                            class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:outline-none uppercase">
                 </div>
@@ -333,8 +334,10 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">ژمارەی شاسی (VIN) *</label>
-                    <input type="text" name="chassis_number" value="{{ old('chassis_number', $transaction->chassis_number) }}" required dir="ltr"
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono uppercase focus:border-sky-500 focus:outline-none">
+                    <input type="text" name="chassis_number" value="{{ old('chassis_number', $transaction->chassis_number) }}" 
+                           @input="onChassisInput($event)"
+                           required dir="ltr" lang="en" style="text-transform: uppercase;"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono uppercase tracking-wider focus:border-sky-500 focus:outline-none">
                 </div>
             </div>
         </div>
@@ -489,6 +492,15 @@
                     val = window.LangConvert.toEnglish(val);
                 }
                 val = val.toUpperCase();
+                e.target.value = val;
+            },
+
+            onChassisInput(e) {
+                let val = e.target.value;
+                if (/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/.test(val) && window.LangConvert) {
+                    val = window.LangConvert.toEnglish(val);
+                }
+                val = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
                 e.target.value = val;
             },
 

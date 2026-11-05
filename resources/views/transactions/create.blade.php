@@ -231,7 +231,7 @@
                     <input type="text" 
                            name="chassis_number" 
                            x-model="chassisNumber" 
-                           @input.debounce.400ms="lookupByChassis()" 
+                           @input="onChassisInput($event)" 
                            @change="lookupByChassis()" 
                            @blur="lookupByChassis()" 
                            @keydown.enter.prevent="lookupByChassis(); $refs.phoneInput ? $refs.phoneInput.focus() : null;" 
@@ -239,7 +239,9 @@
                            autofocus
                            placeholder="17-Digit VIN Number" 
                            dir="ltr"
-                           class="w-full bg-slate-900 border border-sky-500/60 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono uppercase focus:border-sky-400 focus:outline-none">
+                           lang="en"
+                           style="text-transform: uppercase;"
+                           class="w-full bg-slate-900 border border-sky-500/60 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono uppercase tracking-wider focus:border-sky-400 focus:outline-none">
 
                     <!-- تێبینی کاتێک زانیاری پێشتری هەبێت -->
                     <div x-show="chassisFound && chassisPreviousInfo" x-cloak class="mt-1.5 p-1.5 bg-emerald-950/80 border border-emerald-500/50 rounded-lg text-[11px] text-emerald-300 flex items-center justify-between">
@@ -365,9 +367,10 @@
                     <input type="text" 
                            name="passport_number" 
                            x-model="passportNumber" 
-                           @input="passportNumber = $event.target.value.toUpperCase()" 
+                           @input="onEnglishInput($event, 'passportNumber')" 
                            placeholder="مثلاً: A12345678" 
                            dir="ltr" 
+                           lang="en"
                            style="text-transform: uppercase;" 
                            class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:outline-none uppercase">
                 </div>
@@ -1122,6 +1125,20 @@
                 val = val.toUpperCase();
                 this[field] = val;
                 e.target.value = val;
+            },
+
+            onChassisInput(e) {
+                let val = e.target.value;
+                if (/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/.test(val) && window.LangConvert) {
+                    val = window.LangConvert.toEnglish(val);
+                }
+                val = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                this.chassisNumber = val;
+                e.target.value = val;
+                if (this._chassisTimer) clearTimeout(this._chassisTimer);
+                this._chassisTimer = setTimeout(() => {
+                    this.lookupByChassis();
+                }, 350);
             },
 
             autoFillEnglishName(sourceField, targetField) {
