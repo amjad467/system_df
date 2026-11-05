@@ -100,13 +100,16 @@
                         <label class="block text-xs font-bold text-slate-200">
                             ناوى شۆفێرى يه‌كه‌م بە کوردی / عەرەبی *
                         </label>
-                        <span class="text-[10px] text-sky-400 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 rounded font-sans">
-                            کوردی (RTL)
-                        </span>
+                        <button type="button" @click="toggleArabicLayout()" class="text-[10px] text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 px-2 py-0.5 rounded font-sans flex items-center gap-1 transition">
+                            <i class="fa-solid fa-keyboard"></i>
+                            <span x-text="arabicInputMode === 'ar101' ? 'کیبۆرد: عەرەبی ١٠١' : 'کیبۆرد: فۆنەتیک'"></span>
+                        </button>
                     </div>
                     <input type="text" 
+                           id="visitor_name_edit"
                            name="visitor_name" 
                            value="{{ old('visitor_name', $transaction->visitor_name) }}" 
+                           @input="onKurdishInput($event)"
                            required 
                            placeholder="ناوی سێیانی شۆفێری یەکەم بە کوردی" 
                            dir="rtl" 
@@ -120,14 +123,20 @@
                         <label class="block text-xs font-bold text-slate-200">
                             ناوى شۆفێر يه‌كه‌م بە ئینگلیزی
                         </label>
-                        <span class="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-bold">
-                            CAPITAL (LTR)
-                        </span>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" @click="autoFillEnglishName('visitor_name_edit', 'visitor_name_eng_edit')" class="text-[10px] text-amber-400 hover:text-amber-300 font-bold underline flex items-center gap-1">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> وەرگێڕان
+                            </button>
+                            <span class="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-bold">
+                                CAPITAL (LTR)
+                            </span>
+                        </div>
                     </div>
                     <input type="text" 
+                           id="visitor_name_eng_edit"
                            name="visitor_name_eng" 
                            value="{{ old('visitor_name_eng', $transaction->visitor_name_eng) }}" 
-                           oninput="this.value = this.value.toUpperCase()" 
+                           @input="onEnglishInput($event)"
                            placeholder="FULL NAME IN ENGLISH (CAPITAL)" 
                            dir="ltr" 
                            lang="en" 
@@ -141,13 +150,16 @@
                         <label class="block text-xs font-semibold text-slate-300">
                             ناوى شۆفێری دووه‌م بە کوردی (ئارەزوومەندانه)
                         </label>
-                        <span class="text-[10px] text-sky-400 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 rounded font-sans">
-                            کوردی (RTL)
-                        </span>
+                        <button type="button" @click="toggleArabicLayout()" class="text-[10px] text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 px-2 py-0.5 rounded font-sans flex items-center gap-1 transition">
+                            <i class="fa-solid fa-keyboard"></i>
+                            <span x-text="arabicInputMode === 'ar101' ? 'عەرەبی ١٠١' : 'فۆنەتیک'"></span>
+                        </button>
                     </div>
                     <input type="text" 
+                           id="second_driver_name_edit"
                            name="second_driver_name" 
                            value="{{ old('second_driver_name', $transaction->second_driver_name) }}" 
+                           @input="onKurdishInput($event)"
                            placeholder="ناوی سێیانی شۆفێری دووەم بە کوردی" 
                            dir="rtl" 
                            lang="ckb" 
@@ -160,14 +172,20 @@
                         <label class="block text-xs font-semibold text-slate-300">
                             ناوى شۆفێر دووەم بە ئینگلیزی (ئارەزوومەندانە)
                         </label>
-                        <span class="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-bold">
-                            CAPITAL (LTR)
-                        </span>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" @click="autoFillEnglishName('second_driver_name_edit', 'second_driver_name_eng_edit')" class="text-[10px] text-amber-400 hover:text-amber-300 font-bold underline flex items-center gap-1">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> وەرگێڕان
+                            </button>
+                            <span class="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-bold">
+                                CAPITAL (LTR)
+                            </span>
+                        </div>
                     </div>
                     <input type="text" 
+                           id="second_driver_name_eng_edit"
                            name="second_driver_name_eng" 
                            value="{{ old('second_driver_name_eng', $transaction->second_driver_name_eng) }}" 
-                           oninput="this.value = this.value.toUpperCase()" 
+                           @input="onEnglishInput($event)"
                            placeholder="SECOND DRIVER IN ENGLISH (CAPITAL)" 
                            dir="ltr" 
                            lang="en" 
@@ -449,6 +467,37 @@
 
             fees: {
                 total_pay: {{ $transaction->total_pay }}
+            },
+
+            arabicInputMode: 'ar101',
+
+            toggleArabicLayout() {
+                this.arabicInputMode = (this.arabicInputMode === 'ar101') ? 'kurdish' : 'ar101';
+            },
+
+            onKurdishInput(e) {
+                let val = e.target.value;
+                if (/[a-zA-Z]/.test(val) && window.LangConvert) {
+                    val = window.LangConvert.toArabic(val, this.arabicInputMode);
+                }
+                e.target.value = val;
+            },
+
+            onEnglishInput(e) {
+                let val = e.target.value;
+                if (/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/.test(val) && window.LangConvert) {
+                    val = window.LangConvert.toEnglish(val);
+                }
+                val = val.toUpperCase();
+                e.target.value = val;
+            },
+
+            autoFillEnglishName(srcId, targetId) {
+                const srcEl = document.getElementById(srcId);
+                const targetEl = document.getElementById(targetId);
+                if (srcEl && targetEl && srcEl.value.trim() && window.LangConvert) {
+                    targetEl.value = window.LangConvert.transliterate(srcEl.value);
+                }
             },
 
             isFullBookletForm() {

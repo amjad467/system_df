@@ -268,13 +268,15 @@
                         <label class="block text-xs font-bold text-slate-200">
                             ناوى شۆفێرى يه‌كه‌م بە کوردی / عەرەبی *
                         </label>
-                        <span class="text-[10px] text-sky-400 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 rounded font-sans">
-                            کوردی (RTL)
-                        </span>
+                        <button type="button" @click="toggleArabicLayout()" class="text-[10px] text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 px-2 py-0.5 rounded font-sans flex items-center gap-1 transition" title="گۆڕینی دۆخی نووسینی کیبۆرد بۆ عەرەبی ١٠١ یان کوردی فۆنەتیک">
+                            <i class="fa-solid fa-keyboard"></i>
+                            <span x-text="arabicInputMode === 'ar101' ? 'کیبۆرد: عەرەبی ١٠١' : 'کیبۆرد: فۆنەتیک'"></span>
+                        </button>
                     </div>
                     <input type="text" 
                            name="visitor_name" 
                            x-model="visitorName" 
+                           @input="onKurdishInput($event, 'visitorName')" 
                            required 
                            placeholder="ناوی سێیانی شۆفێری یەکەم بە کوردی" 
                            dir="rtl" 
@@ -288,14 +290,19 @@
                         <label class="block text-xs font-bold text-slate-200">
                             ناوى شۆفێر يه‌كه‌م بە ئینگلیزی
                         </label>
-                        <span class="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-bold">
-                            CAPITAL (LTR)
-                        </span>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" @click="autoFillEnglishName('visitorName', 'visitorNameEng')" class="text-[10px] text-amber-400 hover:text-amber-300 font-bold underline flex items-center gap-1" title="وەرگێڕانی ناوە کوردییەکە بۆ ئینگلیزی بە شێوەیەکی خۆکار">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> وەرگێڕانی خۆکار
+                            </button>
+                            <span class="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-bold">
+                                CAPITAL (LTR)
+                            </span>
+                        </div>
                     </div>
                     <input type="text" 
                            name="visitor_name_eng" 
                            x-model="visitorNameEng" 
-                           @input="visitorNameEng = $event.target.value.toUpperCase()" 
+                           @input="onEnglishInput($event, 'visitorNameEng')" 
                            placeholder="FULL NAME IN ENGLISH (CAPITAL)" 
                            dir="ltr" 
                            lang="en" 
@@ -309,13 +316,15 @@
                         <label class="block text-xs font-semibold text-slate-300">
                             ناوى شۆفێری دووه‌م بە کوردی (ئارەزوومەندانه)
                         </label>
-                        <span class="text-[10px] text-sky-400 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 rounded font-sans">
-                            کوردی (RTL)
-                        </span>
+                        <button type="button" @click="toggleArabicLayout()" class="text-[10px] text-sky-400 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 px-2 py-0.5 rounded font-sans flex items-center gap-1 transition">
+                            <i class="fa-solid fa-keyboard"></i>
+                            <span x-text="arabicInputMode === 'ar101' ? 'عەرەبی ١٠١' : 'فۆنەتیک'"></span>
+                        </button>
                     </div>
                     <input type="text" 
                            name="second_driver_name" 
                            x-model="secondDriverName" 
+                           @input="onKurdishInput($event, 'secondDriverName')" 
                            placeholder="ناوی سێیانی شۆفێری دووەم بە کوردی" 
                            dir="rtl" 
                            lang="ckb" 
@@ -328,14 +337,19 @@
                         <label class="block text-xs font-semibold text-slate-300">
                             ناوى شۆفێر دووەم بە ئینگلیزی (ئارەزوومەندانە)
                         </label>
-                        <span class="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-bold">
-                            CAPITAL (LTR)
-                        </span>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" @click="autoFillEnglishName('secondDriverName', 'secondDriverNameEng')" class="text-[10px] text-amber-400 hover:text-amber-300 font-bold underline flex items-center gap-1" title="وەرگێڕانی ناوە کوردییەکە بۆ ئینگلیزی">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> وەرگێڕان
+                            </button>
+                            <span class="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-bold">
+                                CAPITAL (LTR)
+                            </span>
+                        </div>
                     </div>
                     <input type="text" 
                            name="second_driver_name_eng" 
                            x-model="secondDriverNameEng" 
-                           @input="secondDriverNameEng = $event.target.value.toUpperCase()" 
+                           @input="onEnglishInput($event, 'secondDriverNameEng')" 
                            placeholder="SECOND DRIVER IN ENGLISH (CAPITAL)" 
                            dir="ltr" 
                            lang="en" 
@@ -1072,6 +1086,50 @@
             kamukurtyEng: initialTx ? (initialTx.kamukurty_eng || 'good') : 'good',
             baryGshty: initialTx ? (initialTx.bary_gshty || 'باشە') : 'باشە',
             baryGshtyEng: initialTx ? (initialTx.bary_gshty_eng || 'good') : 'good',
+
+            arabicInputMode: 'ar101', // 'ar101' (standard Arabic 101 keys) or 'kurdish' (phonetic)
+
+            toggleArabicLayout() {
+                this.arabicInputMode = (this.arabicInputMode === 'ar101') ? 'kurdish' : 'ar101';
+            },
+
+            onKurdishInput(e, field) {
+                let val = e.target.value;
+                if (/[a-zA-Z]/.test(val) && window.LangConvert) {
+                    val = window.LangConvert.toArabic(val, this.arabicInputMode);
+                }
+                this[field] = val;
+                e.target.value = val;
+
+                // Auto-suggest English name if English field is empty
+                if (field === 'visitorName' && (!this.visitorNameEng || this.visitorNameEng.trim() === '')) {
+                    if (window.LangConvert) {
+                        this.visitorNameEng = window.LangConvert.transliterate(val);
+                    }
+                }
+                if (field === 'secondDriverName' && (!this.secondDriverNameEng || this.secondDriverNameEng.trim() === '')) {
+                    if (window.LangConvert) {
+                        this.secondDriverNameEng = window.LangConvert.transliterate(val);
+                    }
+                }
+            },
+
+            onEnglishInput(e, field) {
+                let val = e.target.value;
+                if (/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/.test(val) && window.LangConvert) {
+                    val = window.LangConvert.toEnglish(val);
+                }
+                val = val.toUpperCase();
+                this[field] = val;
+                e.target.value = val;
+            },
+
+            autoFillEnglishName(sourceField, targetField) {
+                const src = this[sourceField];
+                if (src && src.trim() && window.LangConvert) {
+                    this[targetField] = window.LangConvert.transliterate(src);
+                }
+            },
 
             // Previous transactions live search
             searchQuery: '',
