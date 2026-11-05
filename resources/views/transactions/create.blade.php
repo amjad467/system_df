@@ -264,61 +264,113 @@
 
                 <!-- 3. ناوی شۆفێری یەکەم بە کوردی -->
                 <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">ناوى شۆفێرى يه‌كه‌م بە کوردی / عەرەبی *</label>
-                    <input type="text" name="visitor_name" x-model="visitorName" required placeholder="ناوی سێیانی شۆفێری یەکەم" 
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-bold text-slate-200">
+                            ناوى شۆفێرى يه‌كه‌م بە کوردی / عەرەبی *
+                        </label>
+                        <span class="text-[10px] text-sky-400 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 rounded font-sans">
+                            کوردی (RTL)
+                        </span>
+                    </div>
+                    <input type="text" 
+                           name="visitor_name" 
+                           x-model="visitorName" 
+                           required 
+                           placeholder="ناوی سێیانی شۆفێری یەکەم بە کوردی" 
+                           dir="rtl" 
+                           lang="ckb" 
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-sans focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none">
                 </div>
 
                 <!-- 4. ناوی شۆفێری یەکەم بە ئینگلیزی -->
                 <div x-show="isFullBookletForm()">
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">ناوى شۆفێر يه‌كه‌م بە ئینگلیزی</label>
-                    <input type="text" name="visitor_name_eng" x-model="visitorNameEng" placeholder="Full name in English" dir="ltr" 
-                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-bold text-slate-200">
+                            ناوى شۆفێر يه‌كه‌م بە ئینگلیزی
+                        </label>
+                        <span class="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-bold">
+                            CAPITAL (LTR)
+                        </span>
+                    </div>
+                    <input type="text" 
+                           name="visitor_name_eng" 
+                           x-model="visitorNameEng" 
+                           @input="visitorNameEng = $event.target.value.toUpperCase()" 
+                           placeholder="FULL NAME IN ENGLISH (CAPITAL)" 
+                           dir="ltr" 
+                           lang="en" 
+                           style="text-transform: uppercase;" 
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 uppercase font-mono tracking-wider focus:border-amber-400 focus:ring-1 focus:ring-amber-400 focus:outline-none">
                 </div>
 
                 <!-- 5. شۆفێری دووەم بە کوردی -->
                 <div x-show="isFullBookletForm()">
-                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">ناوى شۆفێری دووه‌م بە کوردی (ئارەزوومەندانه)</label>
-                    <input type="text" name="second_driver_name" x-model="secondDriverName" placeholder="ناوی سێیانی شۆفێری دووەم" 
-                           class="w-full bg-slate-900/60 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-semibold text-slate-300">
+                            ناوى شۆفێری دووه‌م بە کوردی (ئارەزوومەندانه)
+                        </label>
+                        <span class="text-[10px] text-sky-400 bg-sky-500/10 border border-sky-500/30 px-2 py-0.5 rounded font-sans">
+                            کوردی (RTL)
+                        </span>
+                    </div>
+                    <input type="text" 
+                           name="second_driver_name" 
+                           x-model="secondDriverName" 
+                           placeholder="ناوی سێیانی شۆفێری دووەم بە کوردی" 
+                           dir="rtl" 
+                           lang="ckb" 
+                           class="w-full bg-slate-900/60 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 font-sans focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none">
                 </div>
 
                 <!-- 6. شۆفێری دووەم بە ئینگلیزی -->
                 <div x-show="isFullBookletForm()">
-                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">ناوى شۆفێر دووەم بە ئینگلیزی (ئارەزوومەندانە)</label>
-                    <input type="text" name="second_driver_name_eng" x-model="secondDriverNameEng" placeholder="Second Driver in English" dir="ltr" 
-                           class="w-full bg-slate-900/60 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-semibold text-slate-300">
+                            ناوى شۆفێر دووەم بە ئینگلیزی (ئارەزوومەندانە)
+                        </label>
+                        <span class="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded font-mono font-bold">
+                            CAPITAL (LTR)
+                        </span>
+                    </div>
+                    <input type="text" 
+                           name="second_driver_name_eng" 
+                           x-model="secondDriverNameEng" 
+                           @input="secondDriverNameEng = $event.target.value.toUpperCase()" 
+                           placeholder="SECOND DRIVER IN ENGLISH (CAPITAL)" 
+                           dir="ltr" 
+                           lang="en" 
+                           style="text-transform: uppercase;" 
+                           class="w-full bg-slate-900/60 border border-slate-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 uppercase font-mono tracking-wider focus:border-amber-400 focus:ring-1 focus:ring-amber-400 focus:outline-none">
                 </div>
 
-                <!-- 7. ژمارەی پاسپۆرت (تەنها لەگەڵ دەرهێنانی دەفتەر) -->
-                <div x-show="parseInt(typeId) === 1" x-cloak>
+                <!-- 7. ژمارەی پاسپۆرت -->
+                <div x-show="isFullBookletForm()" x-cloak>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center">
                         <i class="fa-solid fa-passport ml-1.5 text-amber-400"></i> ژمارەی پاسپۆرت (Passport No.)
                     </label>
-                    <input type="text" name="passport_number" x-model="passportNumber" placeholder="مثلاً: A12345678" dir="ltr" 
+                    <input type="text" 
+                           name="passport_number" 
+                           x-model="passportNumber" 
+                           @input="passportNumber = $event.target.value.toUpperCase()" 
+                           placeholder="مثلاً: A12345678" 
+                           dir="ltr" 
+                           style="text-transform: uppercase;" 
                            class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:outline-none uppercase">
                 </div>
 
-                <!-- 8. ناونیشان (تەنها لەگەڵ دەرهێنانی دەفتەر) -->
-                <div x-show="parseInt(typeId) === 1" x-cloak>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center">
-                        <i class="fa-solid fa-map-location-dot ml-1.5 text-sky-400"></i> ناونیشان (Address)
-                    </label>
-                    <input type="text" name="address" x-model="address" placeholder="ناونیشانی نیشتەجێبوون (شار، گەڕەک)..." 
-                           class="w-full bg-slate-900 border border-slate-700 focus:border-sky-400 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none">
-                </div>
-
-                <!-- 9. بەرواری دەرچوونی ناسنامە / پاسپۆرت (تەنها لەگەڵ دەرهێنانی دەفتەر) -->
-                <div x-show="parseInt(typeId) === 1" x-cloak>
+                <!-- 8. بەرواری دەرچوونی ناسنامە / پاسپۆرت -->
+                <div x-show="isFullBookletForm()" x-cloak>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center">
                         <i class="fa-solid fa-calendar-day ml-1.5 text-amber-400"></i> بەرواری دەرچوونی ناسنامە / پاسپۆرت
                     </label>
-                    <input type="date" name="passport_issue_date" x-model="passportIssueDate" 
+                    <input type="date" 
+                           name="passport_issue_date" 
+                           x-model="passportIssueDate" 
                            class="w-full bg-slate-900 border border-slate-700 focus:border-amber-400 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:outline-none">
                 </div>
 
-                <!-- 10. شوێنی دەرچوونی ناسنامە / پاسپۆرت (تەنها لەگەڵ دەرهێنانی دەفتەر) -->
-                <div x-show="parseInt(typeId) === 1" x-cloak>
+                <!-- 9. شوێنی دەرچوونی ناسنامە / پاسپۆرت -->
+                <div x-show="isFullBookletForm()" x-cloak>
                     <div class="flex items-center justify-between mb-1.5">
                         <label class="block text-xs font-semibold text-slate-300 flex items-center">
                             <i class="fa-solid fa-building-columns ml-1.5 text-sky-400"></i> شوێنی دەرچوون (Place of Issue)
@@ -333,6 +385,20 @@
                             <option value="{{ $place->name }}">{{ $place->name }}</option>
                         @endforeach
                     </select>
+                </div>
+
+                <!-- 10. ناونیشان (Address) -->
+                <div x-show="isFullBookletForm()" x-cloak>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center">
+                        <i class="fa-solid fa-map-location-dot ml-1.5 text-sky-400"></i> ناونیشان (Address)
+                    </label>
+                    <input type="text" 
+                           name="address" 
+                           x-model="address" 
+                           placeholder="ناونیشانی نیشتەجێبوون (شار، گەڕەک)..." 
+                           dir="rtl" 
+                           lang="ckb" 
+                           class="w-full bg-slate-900 border border-slate-700 focus:border-sky-400 rounded-xl px-3 py-2 text-sm text-slate-100 font-sans focus:outline-none">
                 </div>
             </div>
         </div>
@@ -568,11 +634,24 @@
             </div>
         </div>
 
-        <!-- Submit Button -->
-        <div class="flex items-center justify-end space-x-3 space-x-reverse">
-            <button type="submit" class="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl shadow-xl shadow-emerald-600/30 transition flex items-center">
-                <i class="fa-solid fa-check-circle ml-2 text-lg"></i> تۆمارکردنی مامەڵە و دەرهێنانی بارکۆد
-            </button>
+        <!-- Submit Button Section (Optimized for Mobile & Desktop) -->
+        <div class="pt-6 pb-36 sm:pb-16">
+            <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-sky-950 border-2 border-emerald-500/50 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="text-right w-full sm:w-auto">
+                    <span class="text-sm sm:text-base font-extrabold text-white flex items-center">
+                        <i class="fa-solid fa-circle-check text-emerald-400 ml-2"></i> هەموو زانیارییەکان تەواون؟
+                    </span>
+                    <span class="text-xs text-slate-400 block mt-1">
+                        دوای داگرتنی ئەم دوگمەیە، مامەڵەکە تۆمار دەکرێت و دەتوانیت بارکۆد و فیشەکەی چاپ بکەیت.
+                    </span>
+                </div>
+                
+                <button type="submit" 
+                        class="w-full sm:w-auto px-10 py-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm sm:text-base rounded-2xl shadow-xl shadow-emerald-600/40 transition active:scale-95 flex items-center justify-center gap-2 border border-emerald-400/50 cursor-pointer">
+                    <i class="fa-solid fa-check-circle text-xl"></i>
+                    <span>تۆمارکردنی مامەڵە و دەرهێنانی بارکۆد</span>
+                </button>
+            </div>
         </div>
     </form>
 

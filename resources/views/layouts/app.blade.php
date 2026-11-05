@@ -73,7 +73,7 @@
         
         /* Mobile Safe Area Padding */
         .safe-pb {
-            padding-bottom: calc(5.2rem + env(safe-area-inset-bottom, 0px));
+            padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px));
         }
         .safe-bottom-bar {
             padding-bottom: max(0.4rem, env(safe-area-inset-bottom, 0px));
