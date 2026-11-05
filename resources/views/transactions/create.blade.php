@@ -1,7 +1,21 @@
 @extends('layouts.app')
 
 @section('content')
-<div x-data="transactionForm({{ \Illuminate\Support\Js::from($fromTransaction) }}, {{ $targetTypeId ? (int)$targetTypeId : 'null' }})" class="max-w-5xl mx-auto space-y-6">
+@php
+    $txRates = $transactionTypes->mapWithKeys(function($t) {
+        return [$t->id => [
+            'pay_1_year' => (float)$t->pay_1_year,
+            'pay_2_year' => (float)$t->pay_2_year,
+            'pay_3_year' => (float)$t->pay_3_year,
+            'stamp_pay' => (float)$t->stamp_pay,
+            'form_pay' => (float)$t->form_pay,
+            'fine_pay' => (float)$t->fine_pay,
+            'inspection_pay' => (float)$t->inspection_pay,
+            'bus_inspection_pay' => (float)$t->bus_inspection_pay,
+        ]];
+    });
+@endphp
+<div x-data="transactionForm({{ \Illuminate\Support\Js::from($fromTransaction) }}, {{ $targetTypeId ? (int)$targetTypeId : 'null' }}, {{ \Illuminate\Support\Js::from($txRates) }})" class="max-w-5xl mx-auto space-y-6">
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
@@ -139,7 +153,7 @@
     </div>
 
     <!-- Main Form -->
-    <form action="{{ route('transactions.store') }}" method="POST" class="space-y-6">
+    <form action="/transactions" method="POST" class="space-y-6">
         @csrf
         <input type="hidden" name="parent_transaction_id" :value="parentTransactionId">
 
@@ -931,10 +945,11 @@
 </div>
 
 <script>
-    function transactionForm(initialTx = null, targetTypeId = null) {
+    function transactionForm(initialTx = null, targetTypeId = null, txRates = {}) {
         let initialTypeId = targetTypeId ? parseInt(targetTypeId) : (initialTx ? 2 : 1);
         return {
             typeId: initialTypeId,
+            txTypeRates: txRates || {},
             parentTransactionId: initialTx ? initialTx.id : '',
             parentTransactionSummary: initialTx ? ((initialTx.visitor_name || '') + ' | ' + (initialTx.plate_number || '') + (initialTx.booklet_number ? ' | دەفتەر: ' + initialTx.booklet_number : '') + (initialTx.barcode ? ' | بارکۆد: ' + initialTx.barcode : '')) : '',
             
@@ -992,7 +1007,7 @@
                     return;
                 }
                 this.isSearching = true;
-                fetch(`{{ route('transactions.lookup_previous_api') }}?query=${encodeURIComponent(this.searchQuery.trim())}`)
+                fetch(`/transactions/api/lookup-previous?query=${encodeURIComponent(this.searchQuery.trim())}`)
                     .then(res => res.json())
                     .then(data => {
                         this.searchResults = data;
@@ -1058,7 +1073,7 @@
                 }
 
                 this.isCheckingChassis = true;
-                fetch(`{{ route('transactions.lookup_previous_api') }}?chassis_number=${encodeURIComponent(clean)}`)
+                fetch(`/transactions/api/lookup-previous?chassis_number=${encodeURIComponent(clean)}`)
                     .then(res => res.json())
                     .then(data => {
                         this.isCheckingChassis = false;
@@ -1158,6 +1173,9 @@
             },
 
             updateDates() {
+                if ([5, 6, 8].includes(parseInt(this.typeId))) {
+                    return;
+                }
                 if (!this.startDate) {
                     const today = new Date();
                     this.startDate = today.toISOString().split('T')[0];
@@ -1173,13 +1191,74 @@
             },
 
             calculateFees() {
-                fetch(`{{ route('transactions.calculate_api') }}?transaction_type_id=${this.typeId}&num_years=${this.numYears}&plate_type_id=${this.plateTypeId}&start_date=${this.startDate}&end_date=${this.endDate}`)
+                const typeId = parseInt(this.typeId || 1);
+                const years = Math.min(Math.max(parseInt(this.numYears || 1), 1), 10);
+                const isBus = (parseInt(this.plateTypeId) === 4);
+
+                let payYears = 0;
+                let stamp = 3000;
+                let form = 4000;
+                let fine = 0;
+                let inspection = 0;
+
+                const r = (this.txTypeRates && this.txTypeRates[typeId]) ? this.txTypeRates[typeId] : null;
+
+                if (typeId === 6) { // بەڵێننامە
+                    payYears = 0;
+                    stamp = r ? parseFloat(r.stamp_pay) : 3000;
+                    form = r ? parseFloat(r.form_pay) : 3000;
+                    fine = 0;
+                    inspection = 0;
+                } else if (r) {
+                    stamp = parseFloat(r.stamp_pay);
+                    form = parseFloat(r.form_pay);
+                    fine = parseFloat(r.fine_pay);
+                    inspection = isBus ? parseFloat(r.bus_inspection_pay) : parseFloat(r.inspection_pay);
+
+                    if (typeId === 1 || typeId === 2) {
+                        if (years === 1) payYears = parseFloat(r.pay_1_year);
+                        else if (years === 2) payYears = parseFloat(r.pay_2_year);
+                        else if (years === 3) payYears = parseFloat(r.pay_3_year);
+                        else payYears = parseFloat(r.pay_1_year) * years;
+                    } else {
+                        payYears = 0;
+                    }
+                } else {
+                    if (typeId === 1 || typeId === 2) {
+                        if (years === 1) payYears = 80000;
+                        else if (years === 2) payYears = 120000;
+                        else if (years === 3) payYears = 140000;
+                        else payYears = 80000 * years;
+                        inspection = isBus ? 27000 : 20000;
+                    } else if (typeId === 3 || typeId === 4) {
+                        fine = 25000;
+                    } else if (typeId === 7) {
+                        fine = 50000;
+                    } else if (typeId === 5 || typeId === 8) {
+                        inspection = 20000;
+                    }
+                }
+
+                // Instant UI update (0ms response)
+                this.fees.pay_amount_years = payYears;
+                this.fees.pay_stamp = stamp;
+                this.fees.pay_form = form;
+                this.fees.pay_fine = fine;
+                this.fees.pay_inspection = inspection;
+                this.fees.total_pay = payYears + stamp + form + fine + inspection;
+
+                this.updateDates();
+
+                fetch(`/transactions/api/calculate-fee?transaction_type_id=${typeId}&num_years=${years}&plate_type_id=${this.plateTypeId}&start_date=${this.startDate}&end_date=${this.endDate}`)
                     .then(res => res.json())
                     .then(data => {
-                        this.fees = data;
-                        if (data.start_date) this.startDate = data.start_date;
-                        if (data.end_date) this.endDate = data.end_date;
-                    });
+                        if (data && typeof data.total_pay !== 'undefined') {
+                            this.fees = data;
+                            if (data.start_date) this.startDate = data.start_date;
+                            if (data.end_date) this.endDate = data.end_date;
+                        }
+                    })
+                    .catch(() => {});
             },
 
             // Helper for handling fetch response with duplicate checking
@@ -1301,7 +1380,7 @@
             // Inline Additions
             addCarMake() {
                 if (!this.newMakeKurdish) return;
-                fetch('{{ route("lookup.car_make") }}', {
+                fetch('/lookup/car-make', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ name_kurdish: this.newMakeKurdish, name_english: this.newMakeEnglish })
@@ -1328,7 +1407,7 @@
 
             addCarColor() {
                 if (!this.newColorKurdish) return;
-                fetch('{{ route("lookup.car_color") }}', {
+                fetch('/lookup/car-color', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ name_kurdish: this.newColorKurdish, name_english: this.newColorEnglish })
@@ -1354,7 +1433,7 @@
 
             addDirectorate() {
                 if (!this.newDirectorateName) return;
-                fetch('{{ route("lookup.directorate") }}', {
+                fetch('/lookup/directorate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ name_kurdish: this.newDirectorateName })
@@ -1377,7 +1456,7 @@
 
             addDirector() {
                 if (!this.newDirectorName) return;
-                fetch('{{ route("lookup.director") }}', {
+                fetch('/lookup/director', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ name: this.newDirectorName })
@@ -1400,7 +1479,7 @@
 
             addPlateType() {
                 if (!this.newPlateTypeName) return;
-                fetch('{{ route("lookup.plate_type") }}', {
+                fetch('/lookup/plate-type', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ name_kurdish: this.newPlateTypeName })
@@ -1424,7 +1503,7 @@
 
             addTransactionType() {
                 if (!this.newTxTypeName) return;
-                fetch('{{ route("lookup.transaction_type") }}', {
+                fetch('/lookup/transaction-type', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ name_kurdish: this.newTxTypeName })
@@ -1510,7 +1589,7 @@
             addPassportPlace() {
                 if (!this.newPassportPlaceName.trim()) return;
                 const nameToAdd = this.newPassportPlaceName.trim();
-                fetch('{{ route("lookup.passport_issue_place") }}', {
+                fetch('/lookup/passport-issue-place', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ name: nameToAdd })
