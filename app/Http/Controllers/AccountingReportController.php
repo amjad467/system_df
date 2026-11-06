@@ -120,64 +120,80 @@ class AccountingReportController extends Controller
                   ->orWhere('is_paid', true);
             });
 
-        // Date Presets & Custom Filters
+        // 1. Helper function to normalize Eastern Arabic / Persian / Kurdish numerals to ASCII 0-9
+        $normalizeNum = function ($val) {
+            if ($val === null || $val === '') return '';
+            $eastern = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩', '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+            $western = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            return str_replace($eastern, $western, (string)$val);
+        };
+
+        // 2. Date Filtering Logic
         $preset = $request->get('preset', '');
         $dateFrom = $request->get('date_from');
         $dateTo = $request->get('date_to');
-        $exactDate = $request->get('exact_date');
-        $filterMonth = $request->get('filter_month');
-        $filterYear = $request->get('filter_year');
+        $dateType = $request->get('date_type', 'any'); // 'any', 'paid_at', 'transaction_date'
+
+        // Quick presets calculate exact start/end dates if not manually overridden
+        if ($preset && empty($dateFrom) && empty($dateTo)) {
+            if ($preset === 'today') {
+                $dateFrom = Carbon::today()->toDateString();
+                $dateTo = Carbon::today()->toDateString();
+            } elseif ($preset === 'yesterday') {
+                $dateFrom = Carbon::yesterday()->toDateString();
+                $dateTo = Carbon::yesterday()->toDateString();
+            } elseif ($preset === 'this_week') {
+                $dateFrom = Carbon::now()->startOfWeek()->toDateString();
+                $dateTo = Carbon::now()->endOfWeek()->toDateString();
+            } elseif ($preset === 'this_month') {
+                $dateFrom = Carbon::now()->startOfMonth()->toDateString();
+                $dateTo = Carbon::now()->endOfMonth()->toDateString();
+            } elseif ($preset === 'last_month') {
+                $lastM = Carbon::now()->subMonth();
+                $dateFrom = $lastM->startOfMonth()->toDateString();
+                $dateTo = $lastM->endOfMonth()->toDateString();
+            } elseif ($preset === 'this_year') {
+                $dateFrom = Carbon::now()->startOfYear()->toDateString();
+                $dateTo = Carbon::now()->endOfYear()->toDateString();
+            } elseif ($preset === 'last_year') {
+                $lastY = Carbon::now()->subYear();
+                $dateFrom = $lastY->startOfYear()->toDateString();
+                $dateTo = $lastY->endOfYear()->toDateString();
+            }
+        }
+
+        // Auto-swap dates if from > to
+        if (!empty($dateFrom) && !empty($dateTo) && $dateFrom > $dateTo) {
+            $tmp = $dateFrom;
+            $dateFrom = $dateTo;
+            $dateTo = $tmp;
+        }
 
         $activePreset = $preset;
+        if (!empty($dateFrom) || !empty($dateTo)) {
+            $startDate = $dateFrom ?: '2000-01-01';
+            $endDate = $dateTo ?: '2099-12-31';
 
-        if ($preset === 'today') {
-            $today = Carbon::today()->toDateString();
-            $query->whereDate(DB::raw('COALESCE(paid_at, transaction_date)'), $today);
-        } elseif ($preset === 'yesterday') {
-            $yesterday = Carbon::yesterday()->toDateString();
-            $query->whereDate(DB::raw('COALESCE(paid_at, transaction_date)'), $yesterday);
-        } elseif ($preset === 'this_week') {
-            $startOfWeek = Carbon::now()->startOfWeek()->toDateString();
-            $endOfWeek = Carbon::now()->endOfWeek()->toDateString();
-            $query->whereBetween(DB::raw('COALESCE(paid_at, transaction_date)'), [$startOfWeek, $endOfWeek]);
-        } elseif ($preset === 'this_month') {
-            $query->whereYear(DB::raw('COALESCE(paid_at, transaction_date)'), Carbon::now()->year)
-                  ->whereMonth(DB::raw('COALESCE(paid_at, transaction_date)'), Carbon::now()->month);
-        } elseif ($preset === 'last_month') {
-            $lastMonth = Carbon::now()->subMonth();
-            $query->whereYear(DB::raw('COALESCE(paid_at, transaction_date)'), $lastMonth->year)
-                  ->whereMonth(DB::raw('COALESCE(paid_at, transaction_date)'), $lastMonth->month);
-        } elseif ($preset === 'this_year') {
-            $query->whereYear(DB::raw('COALESCE(paid_at, transaction_date)'), Carbon::now()->year);
-        } elseif ($preset === 'last_year') {
-            $query->whereYear(DB::raw('COALESCE(paid_at, transaction_date)'), Carbon::now()->subYear()->year);
-        } elseif ($exactDate) {
-            $activePreset = 'exact';
-            $query->whereDate(DB::raw('COALESCE(paid_at, transaction_date)'), $exactDate);
-        } elseif ($filterMonth || $filterYear) {
-            $activePreset = 'month_year';
-            if ($filterYear) {
-                $query->whereYear(DB::raw('COALESCE(paid_at, transaction_date)'), $filterYear);
-            }
-            if ($filterMonth) {
-                $query->whereMonth(DB::raw('COALESCE(paid_at, transaction_date)'), $filterMonth);
-            }
-        } elseif ($dateFrom || $dateTo) {
-            $activePreset = 'custom';
-            if ($dateFrom) {
-                $query->whereDate(DB::raw('COALESCE(paid_at, transaction_date)'), '>=', $dateFrom);
-            }
-            if ($dateTo) {
-                $query->whereDate(DB::raw('COALESCE(paid_at, transaction_date)'), '<=', $dateTo);
+            if ($dateType === 'paid_at') {
+                $query->where(function($q) use ($startDate, $endDate) {
+                    $q->whereBetween('paid_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                      ->orWhere(function($sub) use ($startDate, $endDate) {
+                          $sub->whereNull('paid_at')
+                              ->whereBetween('transaction_date', [$startDate, $endDate]);
+                      });
+                });
+            } elseif ($dateType === 'transaction_date') {
+                $query->whereBetween('transaction_date', [$startDate, $endDate]);
+            } else {
+                // 'any' (Default): Matches if either transaction_date OR paid_at is in range
+                $query->where(function($q) use ($startDate, $endDate) {
+                    $q->whereBetween('transaction_date', [$startDate, $endDate])
+                      ->orWhereBetween('paid_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+                });
             }
         }
 
-        // Transaction Type Filter
-        if ($request->filled('transaction_type_id')) {
-            $query->where('transaction_type_id', $request->transaction_type_id);
-        }
-
-        // Status Filter: all, paid, cancelled
+        // 3. Status Filter: all, paid, cancelled
         $status = $request->get('status', 'all');
         if ($status === 'paid') {
             $query->where(function($q) {
@@ -193,21 +209,49 @@ class AccountingReportController extends Controller
             });
         }
 
-        // General search term (name, plate, receipt, barcode)
+        // 4. Transaction Type Filter
+        if ($request->filled('transaction_type_id')) {
+            $query->where('transaction_type_id', $request->transaction_type_id);
+        }
+
+        // 5. General Search Term (Name, Plate, Receipt, Barcode, Chassis)
         if ($request->filled('search')) {
-            $term = trim($request->search);
-            $query->where(function ($q) use ($term) {
-                $q->where('visitor_name', 'like', "%{$term}%")
-                  ->orWhere('visitor_name_eng', 'like', "%{$term}%")
-                  ->orWhere('receipt_37a_number', 'like', "%{$term}%")
-                  ->orWhere('plate_number', 'like', "%{$term}%")
-                  ->orWhere('barcode', 'like', "%{$term}%");
+            $rawTerm = trim($request->search);
+            $normTerm = trim($normalizeNum($rawTerm));
+            $query->where(function ($q) use ($rawTerm, $normTerm) {
+                $q->where('visitor_name', 'like', "%{$rawTerm}%")
+                  ->orWhere('visitor_name_eng', 'like', "%{$rawTerm}%")
+                  ->orWhere('receipt_37a_number', 'like', "%{$normTerm}%")
+                  ->orWhere('plate_number', 'like', "%{$rawTerm}%")
+                  ->orWhere('plate_number', 'like', "%{$normTerm}%")
+                  ->orWhere('barcode', 'like', "%{$normTerm}%")
+                  ->orWhere('chassis_number', 'like', "%{$normTerm}%");
             });
         }
 
-        // Order by date & ID ascending for sequential audit listing
-        $query->orderBy(DB::raw('COALESCE(paid_at, transaction_date)'), 'asc')
-              ->orderBy('id', 'asc');
+        // 6. Number Range Extraction (Supports both Eastern and Western Digits)
+        $numberType = $request->get('number_type', 'auto'); // 'auto', 'receipt', 'sequence'
+        $numFromRaw = $request->get('num_from', $request->get('receipt_from'));
+        $numToRaw = $request->get('num_to', $request->get('receipt_to'));
+
+        $numFrom = null;
+        $numTo = null;
+
+        if ($numFromRaw !== null && $numFromRaw !== '') {
+            $d = preg_replace('/\D/', '', $normalizeNum($numFromRaw));
+            if ($d !== '') $numFrom = (int)$d;
+        }
+        if ($numToRaw !== null && $numToRaw !== '') {
+            $d = preg_replace('/\D/', '', $normalizeNum($numToRaw));
+            if ($d !== '') $numTo = (int)$d;
+        }
+
+        // Auto-swap min and max if entered in reverse
+        if ($numFrom !== null && $numTo !== null && $numFrom > $numTo) {
+            $temp = $numFrom;
+            $numFrom = $numTo;
+            $numTo = $temp;
+        }
 
         $rawCollection = $query->get();
 
@@ -215,31 +259,47 @@ class AccountingReportController extends Controller
         $rawCollection->each(function ($tx) {
             $dateObj = $tx->paid_at ?? $tx->transaction_date ?? $tx->created_at;
             $tx->display_date = $dateObj ? Carbon::parse($dateObj)->toDateString() : '';
-            // Extract numeric value from receipt for filtering and range
-            $digits = preg_replace('/\D/', '', (string)$tx->receipt_37a_number);
+            
+            $eastern = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩', '۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+            $western = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            $cleanReceipt = str_replace($eastern, $western, (string)$tx->receipt_37a_number);
+            $digits = preg_replace('/\D/', '', $cleanReceipt);
             $tx->receipt_num_numeric = $digits !== '' ? (int)$digits : null;
         });
 
-        // Filter by Receipt Range if provided (receipt_from / receipt_to)
-        $receiptFrom = $request->get('receipt_from');
-        $receiptTo = $request->get('receipt_to');
+        // Apply Number Range Filter
+        if ($numFrom !== null || $numTo !== null) {
+            $minNum = $numFrom ?? 0;
+            $maxNum = $numTo ?? PHP_INT_MAX;
 
-        if ($receiptFrom !== null && $receiptFrom !== '') {
-            $fromVal = (int)preg_replace('/\D/', '', $receiptFrom);
-            if ($fromVal > 0) {
-                $rawCollection = $rawCollection->filter(function ($tx) use ($fromVal) {
-                    return $tx->receipt_num_numeric !== null && $tx->receipt_num_numeric >= $fromVal;
-                });
-            }
+            $rawCollection = $rawCollection->filter(function ($tx) use ($minNum, $maxNum, $numberType) {
+                $receiptMatch = false;
+                if ($tx->receipt_num_numeric !== null) {
+                    $receiptMatch = ($tx->receipt_num_numeric >= $minNum && $tx->receipt_num_numeric <= $maxNum);
+                }
+                $seqMatch = ($tx->id >= $minNum && $tx->id <= $maxNum);
+
+                if ($numberType === 'receipt') {
+                    return $receiptMatch;
+                } elseif ($numberType === 'sequence') {
+                    return $seqMatch;
+                } else { // 'auto'
+                    return ($tx->receipt_num_numeric !== null) ? $receiptMatch : $seqMatch;
+                }
+            });
         }
 
-        if ($receiptTo !== null && $receiptTo !== '') {
-            $toVal = (int)preg_replace('/\D/', '', $receiptTo);
-            if ($toVal > 0) {
-                $rawCollection = $rawCollection->filter(function ($tx) use ($toVal) {
-                    return $tx->receipt_num_numeric !== null && $tx->receipt_num_numeric <= $toVal;
-                });
-            }
+        // Sort items sequentially
+        if ($numberType === 'receipt' || ($numFrom !== null && $numberType !== 'sequence')) {
+            $rawCollection = $rawCollection->sortBy([
+                ['receipt_num_numeric', 'asc'],
+                ['id', 'asc'],
+            ]);
+        } else {
+            $rawCollection = $rawCollection->sortBy([
+                ['display_date', 'asc'],
+                ['id', 'asc'],
+            ]);
         }
 
         $transactions = $rawCollection->values();
@@ -270,23 +330,25 @@ class AccountingReportController extends Controller
         }
 
         $totalDahat = $totalRasm + $totalPul + $totalForm;
-        $totalAmanat = $totalInspection; // In accounting 66 format: امانات is aligned with inspection/service fee
+        $totalAmanat = $totalInspection;
 
-        // Fallback grand total logic if fees sum differs
         if ($grandTotal == 0 && ($totalDahat > 0 || $totalInspection > 0)) {
             $grandTotal = $totalDahat + $totalInspection + $totalAmanat;
         }
 
         $grandTotalWords = KurdishNumberToWords::convert($grandTotal);
 
-        // Detect default receipt range if not manually filtered
+        // Detect default display range for print header
+        $receiptFrom = $numFrom;
+        $receiptTo = $numTo;
+
         if (empty($receiptFrom) && $transactions->isNotEmpty()) {
-            $firstNum = $transactions->firstWhere('receipt_num_numeric', '!=', null);
-            $receiptFrom = $firstNum ? $firstNum->receipt_num_numeric : 1;
+            $firstWithNum = $transactions->firstWhere('receipt_num_numeric', '!=', null);
+            $receiptFrom = $firstWithNum ? $firstWithNum->receipt_num_numeric : $transactions->first()->id;
         }
         if (empty($receiptTo) && $transactions->isNotEmpty()) {
-            $lastNum = $transactions->last(fn($t) => $t->receipt_num_numeric !== null);
-            $receiptTo = $lastNum ? $lastNum->receipt_num_numeric : $totalReceiptsCount;
+            $lastWithNum = $transactions->last(fn($t) => $t->receipt_num_numeric !== null);
+            $receiptTo = $lastWithNum ? $lastWithNum->receipt_num_numeric : $transactions->last()->id;
         }
 
         return [
@@ -304,12 +366,13 @@ class AccountingReportController extends Controller
             'grandTotalWords' => $grandTotalWords,
             'receiptFrom' => $receiptFrom,
             'receiptTo' => $receiptTo,
+            'numFrom' => $numFromRaw,
+            'numTo' => $numToRaw,
+            'numberType' => $numberType,
             'activePreset' => $activePreset,
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
-            'exactDate' => $exactDate,
-            'filterMonth' => $filterMonth,
-            'filterYear' => $filterYear,
+            'dateType' => $dateType,
             'status' => $status,
             'search' => $request->get('search', ''),
             'transactionTypeId' => $request->get('transaction_type_id', ''),

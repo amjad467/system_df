@@ -88,44 +88,43 @@
     <!-- Advanced Filter & Search Box -->
     <div class="bg-slate-800/80 border border-slate-700/80 p-5 rounded-2xl shadow-xl backdrop-blur">
         <form action="{{ route('reports.accounting_66') }}" method="GET" class="space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-                <!-- Search Term -->
-                <div class="lg:col-span-2">
-                    <label class="block text-xs font-bold text-slate-300 mb-1">گەڕان (ناو، تابلۆ، ژ. وەسڵ):</label>
+            
+            <!-- Row 1: General Search, Status & Transaction Type -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                <!-- Search Term (Name, Plate, Barcode, Chassis) -->
+                <div class="md:col-span-6">
+                    <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-magnifying-glass text-amber-400"></i>
+                        <span>گەڕانی گشتی (ناو، ژمارەی تابلۆ، بارکۆد، شاسی):</span>
+                    </label>
                     <div class="relative">
-                        <input type="text" name="search" value="{{ $search }}" placeholder="ناوی هاووڵاتی، تابلۆ یان بارکۆد..."
-                               class="w-full bg-slate-900 text-sm text-slate-200 placeholder-slate-500 rounded-xl border border-slate-700 pr-9 pl-3 py-2 focus:outline-none focus:border-amber-500">
-                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-2.5 text-slate-500 text-sm"></i>
+                        <input type="text" name="search" value="{{ $search }}" placeholder="ناوی هاووڵاتی، ژمارەی تابلۆ، یان بارکۆد..."
+                               class="w-full bg-slate-900 text-sm text-slate-100 placeholder-slate-500 rounded-xl border border-slate-700 pr-9 pl-3 py-2.5 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+                        <i class="fa-solid fa-search absolute right-3 top-3 text-slate-500 text-sm"></i>
                     </div>
                 </div>
 
-                <!-- Receipt Number Range: لە [ ] بۆ [ ] -->
-                <div>
-                    <label class="block text-xs font-bold text-amber-300 mb-1">لە ژمارە پسولەی:</label>
-                    <input type="text" name="receipt_from" value="{{ request('receipt_from', $receiptFrom) }}" placeholder="1"
-                           class="w-full bg-slate-900 text-sm text-amber-300 font-mono text-center font-bold rounded-xl border border-amber-500/40 py-2 focus:outline-none focus:border-amber-400">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-amber-300 mb-1">بۆ ژمارە پسولەی:</label>
-                    <input type="text" name="receipt_to" value="{{ request('receipt_to', $receiptTo) }}" placeholder="50"
-                           class="w-full bg-slate-900 text-sm text-amber-300 font-mono text-center font-bold rounded-xl border border-amber-500/40 py-2 focus:outline-none focus:border-amber-400">
-                </div>
-
                 <!-- Status Filter -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">دۆخی پسولە:</label>
-                    <select name="status" class="w-full bg-slate-900 text-sm text-slate-200 rounded-xl border border-slate-700 py-2 px-3 focus:outline-none focus:border-amber-500">
-                        <option value="all" {{ $status === 'all' ? 'selected' : '' }}>هەموو پسولەکان</option>
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                        <span>دۆخی پسولە:</span>
+                    </label>
+                    <select name="status" class="w-full bg-slate-900 text-sm text-slate-200 rounded-xl border border-slate-700 py-2.5 px-3 focus:outline-none focus:border-amber-500 font-semibold">
+                        <option value="all" {{ $status === 'all' ? 'selected' : '' }}>هەموو پسولەکان (گشتی)</option>
                         <option value="paid" {{ $status === 'paid' ? 'selected' : '' }}>تەنها پارەدراوەکان</option>
                         <option value="cancelled" {{ $status === 'cancelled' ? 'selected' : '' }}>تەنها پووچەڵکراوەکان</option>
                     </select>
                 </div>
 
                 <!-- Transaction Type -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">جۆری مامەڵە:</label>
-                    <select name="transaction_type_id" class="w-full bg-slate-900 text-sm text-slate-200 rounded-xl border border-slate-700 py-2 px-3 focus:outline-none focus:border-amber-500">
-                        <option value="">هەموو جۆرەکان</option>
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-folder-tree text-sky-400"></i>
+                        <span>جۆری مامەڵە:</span>
+                    </label>
+                    <select name="transaction_type_id" class="w-full bg-slate-900 text-sm text-slate-200 rounded-xl border border-slate-700 py-2.5 px-3 focus:outline-none focus:border-amber-500 font-semibold">
+                        <option value="">هەموو جۆرەکانی مامەڵە</option>
                         @foreach($transactionTypes as $tt)
                             <option value="{{ $tt->id }}" {{ $transactionTypeId == $tt->id ? 'selected' : '' }}>
                                 {{ $tt->name_kurdish }}
@@ -135,34 +134,97 @@
                 </div>
             </div>
 
-            <!-- Date Granular Filters -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-slate-700/60">
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">لە بەرواری (From Date):</label>
-                    <input type="date" name="date_from" value="{{ $dateFrom }}"
-                           class="w-full bg-slate-900 text-sm text-slate-200 rounded-xl border border-slate-700 py-2 px-3 focus:outline-none focus:border-amber-500">
+            <!-- Row 2: Search Between Two Numbers (گەڕان لە نێوان دوو ژمارە) -->
+            <div class="p-3.5 bg-slate-900/60 border border-amber-500/30 rounded-xl space-y-2">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <span class="text-xs font-black text-amber-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrow-down-1-9 text-amber-400"></i>
+                        <span>گەڕان لە نێوان دوو ژمارە (لە ژمارەی ... بۆ ژمارەی ...):</span>
+                    </span>
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="text-slate-400 font-semibold">گەڕان بەپێی:</span>
+                        <label class="inline-flex items-center gap-1 text-slate-200 cursor-pointer text-xs">
+                            <input type="radio" name="number_type" value="auto" {{ ($numberType ?? 'auto') === 'auto' ? 'checked' : '' }} class="accent-amber-500">
+                            <span>خۆکار (پسوولە یان زنجیرە)</span>
+                        </label>
+                        <label class="inline-flex items-center gap-1 text-slate-200 cursor-pointer text-xs">
+                            <input type="radio" name="number_type" value="receipt" {{ ($numberType ?? '') === 'receipt' ? 'checked' : '' }} class="accent-amber-500">
+                            <span>تەنها ژمارەی پسوولەی ٣٧-ئـ</span>
+                        </label>
+                        <label class="inline-flex items-center gap-1 text-slate-200 cursor-pointer text-xs">
+                            <input type="radio" name="number_type" value="sequence" {{ ($numberType ?? '') === 'sequence' ? 'checked' : '' }} class="accent-amber-500">
+                            <span>تەنها زنجیرەی مامەڵە (ID)</span>
+                        </label>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">بۆ بەرواری (To Date):</label>
-                    <input type="date" name="date_to" value="{{ $dateTo }}"
-                           class="w-full bg-slate-900 text-sm text-slate-200 rounded-xl border border-slate-700 py-2 px-3 focus:outline-none focus:border-amber-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">یان یەکسان بە بەرواری:</label>
-                    <input type="date" name="exact_date" value="{{ $exactDate }}"
-                           class="w-full bg-slate-900 text-sm text-slate-200 rounded-xl border border-slate-700 py-2 px-3 focus:outline-none focus:border-amber-500">
-                </div>
-                <div class="flex items-end gap-2">
-                    <button type="submit"
-                            class="flex-1 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-sm shadow-md shadow-amber-600/30 flex items-center justify-center gap-2 transition">
-                        <i class="fa-solid fa-filter"></i> فلتەر بکە
-                    </button>
-                    <a href="{{ route('reports.accounting_66') }}"
-                       class="py-2 px-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold text-sm transition">
-                        پاقژکردنەوە
-                    </a>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-1">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-300 mb-1">لە ژمارەی (From Number):</label>
+                        <input type="text" name="receipt_from" value="{{ request('receipt_from', request('num_from', $numFrom ?? '')) }}" placeholder="مثلاً: 1 یان 85501" dir="ltr"
+                               class="w-full bg-slate-900 text-sm text-amber-300 font-mono text-center font-black rounded-xl border border-amber-500/50 py-2 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-300 mb-1">بۆ ژمارەی (To Number):</label>
+                        <input type="text" name="receipt_to" value="{{ request('receipt_to', request('num_to', $numTo ?? '')) }}" placeholder="مثلاً: 50 یان 85550" dir="ltr"
+                               class="w-full bg-slate-900 text-sm text-amber-300 font-mono text-center font-black rounded-xl border border-amber-500/50 py-2 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400">
+                    </div>
+                    <div class="sm:col-span-2 flex items-center text-xs text-slate-400 pt-5">
+                        <i class="fa-solid fa-circle-info text-amber-400/80 ml-1.5"></i>
+                        <span>دەتوانیت ژمارەی ئاسایی (1, 50) یان ژمارەی کوردی/عەرەبی (١، ٥٠) بنووسیت؛ سیستەمەکە خۆکارانە گۆڕین و ڕێکخستنی بۆ دەکات.</span>
+                    </div>
                 </div>
             </div>
+
+            <!-- Row 3: Search Between Two Dates (گەڕان لە نێوان دوو بەروار) -->
+            <div class="p-3.5 bg-slate-900/60 border border-sky-500/30 rounded-xl space-y-2">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <span class="text-xs font-black text-sky-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-calendar-days text-sky-400"></i>
+                        <span>گەڕان لە نێوان دوو بەروار (لە بەرواری ... بۆ بەرواری ...):</span>
+                    </span>
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="text-slate-400 font-semibold">پێوەر:</span>
+                        <label class="inline-flex items-center gap-1 text-slate-200 cursor-pointer text-xs">
+                            <input type="radio" name="date_type" value="any" {{ ($dateType ?? 'any') === 'any' ? 'checked' : '' }} class="accent-sky-500">
+                            <span>هەر کامیان بێت (وەسڵ یان مامەڵە)</span>
+                        </label>
+                        <label class="inline-flex items-center gap-1 text-slate-200 cursor-pointer text-xs">
+                            <input type="radio" name="date_type" value="paid_at" {{ ($dateType ?? '') === 'paid_at' ? 'checked' : '' }} class="accent-sky-500">
+                            <span>تەنها بەرواری وەسڵ / پارەدان</span>
+                        </label>
+                        <label class="inline-flex items-center gap-1 text-slate-200 cursor-pointer text-xs">
+                            <input type="radio" name="date_type" value="transaction_date" {{ ($dateType ?? '') === 'transaction_date' ? 'checked' : '' }} class="accent-sky-500">
+                            <span>تەنها بەرواری تۆماری مامەڵە</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3 pt-1">
+                    <div class="md:col-span-4">
+                        <label class="block text-[11px] font-bold text-slate-300 mb-1">لە بەرواری (From Date):</label>
+                        <input type="date" name="date_from" value="{{ $dateFrom }}"
+                               class="w-full bg-slate-900 text-sm text-sky-200 font-mono rounded-xl border border-sky-500/40 py-2 px-3 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400">
+                    </div>
+                    <div class="md:col-span-4">
+                        <label class="block text-[11px] font-bold text-slate-300 mb-1">بۆ بەرواری (To Date):</label>
+                        <input type="date" name="date_to" value="{{ $dateTo }}"
+                               class="w-full bg-slate-900 text-sm text-sky-200 font-mono rounded-xl border border-sky-500/40 py-2 px-3 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400">
+                    </div>
+                    <div class="md:col-span-4 flex items-end gap-2 pt-2 md:pt-0">
+                        <button type="submit"
+                                class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-extrabold text-sm shadow-lg shadow-amber-600/30 flex items-center justify-center gap-2 transition hover:scale-102 active:scale-98">
+                            <i class="fa-solid fa-filter"></i> فلتەر و دەرهێنان
+                        </button>
+                        <a href="{{ route('reports.accounting_66') }}"
+                           class="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold text-xs border border-slate-700 transition flex items-center justify-center"
+                           title="پاقژکردنەوەی هەموو مەرجەکان">
+                            <i class="fa-solid fa-rotate-left ml-1"></i> پاقژکردنەوە
+                        </a>
+                    </div>
+                </div>
+            </div>
+
         </form>
     </div>
 
@@ -246,8 +308,8 @@
                 </span>
             </div>
             <div class="text-xs text-slate-400 flex items-center gap-3">
-                <span>لە وەسڵی: <strong class="text-amber-300 font-mono">{{ $receiptFrom ?? '-' }}</strong></span>
-                <span>بۆ وەسڵی: <strong class="text-amber-300 font-mono">{{ $receiptTo ?? '-' }}</strong></span>
+                <span>{{ ($numberType ?? '') === 'sequence' ? 'لە زنجیرەی:' : 'لە ژمارەی:' }} <strong class="text-amber-300 font-mono">{{ $receiptFrom ?? '-' }}</strong></span>
+                <span>{{ ($numberType ?? '') === 'sequence' ? 'بۆ زنجیرەی:' : 'بۆ ژمارەی:' }} <strong class="text-amber-300 font-mono">{{ $receiptTo ?? '-' }}</strong></span>
             </div>
         </div>
 
