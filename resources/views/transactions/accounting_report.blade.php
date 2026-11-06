@@ -308,6 +308,10 @@
                 </span>
             </div>
             <div class="text-xs text-slate-400 flex items-center gap-3">
+                <span class="text-amber-400 font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-receipt text-amber-400"></i>
+                    <span>ژمارەی پسوولەکان:</span>
+                </span>
                 <span>{{ ($numberType ?? '') === 'sequence' ? 'لە زنجیرەی:' : 'لە ژمارەی:' }} <strong class="text-amber-300 font-mono">{{ $receiptFrom ?? '-' }}</strong></span>
                 <span>{{ ($numberType ?? '') === 'sequence' ? 'بۆ زنجیرەی:' : 'بۆ ژمارەی:' }} <strong class="text-amber-300 font-mono">{{ $receiptTo ?? '-' }}</strong></span>
             </div>

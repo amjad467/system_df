@@ -345,13 +345,15 @@ class AccountingReportController extends Controller
         $receiptFrom = $numFrom;
         $receiptTo = $numTo;
 
-        if (empty($receiptFrom) && $transactions->isNotEmpty()) {
-            $firstWithNum = $transactions->firstWhere('receipt_num_numeric', '!=', null);
-            $receiptFrom = $firstWithNum ? $firstWithNum->receipt_num_numeric : $transactions->first()->id;
-        }
-        if (empty($receiptTo) && $transactions->isNotEmpty()) {
-            $lastWithNum = $transactions->last(fn($t) => $t->receipt_num_numeric !== null);
-            $receiptTo = $lastWithNum ? $lastWithNum->receipt_num_numeric : $transactions->last()->id;
+        if (empty($receiptFrom) && empty($receiptTo) && $transactions->isNotEmpty()) {
+            $numericReceipts = $transactions->pluck('receipt_num_numeric')->filter()->values();
+            if ($numericReceipts->isNotEmpty()) {
+                $receiptFrom = $numericReceipts->min();
+                $receiptTo = $numericReceipts->max();
+            } else {
+                $receiptFrom = 1;
+                $receiptTo = $transactions->count();
+            }
         }
 
         return [

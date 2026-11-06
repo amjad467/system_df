@@ -639,6 +639,19 @@
                             <div class="header-dept-title">بەڕێوەبەرایەتی گومرگی سلێمانی</div>
                         </div>
                         <div class="header-right">
+                            <div class="range-box-container">
+                                <div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-end;">
+                                    <div style="font-size: 12.5px; font-weight: 900; color: #000000; margin-bottom: 2px;">ژمارەی پسوولەکان:</div>
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <span style="font-size: 11.5px; font-weight: bold; color: #374151;">لە</span>
+                                        <div class="range-box">-</div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                        <span style="font-size: 11.5px; font-weight: bold; color: #374151;">بۆ</span>
+                                        <div class="range-box">-</div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="page-counter">1 - 1</div>
                         </div>
                     </div>
@@ -652,11 +665,31 @@
                     <div class="page">
                         <div class="sheet-ruler-grid"></div>
 
+                        @php
+                            $firstTx = $chunk->first();
+                            $lastTx = $chunk->last();
+                            $firstWithRcpt = $chunk->first(fn($t) => !empty($t->receipt_37a_number));
+                            $lastWithRcpt = $chunk->last(fn($t) => !empty($t->receipt_37a_number));
+
+                            $chunkFrom = $firstWithRcpt ? $firstWithRcpt->receipt_37a_number : ($firstTx->receipt_num_numeric ?? ($pageIndex * 25 + 1));
+                            $chunkTo = $lastWithRcpt ? $lastWithRcpt->receipt_37a_number : ($lastTx->receipt_num_numeric ?? ($pageIndex * 25 + count($chunk)));
+
+                            if (!empty(request('receipt_from', request('num_from')))) {
+                                $chunkFrom = request('receipt_from', request('num_from'));
+                            }
+                            if (!empty(request('receipt_to', request('num_to')))) {
+                                $chunkTo = request('receipt_to', request('num_to'));
+                            }
+                        @endphp
+
                         <!-- Header -->
                         <div class="report-header calibrated-field" data-fid="acct-header" data-name-ku="سەردێڕی فەرمی محاسبة ٦٦">
                             <div class="header-left">
                                 <div class="header-title-code">محاسبة ٦٦</div>
                                 <div class="header-datetime">{{ now()->format('Y-m-d H:i:s') }}</div>
+                                <div style="font-size: 11.5px; font-weight: bold; color: #1e293b; margin-top: 3px;">
+                                    کۆی پسوولەکان: <strong style="font-family: monospace; font-size: 13px;">{{ $totalReceiptsCount }}</strong> پسوولە
+                                </div>
                             </div>
 
                             <div class="header-center">
@@ -665,14 +698,15 @@
 
                             <div class="header-right">
                                 <div class="range-box-container">
-                                    <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-end;">
+                                    <div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-end;">
+                                        <div style="font-size: 12.5px; font-weight: 900; color: #000000; margin-bottom: 2px;">ژمارەی پسوولەکان:</div>
                                         <div style="display: flex; align-items: center; gap: 6px;">
-                                            <span>لە</span>
-                                            <div class="range-box">{{ $receiptFrom ?? 1 }}</div>
+                                            <span style="font-size: 11.5px; font-weight: bold; color: #374151;">لە</span>
+                                            <div class="range-box">{{ $chunkFrom }}</div>
                                         </div>
                                         <div style="display: flex; align-items: center; gap: 6px;">
-                                            <span>بۆ</span>
-                                            <div class="range-box">{{ $receiptTo ?? $totalReceiptsCount }}</div>
+                                            <span style="font-size: 11.5px; font-weight: bold; color: #374151;">بۆ</span>
+                                            <div class="range-box">{{ $chunkTo }}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -731,6 +765,9 @@
                         <div class="header-left">
                             <div class="header-title-code">محاسبة ٦٦</div>
                             <div class="header-datetime">{{ now()->format('Y-m-d H:i:s') }}</div>
+                            <div style="font-size: 11.5px; font-weight: bold; color: #1e293b; margin-top: 3px;">
+                                کۆی پسوولەکان: <strong style="font-family: monospace; font-size: 13px;">{{ $totalReceiptsCount }}</strong> پسوولە
+                            </div>
                         </div>
 
                         <div class="header-center">
@@ -739,13 +776,14 @@
 
                         <div class="header-right">
                             <div class="range-box-container">
-                                <div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-end;">
+                                <div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-end;">
+                                    <div style="font-size: 12.5px; font-weight: 900; color: #000000; margin-bottom: 2px;">ژمارەی پسوولەکان:</div>
                                     <div style="display: flex; align-items: center; gap: 6px;">
-                                        <span>لە</span>
+                                        <span style="font-size: 11.5px; font-weight: bold; color: #374151;">لە</span>
                                         <div class="range-box">{{ $receiptFrom ?? 1 }}</div>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 6px;">
-                                        <span>بۆ</span>
+                                        <span style="font-size: 11.5px; font-weight: bold; color: #374151;">بۆ</span>
                                         <div class="range-box">{{ $receiptTo ?? $totalReceiptsCount }}</div>
                                     </div>
                                 </div>
