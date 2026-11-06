@@ -230,6 +230,7 @@
         /* Accounting Table */
         .accounting-table {
             width: 100%;
+            table-layout: fixed;
             border-collapse: collapse;
             font-size: 11px;
             text-align: center;
@@ -239,8 +240,17 @@
         .accounting-table th, 
         .accounting-table td {
             border: 1px solid #000000;
-            padding: 4px 3px;
-            line-height: 1.2;
+            padding: 2.5px 3px;
+            line-height: 1.15;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            vertical-align: middle;
+        }
+
+        .accounting-table tr {
+            height: 22px !important;
+            max-height: 22px !important;
         }
 
         .accounting-table th {
@@ -248,59 +258,63 @@
             font-weight: 800;
             font-size: 11px;
             color: #000000;
+            height: 26px;
         }
 
         .accounting-table td.col-name {
             text-align: right;
             padding-right: 6px;
             font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 180px;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: 190px;
+        }
+
+        .accounting-table td.col-type {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: 100px;
+        }
+
+        .accounting-table td.col-notes {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: 90px;
         }
 
         .accounting-table td.font-num {
             font-family: monospace;
             font-size: 11px;
             font-weight: 600;
+            white-space: nowrap !important;
         }
 
         .accounting-table tr.cancelled-row {
             color: #374151;
         }
 
-        /* Summary Section */
+        /* Summary Section - ALIGNED TO RIGHT SIDE IN RTL */
         .summary-container {
             margin-top: 25px;
             display: flex;
             flex-direction: column;
-            align-items: flex-end;
+            align-items: flex-start; /* In RTL dir="rtl", flex-start is strictly the RIGHT side! */
             font-size: 12px;
             font-weight: bold;
+            width: 100%;
         }
 
         .summary-header-row {
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-            font-size: 13px;
-        }
-
-        .summary-receipt-counts {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 12px;
-        }
-        .count-box {
-            border: 1px solid #000000;
-            padding: 2px 14px;
-            min-width: 60px;
-            text-align: center;
-            font-family: monospace;
-            font-weight: bold;
+            font-size: 14px;
+            font-weight: 900;
+            text-align: right;
         }
 
         .summary-grid {
@@ -314,11 +328,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 3px 8px;
+            padding: 3.5px 10px;
             font-size: 12px;
+            border-bottom: 1px dotted #cbd5e1;
         }
         .summary-item.highlight-gray {
-            background-color: #e2e8f0;
+            background-color: #f1f5f9;
             font-weight: 800;
             font-size: 13px;
         }
@@ -326,6 +341,7 @@
         .summary-item .amount {
             font-family: monospace;
             font-size: 13px;
+            font-weight: bold;
         }
 
         .tafqeet-line {
@@ -333,7 +349,7 @@
             font-size: 13px;
             font-weight: 800;
             text-align: right;
-            width: 100%;
+            width: 380px;
         }
 
         /* Print Media Styles */
@@ -687,12 +703,13 @@
                                     @foreach($chunk as $tx)
                                         @php
                                             $isCanc = $tx->is_cancelled || !empty($tx->cancelled_at);
+                                            $cleanTypeName = trim(str_replace(['(نوێ)', '（نوێ）', '( نوێ )', 'نوێ'], '', $tx->transactionType->name_kurdish ?? '-'));
                                         @endphp
                                         <tr class="{{ $isCanc ? 'cancelled-row' : '' }}">
                                             <td class="font-num">{{ $globalIndex++ }}</td>
-                                            <td class="col-name">{{ $tx->visitor_name }}</td>
+                                            <td class="col-name" title="{{ $tx->visitor_name }}">{{ $tx->visitor_name }}</td>
                                             <td class="font-num">{{ $tx->receipt_37a_number ?? '-' }}</td>
-                                            <td>{{ $tx->transactionType->name_kurdish ?? '-' }}</td>
+                                            <td class="col-type" title="{{ $cleanTypeName }}">{{ $cleanTypeName }}</td>
                                             <td class="font-num">{{ $isCanc ? '0' : ($tx->num_years ?? 1) }}</td>
                                             <td class="font-num">{{ $tx->display_date }}</td>
                                             <td class="font-num">{{ $isCanc ? '0' : number_format($tx->pay_amount_years) }}</td>
@@ -700,7 +717,7 @@
                                             <td class="font-num">{{ $isCanc ? '0' : number_format($tx->pay_stamp) }}</td>
                                             <td class="font-num">{{ $isCanc ? '0' : number_format($tx->pay_form) }}</td>
                                             <td class="font-num" style="font-weight: 800;">{{ $isCanc ? '0' : number_format($tx->total_pay) }}</td>
-                                            <td style="font-size: 10px; font-weight: bold;">
+                                            <td class="col-notes" style="font-size: 10px; font-weight: bold;">
                                                 @if($isCanc)
                                                     پووچەڵکراوەتەوە
                                                 @endif
@@ -769,15 +786,9 @@
                     <!-- Summary block -->
                     <div class="summary-container calibrated-field" data-fid="acct-summary-box" data-name-ku="بلۆکی خولاسەی دارایی">
                         <div class="summary-header-row">
-                            <div>کۆی پسولەکان: <span style="font-family: monospace; font-size: 14px;">{{ $totalReceiptsCount }}</span></div>
-                        </div>
-
-                        <div class="summary-receipt-counts">
-                            <span>پسولەی پوچەڵکراو</span>
-                            <div class="count-box">{{ $cancelledCount }}</div>
-                            <span>وە</span>
-                            <div class="count-box">{{ $paidCount }}</div>
-                            <span>پسولە پارەی وەرگیراوە</span>
+                            <span style="font-size: 14px; font-weight: 900;">کۆی پسولەکان:</span>
+                            <span style="font-family: monospace; font-size: 16px; font-weight: 900; border: 1px solid #000; padding: 2px 14px; background: #fafafa; border-radius: 4px;">{{ $totalReceiptsCount }}</span>
+                            <span style="font-size: 12px; font-weight: bold; color: #475569;">پسوولە</span>
                         </div>
 
                         <div class="summary-grid">

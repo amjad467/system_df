@@ -352,9 +352,9 @@
                             <td class="py-3 px-3 text-center font-mono font-black {{ $isCanc ? 'line-through text-rose-400' : 'text-amber-300' }}">
                                 {{ $tx->receipt_37a_number ?? '-' }}
                             </td>
-                            <td class="py-3 px-3">
-                                <span class="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-700 text-[11px]">
-                                    {{ $tx->transactionType->name_kurdish ?? '-' }}
+                            <td class="py-3 px-3 whitespace-nowrap">
+                                <span class="px-2 py-0.5 rounded-md bg-slate-900 border border-slate-700 text-[11px] whitespace-nowrap">
+                                    {{ trim(str_replace(['(نوێ)', '（نوێ）', '( نوێ )', 'نوێ'], '', $tx->transactionType->name_kurdish ?? '-')) }}
                                 </span>
                             </td>
                             <td class="py-3 px-3 text-center font-mono">

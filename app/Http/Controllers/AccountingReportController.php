@@ -80,7 +80,7 @@ class AccountingReportController extends Controller
                     $index + 1,
                     $tx->visitor_name,
                     $tx->receipt_37a_number ?? '-',
-                    $tx->transactionType->name_kurdish ?? '-',
+                    trim(str_replace(['(نوێ)', '（نوێ）', '( نوێ )', 'نوێ'], '', $tx->transactionType->name_kurdish ?? '-')),
                     $isCanc ? 0 : ($tx->num_years ?? 1),
                     $tx->display_date,
                     $isCanc ? 0 : $tx->pay_amount_years,
