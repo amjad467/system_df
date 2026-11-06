@@ -358,25 +358,25 @@
                                 </span>
                             </td>
                             <td class="py-3 px-3 text-center font-mono">
-                                {{ $isCanc ? '0' : ($tx->num_years ?? 1) }}
+                                {{ $tx->num_years ?? 1 }}
                             </td>
                             <td class="py-3 px-3 text-center font-mono text-[11px] text-slate-400">
                                 {{ $tx->display_date }}
                             </td>
-                            <td class="py-3 px-3 text-center font-mono {{ $isCanc ? 'text-slate-500' : 'text-slate-200' }}">
-                                {{ $isCanc ? '0' : number_format($tx->pay_amount_years) }}
+                            <td class="py-3 px-3 text-center font-mono text-slate-200">
+                                {{ number_format($tx->pay_amount_years ?? 0) }}
                             </td>
-                            <td class="py-3 px-3 text-center font-mono {{ $isCanc ? 'text-slate-500' : 'text-teal-400' }}">
-                                {{ $isCanc ? '0' : number_format($tx->pay_inspection) }}
+                            <td class="py-3 px-3 text-center font-mono text-teal-400">
+                                {{ number_format($tx->pay_inspection ?? 0) }}
                             </td>
-                            <td class="py-3 px-3 text-center font-mono {{ $isCanc ? 'text-slate-500' : 'text-indigo-400' }}">
-                                {{ $isCanc ? '0' : number_format($tx->pay_stamp) }}
+                            <td class="py-3 px-3 text-center font-mono text-indigo-400">
+                                {{ number_format($tx->pay_stamp ?? 0) }}
                             </td>
-                            <td class="py-3 px-3 text-center font-mono {{ $isCanc ? 'text-slate-500' : 'text-violet-400' }}">
-                                {{ $isCanc ? '0' : number_format($tx->pay_form) }}
+                            <td class="py-3 px-3 text-center font-mono text-violet-400">
+                                {{ number_format($tx->pay_form ?? 0) }}
                             </td>
-                            <td class="py-3 px-3 text-center font-mono font-bold {{ $isCanc ? 'text-rose-400 line-through' : 'text-amber-400' }}">
-                                {{ $isCanc ? '0' : number_format($tx->total_pay) }}
+                            <td class="py-3 px-3 text-center font-mono font-bold text-amber-400">
+                                {{ number_format($tx->total_pay ?? 0) }}
                             </td>
                             <td class="py-3 px-3 text-center">
                                 @if($isCanc)

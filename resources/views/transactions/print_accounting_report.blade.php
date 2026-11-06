@@ -685,43 +685,36 @@
                             <table class="accounting-table">
                                 <thead>
                                     <tr>
-                                        <th style="width: 30px;">ز</th>
-                                        <th style="width: 200px;">ناوی لێوەوەرگیراو</th>
-                                        <th style="width: 65px;">ژ. پسولە</th>
-                                        <th style="width: 100px;">جۆری مامەڵە</th>
-                                        <th style="width: 50px;">بڕی ساڵ</th>
-                                        <th style="width: 85px;">بەروار</th>
-                                        <th style="width: 75px;">رەسم</th>
-                                        <th style="width: 75px;">اجور</th>
-                                        <th style="width: 60px;">پول</th>
-                                        <th style="width: 60px;">فۆرم</th>
-                                        <th style="width: 85px;">کۆی گشتی</th>
-                                        <th style="width: 90px;">تێبینی</th>
+                                        <th style="width: 32px;">ز</th>
+                                        <th style="width: 220px;">ناوی لێوەوەرگیراو</th>
+                                        <th style="width: 75px;">ژ. پسولە</th>
+                                        <th style="width: 120px;">جۆری مامەڵە</th>
+                                        <th style="width: 55px;">بڕی ساڵ</th>
+                                        <th style="width: 90px;">بەروار</th>
+                                        <th style="width: 80px;">رەسم</th>
+                                        <th style="width: 80px;">اجور</th>
+                                        <th style="width: 65px;">پول</th>
+                                        <th style="width: 65px;">فۆرم</th>
+                                        <th style="width: 90px;">کۆی گشتی</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($chunk as $tx)
                                         @php
-                                            $isCanc = $tx->is_cancelled || !empty($tx->cancelled_at);
                                             $cleanTypeName = trim(str_replace(['(نوێ)', '（نوێ）', '( نوێ )', 'نوێ'], '', $tx->transactionType->name_kurdish ?? '-'));
                                         @endphp
-                                        <tr class="{{ $isCanc ? 'cancelled-row' : '' }}">
+                                        <tr>
                                             <td class="font-num">{{ $globalIndex++ }}</td>
                                             <td class="col-name" title="{{ $tx->visitor_name }}">{{ $tx->visitor_name }}</td>
                                             <td class="font-num">{{ $tx->receipt_37a_number ?? '-' }}</td>
                                             <td class="col-type" title="{{ $cleanTypeName }}">{{ $cleanTypeName }}</td>
-                                            <td class="font-num">{{ $isCanc ? '0' : ($tx->num_years ?? 1) }}</td>
+                                            <td class="font-num">{{ $tx->num_years ?? 1 }}</td>
                                             <td class="font-num">{{ $tx->display_date }}</td>
-                                            <td class="font-num">{{ $isCanc ? '0' : number_format($tx->pay_amount_years) }}</td>
-                                            <td class="font-num">{{ $isCanc ? '0' : number_format($tx->pay_inspection) }}</td>
-                                            <td class="font-num">{{ $isCanc ? '0' : number_format($tx->pay_stamp) }}</td>
-                                            <td class="font-num">{{ $isCanc ? '0' : number_format($tx->pay_form) }}</td>
-                                            <td class="font-num" style="font-weight: 800;">{{ $isCanc ? '0' : number_format($tx->total_pay) }}</td>
-                                            <td class="col-notes" style="font-size: 10px; font-weight: bold;">
-                                                @if($isCanc)
-                                                    پووچەڵکراوەتەوە
-                                                @endif
-                                            </td>
+                                            <td class="font-num">{{ number_format($tx->pay_amount_years ?? 0) }}</td>
+                                            <td class="font-num">{{ number_format($tx->pay_inspection ?? 0) }}</td>
+                                            <td class="font-num">{{ number_format($tx->pay_stamp ?? 0) }}</td>
+                                            <td class="font-num">{{ number_format($tx->pay_form ?? 0) }}</td>
+                                            <td class="font-num" style="font-weight: 800;">{{ number_format($tx->total_pay ?? 0) }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -766,18 +759,17 @@
                         <table class="accounting-table" style="margin-bottom: 20px;">
                             <thead>
                                 <tr>
-                                    <th style="width: 30px;">ز</th>
-                                    <th style="width: 200px;">ناوی لێوەوەرگیراو</th>
-                                    <th style="width: 65px;">ژ. پسولە</th>
-                                    <th style="width: 100px;">جۆری مامەڵە</th>
-                                    <th style="width: 50px;">بڕی ساڵ</th>
-                                    <th style="width: 85px;">بەروار</th>
-                                    <th style="width: 75px;">رەسم</th>
-                                    <th style="width: 75px;">اجور</th>
-                                    <th style="width: 60px;">پول</th>
-                                    <th style="width: 60px;">فۆرم</th>
-                                    <th style="width: 85px;">کۆی گشتی</th>
-                                    <th style="width: 90px;">تێبینی</th>
+                                    <th style="width: 32px;">ز</th>
+                                    <th style="width: 220px;">ناوی لێوەوەرگیراو</th>
+                                    <th style="width: 75px;">ژ. پسولە</th>
+                                    <th style="width: 120px;">جۆری مامەڵە</th>
+                                    <th style="width: 55px;">بڕی ساڵ</th>
+                                    <th style="width: 90px;">بەروار</th>
+                                    <th style="width: 80px;">رەسم</th>
+                                    <th style="width: 80px;">اجور</th>
+                                    <th style="width: 65px;">پول</th>
+                                    <th style="width: 65px;">فۆرم</th>
+                                    <th style="width: 90px;">کۆی گشتی</th>
                                 </tr>
                             </thead>
                         </table>

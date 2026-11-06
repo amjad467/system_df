@@ -81,13 +81,13 @@ class AccountingReportController extends Controller
                     $tx->visitor_name,
                     $tx->receipt_37a_number ?? '-',
                     trim(str_replace(['(نوێ)', '（نوێ）', '( نوێ )', 'نوێ'], '', $tx->transactionType->name_kurdish ?? '-')),
-                    $isCanc ? 0 : ($tx->num_years ?? 1),
+                    $tx->num_years ?? 1,
                     $tx->display_date,
-                    $isCanc ? 0 : $tx->pay_amount_years,
-                    $isCanc ? 0 : $tx->pay_inspection,
-                    $isCanc ? 0 : $tx->pay_stamp,
-                    $isCanc ? 0 : $tx->pay_form,
-                    $isCanc ? 0 : $tx->total_pay,
+                    $tx->pay_amount_years ?? 0,
+                    $tx->pay_inspection ?? 0,
+                    $tx->pay_stamp ?? 0,
+                    $tx->pay_form ?? 0,
+                    $tx->total_pay ?? 0,
                     $isCanc ? 'پووچەڵکراوەتەوە' : 'پارەدراوە',
                 ]);
             }
@@ -114,10 +114,13 @@ class AccountingReportController extends Controller
 
     private function prepareReportData(Request $request): array
     {
+        // Only include transactions that have an issued 37-A receipt OR real financial revenue
         $query = Transaction::with(['transactionType', 'trafficDirectorate'])
             ->where(function ($q) {
-                $q->whereNotNull('receipt_37a_number')
-                  ->orWhere('is_paid', true);
+                $q->where(function ($sub) {
+                    $sub->whereNotNull('receipt_37a_number')
+                        ->where('receipt_37a_number', '!=', '');
+                })->orWhere('total_pay', '>', 0);
             });
 
         // 1. Helper function to normalize Eastern Arabic / Persian / Kurdish numerals to ASCII 0-9
@@ -317,7 +320,7 @@ class AccountingReportController extends Controller
 
         foreach ($transactions as $tx) {
             $isCancelled = $tx->is_cancelled || !empty($tx->cancelled_at);
-            if ($isCancelled) {
+            if ($isCancelled && (float)$tx->total_pay == 0) {
                 $cancelledCount++;
             } else {
                 $paidCount++;
