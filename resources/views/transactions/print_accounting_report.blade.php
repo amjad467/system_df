@@ -321,21 +321,21 @@
             width: 380px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 2px;
         }
 
         .summary-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 3.5px 10px;
-            font-size: 12px;
-            border-bottom: 1px dotted #cbd5e1;
+            padding: 4px 10px;
+            font-size: 13px;
+            font-weight: bold;
         }
         .summary-item.highlight-gray {
-            background-color: #f1f5f9;
-            font-weight: 800;
-            font-size: 13px;
+            background-color: #e8eff8;
+            font-weight: 900;
+            font-size: 13.5px;
         }
 
         .summary-item .amount {
