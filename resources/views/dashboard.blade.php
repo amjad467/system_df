@@ -4,16 +4,16 @@
 <div class="space-y-6 w-full max-w-full">
 
     <!-- ========================================================================= -->
-    <!-- 1. EXECUTIVE WELCOME & LIVE OPERATIONAL SUMMARY -->
+    <!-- 1. EXECUTIVE WELCOME, FAST BARCODE SCANNER & LIVE OPERATIONAL SUMMARY -->
     <!-- ========================================================================= -->
     <div class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-xl">
         <!-- Subtle Ambient Glow -->
         <div class="absolute -top-12 -left-12 w-56 h-56 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-12 -right-12 w-56 h-56 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <!-- Left Side: Identity & Balanced Greeting -->
-            <div class="space-y-1.5 min-w-0">
+        <div class="relative z-10 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
+            <!-- Right Side (RTL): Identity & Balanced Greeting -->
+            <div class="space-y-1.5 min-w-0 shrink-0">
                 <div class="flex items-center gap-2 flex-wrap">
                     <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-500/15 text-sky-300 border border-sky-500/25 flex items-center gap-1.5 shadow-sm">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
@@ -32,13 +32,50 @@
                         {{ auth()->user()->clean_role_name }}
                     </span>
                 </div>
-                <p class="text-xs text-slate-400 max-w-xl leading-relaxed">
-                    داشبۆردی سەرەکی چاودێری و ڕاپەڕاندنی مامەڵەکانی دەرهێنانی دەفتەری ئۆتۆمبێلی گەشتیاری.
+                <p class="text-xs text-slate-400 max-w-sm leading-relaxed">
+                    داشبۆردی سەرەکی چاودێری و ڕاپەڕاندنی مامەڵەکان.
                 </p>
             </div>
 
-            <!-- Right Side: Live Daily Operational Summary (Replaces duplicate action buttons) -->
-            <div class="flex items-center flex-wrap gap-2.5 w-full lg:w-auto shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-800/80">
+            <!-- Center: Prominent, Large & High-Contrast Barcode Scanner Field -->
+            <div class="flex-1 max-w-xl w-full mx-auto px-0 xl:px-4">
+                <form action="{{ route('transactions.scan') }}" method="POST" class="relative group">
+                    @csrf
+                    <div class="relative flex items-center">
+                        <!-- Barcode Scanner Icon with Live Pulse Indicator -->
+                        <div class="absolute right-3.5 sm:right-4 flex items-center gap-2 text-sky-400 pointer-events-none group-focus-within:text-sky-300 transition">
+                            <i class="fa-solid fa-barcode text-xl sm:text-2xl"></i>
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="سیستەم ئامادەیە بۆ سکان"></span>
+                        </div>
+                        
+                        <!-- High Contrast, Large, Clear Barcode Input -->
+                        <input type="text" 
+                               name="barcode" 
+                               id="dashBarcodeInput" 
+                               placeholder="سکانی بارکۆد یاخود لێدانی کۆد... (F2)" 
+                               class="w-full bg-slate-950/90 hover:bg-slate-950 text-white placeholder-slate-400 text-sm sm:text-base font-mono font-bold rounded-2xl border-2 border-slate-700/90 hover:border-sky-500/60 focus:border-sky-400 focus:ring-4 focus:ring-sky-500/20 pr-14 pl-28 py-3 sm:py-3.5 shadow-2xl transition duration-200 tracking-wider"
+                               autocomplete="off"
+                               autofocus
+                               title="لێرە بارکۆد لێبدە یان بە ئامێری سکانەر لێیبدە (F2)">
+                        
+                        <!-- Left Action Button & Keyboard Hint -->
+                        <div class="absolute left-2.5 flex items-center gap-1.5">
+                            <kbd class="hidden md:inline-block px-2 py-1 text-[10px] font-mono font-bold text-slate-400 bg-slate-800/90 border border-slate-700 rounded-lg shadow-sm">
+                                Enter ↵
+                            </kbd>
+                            <button type="submit" 
+                                    class="px-3.5 py-1.5 sm:py-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-md shadow-sky-600/30 transition flex items-center gap-1.5 active:scale-95" 
+                                    title="گەڕان بەپێی بارکۆد">
+                                <span>گەڕان</span>
+                                <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Left Side (RTL): Live Daily Operational Summary -->
+            <div class="flex items-center flex-wrap gap-2.5 shrink-0 pt-2 xl:pt-0 border-t xl:border-t-0 border-slate-800/80 justify-start xl:justify-end">
                 <!-- Today's Transactions Metric Chip -->
                 <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
                     <div class="w-7 h-7 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center text-xs">

@@ -281,7 +281,8 @@
                     </a>
                 </div>
 
-                <!-- Fast Barcode Scanner Form (Desktop / Tablet) -->
+                <!-- Fast Barcode Scanner Form (Desktop / Tablet - Visible when not on dashboard) -->
+                @if(!request()->routeIs('dashboard'))
                 <form action="{{ route('transactions.scan') }}" method="POST" class="hidden md:flex items-center relative shrink-0">
                     @csrf
                     <div class="relative flex items-center">
@@ -294,6 +295,7 @@
                         </button>
                     </div>
                 </form>
+                @endif
 
                 <!-- Navigation Links (Desktop) -->
                 <nav class="hidden lg:flex items-center space-x-1 space-x-reverse min-w-0 flex-wrap">
@@ -853,7 +855,7 @@
         window.addEventListener('keydown', function(e) {
             if (e.key === 'F2') {
                 e.preventDefault();
-                const barcodeInput = document.getElementById('globalDesktopBarcodeInput');
+                const barcodeInput = document.getElementById('dashBarcodeInput') || document.getElementById('globalDesktopBarcodeInput');
                 if (barcodeInput) {
                     barcodeInput.focus();
                     barcodeInput.select();
