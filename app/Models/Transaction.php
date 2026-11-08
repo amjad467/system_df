@@ -222,5 +222,27 @@ class Transaction extends Model
         // Final Submit
         return in_array($user->role, ['data_entry', 'booklet', 'cashier']);
     }
+
+    public function scopeExpiredBooklets($query)
+    {
+        // Booklet types: 1: New Issue, 2: Renewal, 3: Name Change, 4: Booklet Replacement, 7: Both
+        $bookletTypeIds = [1, 2, 3, 4, 7];
+        return $query->whereIn('transaction_type_id', $bookletTypeIds)
+            ->whereNotNull('end_date')
+            ->whereNull('cancelled_at')
+            ->where('end_date', '<', now()->startOfDay());
+    }
+
+    public function scopeExpiringSoonBooklets($query, $days = 30)
+    {
+        $bookletTypeIds = [1, 2, 3, 4, 7];
+        $now = now()->startOfDay();
+        $soon = now()->addDays($days)->endOfDay();
+        return $query->whereIn('transaction_type_id', $bookletTypeIds)
+            ->whereNotNull('end_date')
+            ->whereNull('cancelled_at')
+            ->where('end_date', '>=', $now)
+            ->where('end_date', '<=', $soon);
+    }
 }
 

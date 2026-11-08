@@ -33,12 +33,9 @@ class DashboardController extends Controller
         $pendingAudit = Transaction::where('is_inspected', true)->where('is_audited', false)->whereNull('cancelled_at')->count();
         $pendingPayment = Transaction::where('is_audited', true)->where('is_paid', false)->whereNull('cancelled_at')->count();
         $pendingBooklet = Transaction::where('is_paid', true)->where('is_booklet_completed', false)->whereNull('cancelled_at')->count();
-        $completedBooklets = Transaction::where('is_booklet_completed', true)->count();
+        $completedBooklets = Transaction::where('is_booklet_completed', true)->whereNull('cancelled_at')->count();
         
-        $expiredBookletsCount = Transaction::where('is_booklet_completed', true)
-            ->whereNotNull('end_date')
-            ->where('end_date', '<', today())
-            ->count();
+        $expiredBookletsCount = Transaction::expiredBooklets()->count();
 
         $returnedTransactions = Transaction::where('is_returned', true)->latest()->get();
         $returnedCount = $returnedTransactions->count();
