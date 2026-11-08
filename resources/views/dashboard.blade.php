@@ -37,37 +37,53 @@
                 </p>
             </div>
 
-            <!-- Center: Prominent, Large & High-Contrast Barcode Scanner Field -->
-            <div class="flex-1 max-w-xl w-full mx-auto px-0 xl:px-4">
+            <!-- Center: Prominent, High-Visibility Barcode Scanner Station -->
+            <div class="flex-1 max-w-xl w-full mx-auto px-0 xl:px-4 py-1">
+                <!-- Top Micro Header: Visual Identity & Scanner Status -->
+                <div class="flex items-center justify-between mb-1.5 px-1 text-xs">
+                    <span class="flex items-center gap-1.5 font-bold text-sky-300">
+                        <i class="fa-solid fa-barcode text-sky-400 text-sm"></i>
+                        <span>وێستگەی سکانی خێرای مامەڵە</span>
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        ئامادەیە بۆ سکان • Ready
+                    </span>
+                </div>
+
                 <form action="{{ route('transactions.scan') }}" method="POST" class="relative group">
                     @csrf
-                    <div class="relative flex items-center">
-                        <!-- Barcode Scanner Icon with Live Pulse Indicator -->
-                        <div class="absolute right-3.5 sm:right-4 flex items-center gap-2 text-sky-400 pointer-events-none group-focus-within:text-sky-300 transition">
-                            <i class="fa-solid fa-barcode text-xl sm:text-2xl"></i>
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="سیستەم ئامادەیە بۆ سکان"></span>
+                    <!-- Ambient Glow Halo (Highlights visibility across the screen) -->
+                    <div class="absolute -inset-0.5 bg-gradient-to-r from-sky-500 via-indigo-500 to-sky-400 rounded-2xl blur-sm opacity-35 group-hover:opacity-75 group-focus-within:opacity-100 transition duration-300 pointer-events-none"></div>
+
+                    <div class="relative flex items-center bg-slate-950 rounded-2xl">
+                        <!-- Barcode Scanner Icon with Highlight Plate -->
+                        <div class="absolute right-3.5 sm:right-4 flex items-center gap-2 text-sky-400 group-focus-within:text-sky-300 transition pointer-events-none">
+                            <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center border border-sky-500/30">
+                                <i class="fa-solid fa-barcode text-base sm:text-lg"></i>
+                            </div>
                         </div>
                         
-                        <!-- High Contrast, Large, Clear Barcode Input -->
+                        <!-- High Contrast, Large, Crystal Clear Barcode Input -->
                         <input type="text" 
                                name="barcode" 
                                id="dashBarcodeInput" 
-                               placeholder="سکانی بارکۆد یاخود لێدانی کۆد... (F2)" 
-                               class="w-full bg-slate-950/90 hover:bg-slate-950 text-white placeholder-slate-400 text-sm sm:text-base font-mono font-bold rounded-2xl border-2 border-slate-700/90 hover:border-sky-500/60 focus:border-sky-400 focus:ring-4 focus:ring-sky-500/20 pr-14 pl-28 py-3 sm:py-3.5 shadow-2xl transition duration-200 tracking-wider"
+                               placeholder="سکانی بارکۆد بکە یاخود لێرە بینوسە... (F2)" 
+                               class="w-full bg-slate-950 text-white placeholder-slate-400 text-base sm:text-lg font-mono font-black rounded-2xl border-2 border-sky-500/50 hover:border-sky-400 focus:border-sky-300 focus:ring-4 focus:ring-sky-500/30 pr-15 pl-28 py-3 sm:py-3.5 shadow-2xl transition duration-200 tracking-wider text-right"
                                autocomplete="off"
                                autofocus
                                title="لێرە بارکۆد لێبدە یان بە ئامێری سکانەر لێیبدە (F2)">
                         
-                        <!-- Left Action Button & Keyboard Hint -->
+                        <!-- Left Action Button & F2 Shortcut Badge -->
                         <div class="absolute left-2.5 flex items-center gap-1.5">
-                            <kbd class="hidden md:inline-block px-2 py-1 text-[10px] font-mono font-bold text-slate-400 bg-slate-800/90 border border-slate-700 rounded-lg shadow-sm">
-                                Enter ↵
+                            <kbd class="hidden md:inline-flex items-center px-2 py-1 text-[11px] font-mono font-bold text-slate-300 bg-slate-800/90 border border-slate-700 rounded-lg shadow-sm" title="داگرتنی کلیلی F2 بۆ فۆکەس">
+                                F2
                             </kbd>
                             <button type="submit" 
-                                    class="px-3.5 py-1.5 sm:py-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl shadow-md shadow-sky-600/30 transition flex items-center gap-1.5 active:scale-95" 
+                                    class="px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs sm:text-sm font-black rounded-xl shadow-lg shadow-sky-500/30 transition flex items-center gap-1.5 active:scale-95 hover:scale-102" 
                                     title="گەڕان بەپێی بارکۆد">
                                 <span>گەڕان</span>
-                                <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                                <i class="fa-solid fa-arrow-left text-xs"></i>
                             </button>
                         </div>
                     </div>
