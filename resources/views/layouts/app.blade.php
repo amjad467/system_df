@@ -297,38 +297,44 @@
 
                 <!-- Navigation Links (Desktop) -->
                 <nav class="hidden lg:flex items-center space-x-1 space-x-reverse min-w-0 flex-wrap">
-                    <a href="{{ route('dashboard') }}" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition {{ request()->routeIs('dashboard') ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white' }}">
-                        <i class="fa-solid fa-chart-pie ml-1"></i> داشبۆرد
+                    <a href="{{ route('dashboard') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('dashboard') ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                        <i class="fa-solid fa-chart-pie text-xs opacity-80"></i>
+                        <span>داشبۆرد</span>
                     </a>
-                    <a href="{{ route('transactions.index') }}" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition {{ request()->routeIs('transactions.index') ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white' }}">
-                        <i class="fa-solid fa-list-check ml-1"></i> مامەڵەکان
+                    <a href="{{ route('transactions.index') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('transactions.index') ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                        <i class="fa-solid fa-list-check text-xs opacity-80"></i>
+                        <span>مامەڵەکان</span>
                     </a>
 
                     <!-- چاپی نوسراوەکان (Allowed via Permission) -->
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('prints.official_index')))
-                        <a href="{{ route('transactions.official_prints') }}" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition {{ request()->routeIs('transactions.official_prints') ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30' : 'text-amber-600 dark:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-amber-700 dark:hover:text-white' }}">
-                            <i class="fa-solid fa-print ml-1"></i> نوسراوەکان
+                        <a href="{{ route('transactions.official_prints') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('transactions.official_prints') ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <i class="fa-solid fa-print text-xs opacity-80"></i>
+                            <span>نوسراوەکان</span>
                         </a>
                     @endif
 
                     <!-- محاسبة ٦٦ (Allowed via Permission) -->
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('reports.accounting_66')))
-                        <a href="{{ route('reports.accounting_66') }}" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition {{ request()->routeIs('reports.accounting_66*') ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30' : 'text-amber-600 dark:text-amber-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-amber-700 dark:hover:text-white' }}">
-                            <i class="fa-solid fa-file-invoice-dollar ml-1"></i> محاسبة ٦٦
+                        <a href="{{ route('reports.accounting_66') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('reports.accounting_66*') ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <i class="fa-solid fa-file-invoice-dollar text-xs opacity-80"></i>
+                            <span>محاسبة ٦٦</span>
                         </a>
                     @endif
 
                     <!-- دەفتەرە بەسەرچووەکان (Allowed via Permission) -->
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('reports.expired_booklets')))
-                        <a href="{{ route('transactions.expired_booklets') }}" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition {{ request()->routeIs('transactions.expired_booklets') ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' : 'text-rose-600 dark:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-rose-700 dark:hover:text-white' }}">
-                            <i class="fa-solid fa-calendar-xmark ml-1"></i> بەسەرچووەکان
+                        <a href="{{ route('transactions.expired_booklets') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('transactions.expired_booklets') ? 'bg-rose-500/15 text-rose-500 dark:text-rose-300 border border-rose-500/30' : 'text-slate-600 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <i class="fa-solid fa-calendar-xmark text-xs opacity-80"></i>
+                            <span>بەسەرچووەکان</span>
                         </a>
                     @endif
 
                     <!-- مامەڵەی نوێ (Allowed via Permission) -->
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.create')))
-                        <a href="{{ route('transactions.create') }}" class="px-3 py-1.5 rounded-lg text-xs font-extrabold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/20 transition">
-                            <i class="fa-solid fa-plus-circle ml-1"></i> تۆماری نوێ
+                        <a href="{{ route('transactions.create') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-[13px] font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-600/30 flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-plus-circle text-xs"></i>
+                            <span>تۆماری نوێ</span>
                         </a>
                     @endif
 
@@ -336,8 +342,8 @@
                     @if(auth()->check() && auth()->user()->isAdmin())
                         <div class="relative" x-data="{ openAdminMenu: false }">
                             <button @click="openAdminMenu = !openAdminMenu" type="button" 
-                                    class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 {{ request()->routeIs('settings.*') || request()->routeIs('users.*') || request()->routeIs('logs.*') || request()->routeIs('transactions.trash') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white border border-slate-300 dark:border-slate-700' }}">
-                                <i class="fa-solid fa-gear text-indigo-400"></i>
+                                    class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('settings.*') || request()->routeIs('users.*') || request()->routeIs('logs.*') || request()->routeIs('transactions.trash') ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                <i class="fa-solid fa-gear text-indigo-400 text-xs"></i>
                                 <span>کارگێڕی</span>
                                 <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openAdminMenu ? 'rotate-180' : ''"></i>
                             </button>
@@ -383,15 +389,15 @@
                     </button>
 
                     <!-- Mobile App Install Quick Button -->
-                    <button type="button" x-show="!isInstalled" @click="promptInstall()" class="md:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-[11px] font-bold shadow-md shadow-sky-600/25 transition active:scale-95" title="دابەزاندنی سیستەم وەک ئەپ">
-                        <i class="fa-solid fa-download text-xs"></i>
+                    <button type="button" x-show="!isInstalled" @click="promptInstall()" class="md:hidden flex items-center gap-1 px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-sky-400 text-[11px] font-bold border border-slate-200 dark:border-slate-700 transition" title="دابەزاندنی سیستەم وەک ئەپ">
+                        <i class="fa-solid fa-cloud-arrow-down text-xs"></i>
                         <span>ئەپ</span>
                     </button>
 
                     <!-- PWA Desktop Install Button -->
-                    <button type="button" x-show="!isInstalled" @click="promptInstall()" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-xs font-black shadow-md shadow-sky-600/30 transition active:scale-95 animate-pulse" title="دابەزاندنی سیستەم وەک بەرنامەی سەربەخۆ">
-                        <i class="fa-solid fa-mobile-screen-button text-xs"></i>
-                        <span>دابەزاندنی ئەپ</span>
+                    <button type="button" x-show="!isInstalled" @click="promptInstall()" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-sky-600 dark:text-sky-400 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition" title="دابەزاندنی سیستەم وەک بەرنامەی سەربەخۆ (PWA)">
+                        <i class="fa-solid fa-cloud-arrow-down text-xs"></i>
+                        <span>داگرتنی ئەپ</span>
                     </button>
 
                     <!-- Dark / Light Mode Toggle Button -->
@@ -437,9 +443,9 @@
                         </div>
 
                         <div class="mr-1 sm:mr-2 border-r border-slate-200 dark:border-slate-700 pr-2 sm:pr-3 flex items-center space-x-1.5 sm:space-x-2 space-x-reverse">
-                            <div class="text-right hidden sm:block">
-                                <span class="text-xs font-bold text-slate-800 dark:text-slate-100 block truncate max-w-[120px]">{{ auth()->user()->name }}</span>
-                                <span class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold block">{{ auth()->user()->role_name_kurdish }}</span>
+                            <div class="text-right hidden sm:block leading-tight">
+                                <span class="text-xs font-bold text-slate-800 dark:text-slate-100 block truncate max-w-[130px]">{{ auth()->user()->clean_name }}</span>
+                                <span class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold block">{{ auth()->user()->clean_role_name }}</span>
                             </div>
                             <button type="button" @click="showMyPasswordModal = true" title="گۆڕینی پاسوۆردی کەسی" class="w-8 h-8 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 dark:text-amber-400 flex items-center justify-center transition">
                                 <i class="fa-solid fa-key text-xs"></i>
@@ -465,8 +471,8 @@
                                 <i class="fa-solid fa-user-shield"></i>
                             </div>
                             <div>
-                                <span class="font-bold text-slate-900 dark:text-white text-xs block">{{ auth()->user()->name }}</span>
-                                <span class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold block">{{ auth()->user()->role_name_kurdish }}</span>
+                                <span class="font-bold text-slate-900 dark:text-white text-xs block">{{ auth()->user()->clean_name }}</span>
+                                <span class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold block">{{ auth()->user()->clean_role_name }}</span>
                             </div>
                         </div>
                         <button type="button" @click="promptInstall()" x-show="!isInstalled" class="px-2.5 py-1 bg-sky-600 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 shadow">

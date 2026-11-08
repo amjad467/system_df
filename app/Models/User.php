@@ -52,6 +52,27 @@ class User extends Authenticatable
         };
     }
 
+    public function getCleanRoleNameAttribute(): string
+    {
+        return match($this->role) {
+            'data_entry' => 'کارمەندی داتا ئەنتەری',
+            'inspector' => 'ئەندازیار / کەشف و تەخمین',
+            'auditor' => 'کارمەندی وردبینی',
+            'cashier' => 'ژمێریار / وەسڵبڕ',
+            'booklet' => 'بەشی دەفتەر',
+            'archiver' => 'کارمەندی ئەرشیف',
+            'legal' => 'فەرمانبەری یاسایی',
+            'admin' => 'سەرپەرشتیاری گشتی',
+            default => 'کارمەند',
+        };
+    }
+
+    public function getCleanNameAttribute(): string
+    {
+        $name = trim(preg_replace('/\s*\(Admin\)\s*/i', '', $this->name));
+        return $name ?: $this->name;
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

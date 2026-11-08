@@ -4,78 +4,77 @@
 <div class="space-y-6 w-full max-w-full">
 
     <!-- ========================================================================= -->
-    <!-- 1. EXECUTIVE WELCOME & QUICK ACTION HEADER -->
+    <!-- 1. EXECUTIVE WELCOME & LIVE OPERATIONAL SUMMARY -->
     <!-- ========================================================================= -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950 p-5 sm:p-6 rounded-3xl border border-slate-800 shadow-2xl">
-        <!-- Subtle Background Glow -->
-        <div class="absolute -top-12 -left-12 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-12 -right-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-xl">
+        <!-- Subtle Ambient Glow -->
+        <div class="absolute -top-12 -left-12 w-56 h-56 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -right-12 w-56 h-56 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
-            <!-- Left Side: Identity & Greetings -->
+        <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <!-- Left Side: Identity & Balanced Greeting -->
             <div class="space-y-1.5 min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">
-                    <span class="px-2.5 py-1 rounded-full text-[11px] font-black bg-sky-500/20 text-sky-300 border border-sky-500/30 flex items-center gap-1.5 shadow-sm">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-500/15 text-sky-300 border border-sky-500/25 flex items-center gap-1.5 shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                         بەڕێوەبەرایەتی گومرگی سلێمانی
                     </span>
-                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-800/80 text-slate-300 border border-slate-700/80 font-mono">
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700/80 font-mono">
                         {{ now()->format('Y-m-d') }} • <span id="dashLiveClock">{{ now()->format('H:i') }}</span>
                     </span>
                 </div>
 
-                <h1 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2.5 tracking-tight">
-                    <span>بەخێربێیت،</span>
-                    <span class="bg-gradient-to-r from-sky-400 to-indigo-300 bg-clip-text text-transparent">{{ auth()->user()->name }}</span>
-                    <span class="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                        {{ auth()->user()->role_name_kurdish }}
+                <div class="flex items-center gap-2 flex-wrap pt-0.5">
+                    <h1 class="text-base sm:text-lg font-bold text-white tracking-normal">
+                        بەخێربێیت، <span class="text-sky-300 font-extrabold">{{ auth()->user()->clean_name }}</span>
+                    </h1>
+                    <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/25">
+                        {{ auth()->user()->clean_role_name }}
                     </span>
-                </h1>
-                <p class="text-xs sm:text-sm text-slate-400 max-w-2xl leading-relaxed">
+                </div>
+                <p class="text-xs text-slate-400 max-w-xl leading-relaxed">
                     داشبۆردی سەرەکی چاودێری و ڕاپەڕاندنی مامەڵەکانی دەرهێنانی دەفتەری ئۆتۆمبێلی گەشتیاری.
                 </p>
             </div>
 
-            <!-- Right Side: Quick Action Suite -->
-            <div class="flex items-center flex-wrap gap-2.5 w-full lg:w-auto shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-800">
-                <!-- New Transaction Action -->
-                @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.create'))
-                    <a href="{{ route('transactions.create') }}" 
-                       class="flex-1 sm:flex-none px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs sm:text-sm font-black rounded-xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition hover:scale-102 active:scale-98">
-                        <i class="fa-solid fa-plus-circle text-base"></i>
-                        <span>تۆمارکردنی نوێ</span>
-                    </a>
-                @endif
+            <!-- Right Side: Live Daily Operational Summary (Replaces duplicate action buttons) -->
+            <div class="flex items-center flex-wrap gap-2.5 w-full lg:w-auto shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-800/80">
+                <!-- Today's Transactions Metric Chip -->
+                <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
+                    <div class="w-7 h-7 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-file-invoice"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-400 font-medium">مامەڵەی ئەمڕۆ</div>
+                        <div class="text-sm font-bold font-mono text-white leading-none">{{ $todayTransactions }}</div>
+                    </div>
+                </div>
 
-                <!-- Accounting 66 Action -->
-                @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('reports.accounting_66'))
-                    <a href="{{ route('reports.accounting_66') }}" 
-                       class="flex-1 sm:flex-none px-3.5 py-2.5 bg-slate-800/90 hover:bg-slate-750 text-amber-400 hover:text-amber-300 text-xs sm:text-sm font-bold rounded-xl border border-amber-500/30 hover:border-amber-500/50 shadow flex items-center justify-center gap-2 transition hover:scale-102">
-                        <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
-                        <span>محاسبة ٦٦</span>
-                    </a>
-                @endif
+                <!-- Today's Income Metric Chip -->
+                <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xs">
+                        <i class="fa-solid fa-coins"></i>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-400 font-medium">داهاتی ئەمڕۆ</div>
+                        <div class="text-sm font-bold font-mono text-emerald-400 leading-none">
+                            {{ number_format($todayIncome) }} <span class="text-[10px] font-sans text-slate-400">د.ع</span>
+                        </div>
+                    </div>
+                </div>
 
-                <!-- Official Letters Action -->
-                @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('prints.official_index'))
-                    <a href="{{ route('transactions.official_prints') }}" 
-                       class="flex-1 sm:flex-none px-3.5 py-2.5 bg-slate-800/90 hover:bg-slate-750 text-indigo-300 hover:text-white text-xs sm:text-sm font-bold rounded-xl border border-indigo-500/30 hover:border-indigo-500/50 shadow flex items-center justify-center gap-2 transition hover:scale-102">
-                        <i class="fa-solid fa-print text-sm"></i>
-                        <span>نوسراوەکان</span>
-                    </a>
-                @endif
-
-                <!-- Expired Booklets Alert Action -->
-                @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('reports.expired_booklets'))
+                <!-- Expired Booklets Alert Chip (If Any) -->
+                @if($expiredBookletsCount > 0)
                     <a href="{{ route('transactions.expired_booklets') }}" 
-                       class="flex-1 sm:flex-none px-3 py-2.5 bg-slate-800/90 hover:bg-rose-950/40 text-rose-400 hover:text-rose-300 text-xs sm:text-sm font-bold rounded-xl border border-rose-500/30 hover:border-rose-500/60 shadow flex items-center justify-center gap-2 transition hover:scale-102">
-                        <i class="fa-solid fa-calendar-xmark text-sm"></i>
-                        <span>بەسەرچووەکان</span>
-                        @if($expiredBookletsCount > 0)
-                            <span class="px-1.5 py-0.2 bg-rose-500 text-white rounded-full text-[10px] font-black">
-                                {{ $expiredBookletsCount }}
-                            </span>
-                        @endif
+                       class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 transition shadow-sm" 
+                       title="کلیک بکە بۆ بینینی دەفتەرە بەسەرچووەکان">
+                        <div class="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-rose-300 font-medium">بەسەرچوو</div>
+                            <div class="text-sm font-bold font-mono text-rose-200 leading-none">{{ $expiredBookletsCount }}</div>
+                        </div>
                     </a>
                 @endif
             </div>
