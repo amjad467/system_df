@@ -281,6 +281,20 @@
                     </a>
                 </div>
 
+                <!-- Fast Barcode Scanner Form (Desktop / Tablet) -->
+                <form action="{{ route('transactions.scan') }}" method="POST" class="hidden md:flex items-center relative shrink-0">
+                    @csrf
+                    <div class="relative flex items-center">
+                        <input type="text" name="barcode" id="globalDesktopBarcodeInput" placeholder="سکانی بارکۆد بکە... (F2)" 
+                               class="w-48 lg:w-60 bg-slate-100 dark:bg-slate-900/90 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl border border-slate-300 dark:border-slate-700 pr-9 pl-3 py-1.5 lg:py-2 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition font-mono font-bold"
+                               autocomplete="off"
+                               title="تێکست بۆکسی لێدانی بارکۆد (یاخود کلیلی F2 داگرە)">
+                        <button type="submit" class="absolute right-2.5 text-slate-400 hover:text-sky-500 transition" title="گەڕان بەپێی بارکۆد">
+                            <i class="fa-solid fa-barcode text-sm"></i>
+                        </button>
+                    </div>
+                </form>
+
                 <!-- Navigation Links (Desktop) -->
                 <nav class="hidden lg:flex items-center space-x-1 space-x-reverse min-w-0 flex-wrap">
                     <a href="{{ route('dashboard') }}" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition {{ request()->routeIs('dashboard') ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white' }}">
@@ -828,6 +842,18 @@
                 }).join(' ').toUpperCase();
             }
         };
+
+        // Global F2 keyboard shortcut to quickly focus the barcode scanner textbox
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'F2') {
+                e.preventDefault();
+                const barcodeInput = document.getElementById('globalDesktopBarcodeInput');
+                if (barcodeInput) {
+                    barcodeInput.focus();
+                    barcodeInput.select();
+                }
+            }
+        });
     </script>
 </body>
 </html>
