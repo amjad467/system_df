@@ -8,6 +8,11 @@ class TransactionType extends Model
 {
     protected $guarded = [];
 
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
     public function requiresBooklet(): bool
     {
         if (in_array((int)$this->id, [1, 2, 3, 4, 7])) {
