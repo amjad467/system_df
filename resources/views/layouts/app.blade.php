@@ -344,7 +344,7 @@
                     @if(auth()->check() && auth()->user()->isAdmin())
                         <div class="relative" x-data="{ openAdminMenu: false }">
                             <button @click="openAdminMenu = !openAdminMenu" type="button" 
-                                    class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('settings.*') || request()->routeIs('users.*') || request()->routeIs('logs.*') || request()->routeIs('transactions.trash') ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                    class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('settings.*') || request()->routeIs('users.*') || request()->routeIs('logs.*') || request()->routeIs('transactions.trash') || request()->routeIs('security.*') ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 border border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                                 <i class="fa-solid fa-gear text-indigo-400 text-xs"></i>
                                 <span>کارگێڕی</span>
                                 <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openAdminMenu ? 'rotate-180' : ''"></i>
@@ -377,6 +377,18 @@
                                 <a href="{{ route('logs.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('logs.index') ? 'bg-sky-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                                     <i class="fa-solid fa-clock-rotate-left w-4 text-center"></i>
                                     <span>لۆگی سیستم</span>
+                                </a>
+                                <a href="{{ route('security.hub') }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('security.*') ? 'bg-red-600 text-white' : 'text-red-500 dark:text-red-400 hover:bg-red-500/10' }}">
+                                    <div class="flex items-center gap-2.5">
+                                        <i class="fa-solid fa-shield-halved w-4 text-center"></i>
+                                        <span>ئاسایش و مۆنیتەرینگ</span>
+                                    </div>
+                                    @php $unresCount = \App\Models\SecurityIncident::unresolvedCount(); @endphp
+                                    @if($unresCount > 0)
+                                        <span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-mono font-black animate-pulse">
+                                            {{ $unresCount }}
+                                        </span>
+                                    @endif
                                 </a>
                             </div>
                         </div>
@@ -558,6 +570,9 @@
                         </a>
                         <a href="{{ route('logs.index') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300">
                             <i class="fa-solid fa-clock-rotate-left ml-1.5 text-slate-500"></i> لۆگ
+                        </a>
+                        <a href="{{ route('security.hub') }}" class="col-span-2 p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 dark:text-red-400 font-bold">
+                            <i class="fa-solid fa-shield-halved ml-1.5"></i> ئاسایش و مۆنیتەرینگ
                         </a>
                     @endif
                 </div>

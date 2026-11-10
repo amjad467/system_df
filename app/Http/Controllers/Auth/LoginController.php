@@ -167,12 +167,16 @@ class LoginController extends Controller
                 Auth::login($user, $request->boolean('remember'));
                 $request->session()->regenerate();
                 AuditLogger::log('چوونەنەژوورەوە بۆ سیستەم', User::class, Auth::id(), 'فەرمانبەر چووە ژوورەوە');
+                \App\Services\SecurityService::handleSuccessfulLogin($user, $request);
                 return redirect()->intended(route('dashboard'))->with('success', 'بەخێربێیت بەڕێز ' . Auth::user()->name);
             }
         }
 
+        // Track failed login attempt and enforce Brute-Force protection
+        $attempts = \App\Services\SecurityService::handleFailedLogin($request->ip(), $rawInput);
+
         return back()->withErrors([
-            'email' => 'ئیمەیڵ / یوزەرنەیم یان وشەی تێپەڕ نادروستە. (تێبینی: یوزەرنەیمی سەرەکی: admin ، وشەی تێپەڕ: 123456)',
+            'email' => "ئیمەیڵ / یوزەرنەیم یان وشەی تێپەڕ نادروستە. (هەوڵی نەگونجاو: {$attempts} لە ٥)",
         ])->onlyInput('email');
     }
 

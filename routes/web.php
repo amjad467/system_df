@@ -139,4 +139,13 @@ Route::middleware('auth')->group(function () {
 
     // Activity Logs
     Route::get('/logs', [ActivityLogController::class, 'index'])->name('logs.index');
+
+    // Security & Monitoring Hub (Admin ONLY)
+    Route::get('/security', [\App\Http\Controllers\SecurityHubController::class, 'index'])->name('security.hub');
+    Route::post('/security/resolve/{incident}', [\App\Http\Controllers\SecurityHubController::class, 'resolve'])->name('security.resolve');
+    Route::post('/security/resolve-all', [\App\Http\Controllers\SecurityHubController::class, 'resolveAll'])->name('security.resolve_all');
+    Route::post('/security/block-ip', [\App\Http\Controllers\SecurityHubController::class, 'blockIpManual'])->name('security.block_ip');
+    Route::delete('/security/unblock-ip/{blockedIp}', [\App\Http\Controllers\SecurityHubController::class, 'unblockIp'])->name('security.unblock_ip');
+    Route::post('/security/settings', [\App\Http\Controllers\SecurityHubController::class, 'updateSettings'])->name('security.settings.update');
+    Route::post('/security/test-telegram', [\App\Http\Controllers\SecurityHubController::class, 'testTelegram'])->name('security.test_telegram');
 });
