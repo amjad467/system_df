@@ -23,6 +23,11 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
+        // Data Entry clerks do not access general transactions list
+        if (auth()->check() && auth()->user()->role === 'data_entry' && !auth()->user()->isAdmin()) {
+            return redirect()->route('dashboard');
+        }
+
         // Self-heal: If database is empty on hosted service, automatically restore all 84 baseline records
         if (Transaction::count() === 0) {
             \App\Services\DataRestoreService::restoreAll();

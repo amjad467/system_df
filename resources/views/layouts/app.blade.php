@@ -177,7 +177,8 @@
     }
 }" x-init="initPwa()" class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-sky-500 selection:text-white transition-colors duration-200">
 
-    <!-- PWA Install Banner for Mobile & Tablet -->
+    <!-- PWA Install Banner for Mobile & Tablet (Admin ONLY) -->
+    @if(auth()->check() && auth()->user()->isAdmin())
     <div x-show="showInstallBanner && !isInstalled" x-cloak x-transition.duration.300ms
          class="bg-gradient-to-r from-sky-900 via-indigo-900 to-slate-900 text-white border-b border-sky-500/40 px-3 py-2.5 shadow-xl relative z-50">
         <div class="max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs">
@@ -201,6 +202,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <!-- iOS Install Helper Modal -->
     <div x-show="showIosModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -303,10 +305,12 @@
                         <i class="fa-solid fa-chart-pie text-xs opacity-80"></i>
                         <span>داشبۆرد</span>
                     </a>
-                    <a href="{{ route('transactions.index') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('transactions.index') ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                        <i class="fa-solid fa-list-check text-xs opacity-80"></i>
-                        <span>مامەڵەکان</span>
-                    </a>
+                    @if(!auth()->check() || auth()->user()->role !== 'data_entry')
+                        <a href="{{ route('transactions.index') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('transactions.index') ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                            <i class="fa-solid fa-list-check text-xs opacity-80"></i>
+                            <span>مامەڵەکان</span>
+                        </a>
+                    @endif
 
                     <!-- چاپی نوسراوەکان (Allowed via Permission) -->
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('prints.official_index')))
@@ -390,6 +394,11 @@
                                         </span>
                                     @endif
                                 </a>
+                                <div class="border-t border-slate-100 dark:border-slate-800 my-1"></div>
+                                <a href="{{ route('settings.backup.download') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition text-sky-600 dark:text-sky-300 hover:bg-sky-500/10" title="داگرتنی کۆپی یەدەگی داتابەیس">
+                                    <i class="fa-solid fa-database w-4 text-center text-sky-400"></i>
+                                    <span>باک ئەپی داتابەیس (Backup)</span>
+                                </a>
                             </div>
                         </div>
                     @endif
@@ -402,17 +411,19 @@
                         <i class="fa-solid fa-barcode text-sm"></i>
                     </button>
 
-                    <!-- Mobile App Install Quick Button -->
-                    <button type="button" x-show="!isInstalled" @click="promptInstall()" class="md:hidden flex items-center gap-1 px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-sky-400 text-[11px] font-bold border border-slate-200 dark:border-slate-700 transition" title="دابەزاندنی سیستەم وەک ئەپ">
-                        <i class="fa-solid fa-cloud-arrow-down text-xs"></i>
-                        <span>ئەپ</span>
-                    </button>
+                    @if(auth()->check() && auth()->user()->isAdmin())
+                        <!-- Mobile App Install Quick Button (Admin ONLY) -->
+                        <button type="button" x-show="!isInstalled" @click="promptInstall()" class="md:hidden flex items-center gap-1 px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-sky-400 text-[11px] font-bold border border-slate-200 dark:border-slate-700 transition" title="دابەزاندنی سیستەم وەک ئەپ">
+                            <i class="fa-solid fa-cloud-arrow-down text-xs"></i>
+                            <span>ئەپ</span>
+                        </button>
 
-                    <!-- PWA Desktop Install Button -->
-                    <button type="button" x-show="!isInstalled" @click="promptInstall()" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-sky-600 dark:text-sky-400 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition" title="دابەزاندنی سیستەم وەک بەرنامەی سەربەخۆ (PWA)">
-                        <i class="fa-solid fa-cloud-arrow-down text-xs"></i>
-                        <span>داگرتنی ئەپ</span>
-                    </button>
+                        <!-- PWA Desktop Install Button (Admin ONLY) -->
+                        <button type="button" x-show="!isInstalled" @click="promptInstall()" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-sky-600 dark:text-sky-400 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition" title="دابەزاندنی سیستەم وەک بەرنامەی سەربەخۆ (PWA)">
+                            <i class="fa-solid fa-cloud-arrow-down text-xs"></i>
+                            <span>داگرتنی ئەپ</span>
+                        </button>
+                    @endif
 
                     <!-- Dark / Light Mode Toggle Button -->
                     <button @click="toggleTheme()" type="button" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-amber-500 dark:text-yellow-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition border border-slate-200 dark:border-slate-700" title="گۆڕینی دۆخی ڕووناکی / تاریکی">
@@ -489,9 +500,11 @@
                                 <span class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold block">{{ auth()->user()->clean_role_name }}</span>
                             </div>
                         </div>
-                        <button type="button" @click="promptInstall()" x-show="!isInstalled" class="px-2.5 py-1 bg-sky-600 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 shadow">
-                            <i class="fa-solid fa-download"></i> PWA ئەپ
-                        </button>
+                        @if(auth()->user()->isAdmin())
+                            <button type="button" @click="promptInstall()" x-show="!isInstalled" class="px-2.5 py-1 bg-sky-600 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 shadow">
+                                <i class="fa-solid fa-download"></i> PWA ئەپ
+                            </button>
+                        @endif
                     </div>
                 @endauth
 
@@ -505,24 +518,28 @@
                     </button>
                 </form>
 
-                <!-- PWA Install Button inside Mobile Drawer -->
-                <button type="button" x-show="!isInstalled" @click="promptInstall()" class="w-full p-2.5 rounded-xl bg-gradient-to-r from-sky-600 via-indigo-600 to-sky-700 hover:from-sky-500 hover:to-indigo-500 text-white flex items-center justify-between text-xs font-black shadow-lg shadow-sky-600/30 transition active:scale-[0.98]">
-                    <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
-                            <i class="fa-solid fa-mobile-screen-button text-sm"></i>
+                @if(auth()->check() && auth()->user()->isAdmin())
+                    <!-- PWA Install Button inside Mobile Drawer (Admin ONLY) -->
+                    <button type="button" x-show="!isInstalled" @click="promptInstall()" class="w-full p-2.5 rounded-xl bg-gradient-to-r from-sky-600 via-indigo-600 to-sky-700 hover:from-sky-500 hover:to-indigo-500 text-white flex items-center justify-between text-xs font-black shadow-lg shadow-sky-600/30 transition active:scale-[0.98]">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+                                <i class="fa-solid fa-mobile-screen-button text-sm"></i>
+                            </div>
+                            <span>دابەزاندنی سیستەم وەک ئەپ (Install App)</span>
                         </div>
-                        <span>دابەزاندنی سیستەم وەک ئەپ (Install App)</span>
-                    </div>
-                    <span class="px-2 py-0.5 bg-white/20 rounded-md text-[10px] font-bold">دابەزاندن</span>
-                </button>
+                        <span class="px-2 py-0.5 bg-white/20 rounded-md text-[10px] font-bold">دابەزاندن</span>
+                    </button>
+                @endif
 
                 <div class="grid grid-cols-2 gap-2 text-xs font-bold">
                     <a href="{{ route('dashboard') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-sky-600 hover:text-white">
                         <i class="fa-solid fa-chart-pie ml-1.5 text-sky-500"></i> داشبۆرد
                     </a>
-                    <a href="{{ route('transactions.index') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-sky-600 hover:text-white">
-                        <i class="fa-solid fa-list-check ml-1.5 text-emerald-500"></i> مامەڵەکان
-                    </a>
+                    @if(!auth()->check() || auth()->user()->role !== 'data_entry')
+                        <a href="{{ route('transactions.index') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-sky-600 hover:text-white">
+                            <i class="fa-solid fa-list-check ml-1.5 text-emerald-500"></i> مامەڵەکان
+                        </a>
+                    @endif
 
                     <!-- چاپی نوسراوەکان (Allowed via Permission) -->
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('prints.official_index')))
@@ -571,8 +588,11 @@
                         <a href="{{ route('logs.index') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300">
                             <i class="fa-solid fa-clock-rotate-left ml-1.5 text-slate-500"></i> لۆگ
                         </a>
-                        <a href="{{ route('security.hub') }}" class="col-span-2 p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 dark:text-red-400 font-bold">
-                            <i class="fa-solid fa-shield-halved ml-1.5"></i> ئاسایش و مۆنیتەرینگ
+                        <a href="{{ route('security.hub') }}" class="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 dark:text-red-400 font-bold">
+                            <i class="fa-solid fa-shield-halved ml-1.5"></i> ئاسایش
+                        </a>
+                        <a href="{{ route('settings.backup.download') }}" class="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-600 dark:text-sky-400 font-bold">
+                            <i class="fa-solid fa-database ml-1.5"></i> باک ئەپ (Backup)
                         </a>
                     @endif
                 </div>
@@ -712,11 +732,18 @@
                     <span>داشبۆرد</span>
                 </a>
 
-                <!-- 2. مامەڵەکان -->
-                <a href="{{ route('transactions.index') }}" class="flex flex-col items-center justify-center py-1.5 text-[10px] font-bold transition {{ request()->routeIs('transactions.index*') ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
-                    <i class="fa-solid fa-list-check text-base mb-0.5"></i>
-                    <span>مامەڵەکان</span>
-                </a>
+                <!-- 2. مامەڵەکان (جگە لە داتائەنتەری) -->
+                @if(auth()->user()->role !== 'data_entry')
+                    <a href="{{ route('transactions.index') }}" class="flex flex-col items-center justify-center py-1.5 text-[10px] font-bold transition {{ request()->routeIs('transactions.index*') ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
+                        <i class="fa-solid fa-list-check text-base mb-0.5"></i>
+                        <span>مامەڵەکان</span>
+                    </a>
+                @else
+                    <button type="button" @click="showMobileBarcodeModal = true" class="flex flex-col items-center justify-center py-1.5 text-[10px] font-bold text-sky-600 dark:text-sky-400">
+                        <i class="fa-solid fa-barcode text-base mb-0.5"></i>
+                        <span>سکان</span>
+                    </button>
+                @endif
 
                 <!-- 3. ناوەند: مامەڵەی نوێ یان سکانەر (Raised Center Action) -->
                 @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.create'))

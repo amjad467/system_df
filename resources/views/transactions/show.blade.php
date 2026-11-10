@@ -89,10 +89,17 @@
     <!-- Top Navigation & Action Toolbar -->
     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-sm">
         <div class="flex items-center space-x-3 space-x-reverse w-full md:w-auto">
-            <a href="{{ route('transactions.index') }}" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow" title="گەڕانەوە بۆ لیستی مامەڵەکان">
-                <i class="fa-solid fa-arrow-right"></i>
-                <span class="hidden sm:inline">لیست</span>
-            </a>
+            @if(auth()->check() && auth()->user()->role === 'data_entry' && !auth()->user()->isAdmin())
+                <a href="{{ route('dashboard') }}" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow" title="گەڕانەوە بۆ وێستگەی داتائەنتەری">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    <span class="hidden sm:inline">گەڕانەوە</span>
+                </a>
+            @else
+                <a href="{{ route('transactions.index') }}" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow" title="گەڕانەوە بۆ لیستی مامەڵەکان">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    <span class="hidden sm:inline">لیست</span>
+                </a>
+            @endif
 
             <div class="bg-white px-2 py-1 rounded-xl shadow-md border border-slate-700 flex items-center justify-center shrink-0">
                 <svg id="showBarcodeSvg" class="max-h-10"></svg>

@@ -51,4 +51,28 @@ class SettingsController extends Controller
 
         return view('settings.lookups', compact('transactionTypes', 'directorates', 'directors'));
     }
+
+    /**
+     * Download database backup (Admin ONLY).
+     */
+    public function backupDownload()
+    {
+        if (!auth()->check() || !auth()->user()->isAdmin()) {
+            abort(403, 'تەنها سەرپەرشتیاری گشتی (Admin) دەسەڵاتی داگرتنی کۆپی یەدەگ و باک ئەپی داتابەیسی هەیە!');
+        }
+
+        $dbPath = database_path('database.sqlite');
+        if (!file_exists($dbPath)) {
+            return redirect()->back()->with('error', 'فایلی داتابەیس نەدۆزرایەوە!');
+        }
+
+        $timestamp = now()->format('Y-m-d_H-i-s');
+        $fileName = "customs_database_backup_{$timestamp}.sqlite";
+
+        AuditLogger::log('داگرتنی باک ئەپی داتابەیس', null, null, "ئەدمین کۆپییەکی یەدەگی داتابەیسی داگرت: {$fileName}");
+
+        return response()->download($dbPath, $fileName, [
+            'Content-Type' => 'application/x-sqlite3',
+        ]);
+    }
 }

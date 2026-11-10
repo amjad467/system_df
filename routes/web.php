@@ -122,6 +122,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/lookup/passport-issue-place/{passportIssuePlace}', [LookupController::class, 'destroyPassportIssuePlace'])->name('lookup.passport_issue_place.destroy');
 
     // Super Admin Settings & User Management
+    Route::get('/settings/backup/download', [SettingsController::class, 'backupDownload'])->name('settings.backup.download');
     Route::get('/settings/pricing', [SettingsController::class, 'pricing'])->name('settings.pricing');
     Route::post('/settings/pricing', [SettingsController::class, 'updatePricing'])->name('settings.pricing.update');
     Route::get('/settings/lookups', [SettingsController::class, 'lookups'])->name('settings.lookups');
