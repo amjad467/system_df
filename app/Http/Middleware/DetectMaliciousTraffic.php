@@ -31,3 +31,4 @@ class DetectMaliciousTraffic
         return $next($request);
     }
 }
+

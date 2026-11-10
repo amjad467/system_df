@@ -31,3 +31,4 @@ class CheckBlockedIp
         return $next($request);
     }
 }
+

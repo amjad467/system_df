@@ -224,3 +224,4 @@ class SecurityService
         BlockedIp::where('ip_address', $ip)->delete();
     }
 }
+

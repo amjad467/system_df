@@ -34,3 +34,4 @@ class SecuritySetting extends Model
         }
     }
 }
+

@@ -779,37 +779,49 @@
             });
         }
     </script>
-    <!-- Smart Bi-Directional Arabic/Kurdish/English Keyboard Converter -->
+    <!-- Smart Bi-Directional Kurdish/English Standard Keyboard Converter & Transliteration Engine -->
     <script>
         window.LangConvert = {
-            arToEnMap: {
-                'ض': 'Q', 'ص': 'W', 'ث': 'E', 'ق': 'R', 'ف': 'T', 'غ': 'Y', 'ع': 'U', 'ه': 'I', 'خ': 'O', 'ح': 'P', 'ج': '[', 'د': ']',
-                'ش': 'A', 'س': 'S', 'ي': 'D', 'ب': 'F', 'ل': 'G', 'ا': 'H', 'ت': 'J', 'ن': 'K', 'م': 'L', 'ك': ';', 'ط': "'",
-                'ئ': 'Z', 'ء': 'X', 'ؤ': 'C', 'ر': 'V', 'لا': 'B', 'ى': 'N', 'ة': 'M', 'و': ',', 'ز': '.', 'ظ': '/', 'ذ': '`',
-                'پ': 'P', 'چ': 'C', 'ژ': 'J', 'گ': 'G', 'ڤ': 'V', 'ۆ': 'O', 'ێ': 'E', 'ڕ': 'R', 'ڵ': 'L', 'ک': 'K', 'ە': 'E', 'ی': 'Y'
-            },
-            enToAr101Map: {
-                'q': 'ض', 'w': 'ص', 'e': 'ث', 'r': 'ق', 't': 'ف', 'y': 'غ', 'u': 'ع', 'i': 'ه', 'o': 'خ', 'p': 'ح', '[': 'ج', ']': 'د',
-                'a': 'ش', 's': 'س', 'd': 'ي', 'f': 'ب', 'g': 'ل', 'h': 'ا', 'j': 'ت', 'k': 'ن', 'l': 'م', ';': 'ك', "'": 'ط',
-                'z': 'ئ', 'x': 'ء', 'c': 'ؤ', 'v': 'ر', 'b': 'لا', 'n': 'ى', 'm': 'ة', ',': 'و', '.': 'ز', '/': 'ظ', '`': 'ذ',
-                'Q': 'ض', 'W': 'ص', 'E': 'ث', 'R': 'ق', 'T': 'ف', 'Y': 'غ', 'U': 'ع', 'I': 'ه', 'O': 'خ', 'P': 'ح',
-                'A': 'ش', 'S': 'س', 'D': 'ي', 'F': 'ب', 'G': 'ل', 'H': 'ا', 'J': 'ت', 'K': 'ن', 'L': 'م',
-                'Z': 'ئ', 'X': 'ء', 'C': 'ؤ', 'V': 'ر', 'B': 'لا', 'N': 'ى', 'M': 'ة'
-            },
-            enToKuPhoneticMap: {
-                'a': 'ا', 'b': 'ب', 'c': 'چ', 'd': 'د', 'e': 'ە', 'f': 'ف', 'g': 'گ', 'h': 'ه', 'i': 'ی', 'j': 'ژ',
-                'k': 'ک', 'l': 'ل', 'm': 'م', 'n': 'ن', 'o': 'ۆ', 'p': 'پ', 'q': 'ق', 'r': 'ر', 's': 'س', 't': 'ت',
-                'u': 'و', 'v': 'ڤ', 'w': 'و', 'x': 'خ', 'y': 'ی', 'z': 'ز',
-                'A': 'ا', 'B': 'ب', 'C': 'چ', 'D': 'د', 'E': 'ێ', 'F': 'ف', 'G': 'گ', 'H': 'ح', 'I': 'ی', 'J': 'ژ',
-                'K': 'ک', 'L': 'ڵ', 'M': 'م', 'N': 'ن', 'O': 'ۆ', 'P': 'پ', 'Q': 'ق', 'R': 'ڕ', 'S': 'ص', 'T': 'ط',
-                'U': 'ع', 'V': 'ڤ', 'W': 'وو', 'X': 'خ', 'Y': 'ی', 'Z': 'ز'
+            // Standard Kurdish QWERTY Keyboard Mapping (Direct 1-to-1 physical key match)
+            kuToEnMap: {
+                'q': 'Q', 'ق': 'Q',
+                'w': 'W', 'و': 'W',
+                'e': 'E', 'ە': 'E', 'ێ': 'E',
+                'r': 'R', 'ر': 'R', 'ڕ': 'R',
+                't': 'T', 'ت': 'T', 'ط': 'T',
+                'y': 'Y', 'ی': 'Y', 'ي': 'Y',
+                'u': 'U', 'ع': 'U',
+                'i': 'I',
+                'o': 'O', 'ۆ': 'O',
+                'p': 'P', 'پ': 'P',
+                'a': 'A', 'ا': 'A', 'آ': 'A', 'أ': 'A', 'ئ': 'A',
+                's': 'S', 'س': 'S', 'ص': 'S',
+                'd': 'D', 'د': 'D', 'ض': 'D',
+                'f': 'F', 'ف': 'F',
+                'g': 'G', 'گ': 'G', 'غ': 'G',
+                'h': 'H', 'ه': 'H', 'ح': 'H', 'ھ': 'H',
+                'j': 'J', 'ژ': 'J', 'ج': 'J',
+                'k': 'K', 'ک': 'K', 'ك': 'K',
+                'l': 'L', 'ل': 'L', 'ڵ': 'L',
+                'z': 'Z', 'ز': 'Z', 'ظ': 'Z', 'ذ': 'Z',
+                'x': 'X', 'خ': 'X',
+                'c': 'C', 'چ': 'C',
+                'v': 'V', 'ڤ': 'V',
+                'b': 'B', 'ب': 'B',
+                'n': 'N', 'ن': 'N',
+                'm': 'M', 'م': 'M',
+                '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
+                '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
+                '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+                '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'
             },
             nameDict: {
-                'محمد': 'MOHAMMED', 'محەمەد': 'MOHAMMED', 'محەممەد': 'MOHAMMED',
-                'احمد': 'AHMED', 'ئەحمەد': 'AHMED',
+                // Names with standardized international passport spellings
+                'محمد': 'MOHAMMED', 'محەمەد': 'MOHAMMED', 'محەممەد': 'MOHAMMED', 'مەحەمەد': 'MOHAMMED',
+                'احمد': 'AHMED', 'ئەحمەد': 'AHMED', 'ئەحمد': 'AHMED',
                 'علی': 'ALI', 'عەلی': 'ALI',
                 'حسن': 'HASAN', 'حەسەن': 'HASAN',
-                'حسین': 'HUSSEIN', 'حوسێن': 'HUSSEIN',
+                'حسین': 'HUSSEIN', 'حوسێن': 'HUSSEIN', 'حسێن': 'HUSSEIN',
                 'عثمان': 'OSMAN', 'عوسمان': 'OSMAN',
                 'عمر': 'OMAR', 'عومەر': 'OMAR',
                 'بکر': 'BAKR', 'بەکر': 'BAKR',
@@ -819,49 +831,104 @@
                 'کمال': 'KAMAL', 'کەمال': 'KAMAL',
                 'جمال': 'JAMAL', 'جەمال': 'JAMAL',
                 'خالد': 'KHALID', 'خالید': 'KHALID',
-                'عبدالله': 'ABDULLAH', 'عەبدوڵڵا': 'ABDULLAH', 'عبد الله': 'ABDULLAH',
-                'عبدالرحمن': 'ABDULRAHMAN', 'عەبدولڕەحمان': 'ABDULRAHMAN',
+                'عبدالله': 'ABDULLAH', 'عەبدوڵڵا': 'ABDULLAH', 'عبد الله': 'ABDULLAH', 'عەبدوڵا': 'ABDULLAH',
+                'عبدالرحمن': 'ABDULRAHMAN', 'عەبدولڕەحمان': 'ABDULRAHMAN', 'عبد الرحمن': 'ABDULRAHMAN',
                 'عبدالکریم': 'ABDULKARIM', 'عەبدولکەریم': 'ABDULKARIM',
+                'عبدالخالق': 'ABDULKHALIQ', 'عەبدولخالق': 'ABDULKHALIQ',
+                'عبدالقادر': 'ABDULQADIR', 'عەبدولقادر': 'ABDULQADIR',
+                'عبدالستار': 'ABDULSTAR', 'عەبدولستار': 'ABDULSTAR',
+                'عبدالعزیز': 'ABDULAZIZ', 'عەبدولعەزیز': 'ABDULAZIZ',
                 'ابراهیم': 'IBRAHIM', 'ئیبراهیم': 'IBRAHIM',
-                'یوسف': 'YOUSIF', 'ئامانج': 'AMANJ', 'دانا': 'DANA',
-                'هێمن': 'HEMIN', 'ئاراس': 'ARAS', 'سەردار': 'SARDAR',
-                'ڕێبوار': 'REBWAR', 'دیار': 'DIYAR', 'بەرهەم': 'BARHAM',
-                'شاخەوان': 'SHAKHAWAN', 'زانا': 'ZANA', 'گۆران': 'GORAN',
-                'هۆشیار': 'HOSHYAR', 'ئاسۆ': 'ASO', 'شوان': 'SHWAN',
-                'کاروان': 'KARWAN', 'هێرش': 'HERISH', 'هیوا': 'HIWA',
-                'بەختیار': 'BAKHTIYAR', 'شەماڵ': 'SHAMAL', 'کامەران': 'KAMARAN',
-                'ڕەوان': 'RAWAN', 'نەبەز': 'NABAZ', 'نەوزاد': 'NAWZAD',
-                'هیدایەت': 'HIDAYAT', 'فەرهاد': 'FARHAD', 'سەباح': 'SABAH',
-                'تەها': 'TAHA', 'جەعفەر': 'JAFAR', 'سەعید': 'SAEED',
-                'هاوڕێ': 'HAWRE', 'شیروان': 'SHIRWAN', 'سەروەت': 'SARWAT',
-                'مەحمود': 'MAHMOOD', 'محمود': 'MAHMOOD', 'ئازاد': 'AZAD',
-                'رزگار': 'RIZGAR', 'ڕزگار': 'RIZGAR', 'وریا': 'WRYA',
-                'سۆران': 'SORAN', 'پشتیوان': 'PISHTIWAN', 'بژار': 'BZHAR'
+                'اسماعیل': 'ISMAIL', 'ئیسماعیل': 'ISMAIL',
+                'یوسف': 'YOUSIF', 'یووسف': 'YOUSIF',
+                'یعقوب': 'YAQOOB', 'مەحمود': 'MAHMOOD', 'محمود': 'MAHMOOD', 'مەحموود': 'MAHMOOD',
+                'امجد': 'AMJAD', 'ئەمجەد': 'AMJAD',
+                'ئامانج': 'AMANJ', 'دانا': 'DANA', 'هێمن': 'HEMIN', 'هیمن': 'HEMIN',
+                'ئاراس': 'ARAS', 'سەردار': 'SARDAR', 'ڕێبوار': 'REBWAR', 'دیار': 'DIYAR',
+                'بەرهەم': 'BARHAM', 'شاخەوان': 'SHAKHAWAN', 'زانا': 'ZANA', 'گۆران': 'GORAN',
+                'هۆشیار': 'HOSHYAR', 'ئاسۆ': 'ASO', 'شوان': 'SHWAN', 'کاروان': 'KARWAN',
+                'هێرش': 'HERISH', 'هیوا': 'HIWA', 'بەختیار': 'BAKHTIYAR', 'شەماڵ': 'SHAMAL',
+                'کامەران': 'KAMARAN', 'ڕەوان': 'RAWAN', 'نەبەز': 'NABAZ', 'نەوزاد': 'NAWZAD',
+                'هیدایەت': 'HIDAYAT', 'فەرهاد': 'FARHAD', 'سەباح': 'SABAH', 'صباح': 'SABAH',
+                'تەها': 'TAHA', 'جەعفەر': 'JAFAR', 'سەعید': 'SAEED', 'هاوڕێ': 'HAWRE',
+                'شیروان': 'SHIRWAN', 'سەروەت': 'SARWAT', 'ئازاد': 'AZAD', 'رزگار': 'RIZGAR',
+                'ڕزگار': 'RIZGAR', 'وریا': 'WRYA', 'سۆران': 'SORAN', 'پشتیوان': 'PISHTIWAN',
+                'بژار': 'BZHAR', 'فەریاد': 'FARYAD', 'فریاد': 'FARYAD', 'بلند': 'BLND',
+                'کاوە': 'KAWA', 'ڕێبین': 'REBIN', 'شێرزاد': 'SHERZAD', 'سیروان': 'SIRWAN',
+                'ڕەنجدەر': 'RANJDAR', 'هاوکار': 'HAWKAR', 'بێستوون': 'BESTUN', 'کارۆخ': 'KAROKH',
+                'هەڵکەوت': 'HALKAWT', 'لوقمان': 'LUQMAN', 'مەریوان': 'MARIWAN', 'نەژاد': 'NZHAD',
+                'ڕۆژگار': 'ROZHGAR', 'ئاریان': 'ARYAN', 'ئاری': 'ARI', 'دڵشاد': 'DILSHAD',
+                'دڵزار': 'DILZAR', 'سەنگەر': 'SANGAR', 'سەربەست': 'SARBAST', 'پەیمان': 'PAYMAN',
+                'تاریق': 'TARIQ', 'طارق': 'TARIQ', 'تەلار': 'TALAR', 'هەندرێن': 'HANDREN',
+                'ئارام': 'ARAM', 'بڕوا': 'BRWA', 'ئەیووب': 'AYUB', 'ئەیوب': 'AYUB',
+                'یونس': 'YUNIS', 'مستەفا': 'MUSTAFA', 'مصطفی': 'MUSTAFA', 'مەهدی': 'MAHDI',
+                'مەجید': 'MAJID', 'جەمیل': 'JAMIL', 'جەبار': 'JABBAR', 'ستار': 'STAR',
+                'شەریف': 'SHARIF', 'شێخ': 'SHEIKH', 'شەهاب': 'SHAHAB', 'ناسر': 'NASIR',
+                'سەلمان': 'SALMAN', 'سولەیمان': 'SULAIMAN', 'بەهزاد': 'BAHZAD', 'پیرۆت': 'PIROT',
+                'ڕێوار': 'REWAR', 'هۆزان': 'HOZAN', 'ژیار': 'ZHYAR', 'ژیر': 'ZHIR',
+                'فەیسەڵ': 'FAYSAL', 'شەوکەت': 'SHAWKAT', 'حاکم': 'HAKIM', 'عەزیز': 'AZIZ',
+                'ئیدریس': 'IDRIS', 'ئەنوەر': 'ANWAR', 'ئەشرەف': 'ASHRAF', 'ئەکرەم': 'AKRAM',
+                'نەریمان': 'NARIMAN', 'بەهادین': 'BAHADEEN', 'جیهاد': 'JIHAD', 'عیماد': 'EMAD',
+                'مەولود': 'MAWLUD', 'یادگار': 'YADGAR', 'پێشەوا': 'PESHAWA', 'پێشڕەو': 'PESHRAW',
+                'هەردی': 'HARDI', 'شێروان': 'SHERWAN', 'شەهید': 'SHAHID', 'ئەرسەلان': 'ARSLAN',
+                'فازیل': 'FADHIL', 'نازم': 'NAZIM', 'کازم': 'KADHIM', 'عادل': 'ADIL',
+                'موزەفەر': 'MUZAFFAR', 'ڕەفیق': 'RAFIQ', 'جەلال': 'JALAL', 'زەردەشت': 'ZARDASHT',
+                'شۆڕش': 'SHORSH', 'ئاکۆ': 'AKO', 'هەڵمەت': 'HALMAT', 'بەهرۆز': 'BAHROZ',
+                'شیرین': 'SHIRIN', 'سارا': 'SARA', 'فاتیمە': 'FATIMA', 'زەینەب': 'ZAINAB',
+                'مریەم': 'MARYAM', 'ڕۆژین': 'ROZHIN', 'ئەوین': 'AWIN', 'شنیار': 'SHNYAR',
+                'دڵنیا': 'DILNYA', 'خەندە': 'KHANDA', 'لاڤین': 'LAVIN', 'سۆما': 'SOMA',
+                'نیاز': 'NYAZ', 'نیشتمان': 'NISHTMAN', 'سەیران': 'SAYRAN', 'ئاڤان': 'AVAN',
+                'چنوور': 'CHNUR', 'لانە': 'LANA'
             },
+            // Fast standard keyboard typing converter (ensures physical key M produces M, L produces L, etc.)
             toEnglish(str) {
                 if (!str) return '';
-                return str.split('').map(ch => this.arToEnMap[ch] || ch).join('').toUpperCase();
+                return str.split('').map(ch => this.kuToEnMap[ch] || this.kuToEnMap[ch.toLowerCase()] || ch).join('').toUpperCase();
             },
-            toArabic(str, mode = 'ar101') {
-                if (!str) return '';
-                const map = (mode === 'kurdish') ? this.enToKuPhoneticMap : this.enToAr101Map;
-                return str.split('').map(ch => map[ch] || ch).join('');
-            },
+            // Intelligent phonetic transliterator for full names
             transliterate(str) {
                 if (!str) return '';
+                
+                // Clean input and normalize spaces
+                let cleaned = str.trim().replace(/\s+/g, ' ');
+                
+                // Handle multi-word compound names first
+                cleaned = cleaned.replace(/عبد\s+الله/g, 'عبدالله')
+                                 .replace(/عەبدول\s+ڕەحمان/g, 'عبدالرحمن')
+                                 .replace(/عبد\s+الرحمن/g, 'عبدالرحمن')
+                                 .replace(/عەبدول\s+کەریم/g, 'عبدالکریم')
+                                 .replace(/عبد\s+الکریم/g, 'عبدالکریم');
+
                 const charMap = {
                     'ا': 'A', 'آ': 'A', 'أ': 'A', 'إ': 'I', 'ئ': 'A', 'ء': '',
                     'ب': 'B', 'پ': 'P', 'ت': 'T', 'ث': 'TH', 'ج': 'J', 'چ': 'CH',
                     'ح': 'H', 'خ': 'KH', 'د': 'D', 'ذ': 'DH', 'ر': 'R', 'ڕ': 'R',
-                    'ز': 'Z', 'ژ': 'ZH', 'س': 'S', 'ش': 'SH', 'ص': 'S', 'ض': 'D',
+                    'ز': 'Z', 'ژ': 'ZH', 'س': 'S', 'ش': 'SH', 'ص': 'S', 'ض': 'DH',
                     'ط': 'T', 'ظ': 'Z', 'ع': 'A', 'غ': 'GH', 'ف': 'F', 'ڤ': 'V',
                     'ق': 'Q', 'ک': 'K', 'ك': 'K', 'گ': 'G', 'ل': 'L', 'ڵ': 'L',
-                    'م': 'M', 'ن': 'N', 'و': 'W', 'ۆ': 'O', 'ه': 'H', 'ە': 'A',
+                    'م': 'M', 'ن': 'N', 'و': 'W', 'ۆ': 'O', 'ه': 'H', 'ھ': 'H', 'ە': 'A',
                     'ی': 'Y', 'ي': 'Y', 'ێ': 'E', 'ة': 'A'
                 };
-                return str.trim().split(/\s+/).map(w => {
+
+                return cleaned.split(' ').map(w => {
                     if (this.nameDict[w]) return this.nameDict[w];
-                    return w.split('').map(c => charMap[c] || c).join('');
+                    // Replace compound patterns inside unlisted words
+                    let res = '';
+                    for (let i = 0; i < w.length; i++) {
+                        const curr = w[i];
+                        const next = w[i + 1] || '';
+                        if (curr === 'و' && next === 'و') {
+                            res += 'U';
+                            i++;
+                        } else if (curr === 'ە' && i === w.length - 1) {
+                            res += 'A';
+                        } else if (curr === 'ی' && i === w.length - 1 && res.length > 2) {
+                            res += 'I';
+                        } else {
+                            res += charMap[curr] || curr;
+                        }
+                    }
+                    return res;
                 }).join(' ').toUpperCase();
             }
         };

@@ -195,3 +195,4 @@ class SecurityHubController extends Controller
         return response()->json($result);
     }
 }
+
