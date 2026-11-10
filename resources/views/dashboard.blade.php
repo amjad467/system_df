@@ -19,8 +19,11 @@
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                         بەڕێوەبەرایەتی گومرگی سلێمانی
                     </span>
-                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700/80 font-mono">
-                        {{ now()->format('Y-m-d') }} • <span id="dashLiveClock">{{ now()->format('H:i') }}</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700/80 font-mono flex items-center gap-1.5 shadow-sm" title="کاتی ڕاستەوخۆی کۆمپیوتەرەکەت">
+                        <i class="fa-regular fa-clock text-sky-400 text-[10px]"></i>
+                        <span id="dashLiveDate">{{ now()->format('Y-m-d') }}</span>
+                        <span class="text-slate-500">•</span>
+                        <span id="dashLiveClock" class="font-bold text-sky-300">{{ now()->format('H:i:s') }}</span>
                     </span>
                 </div>
 
@@ -644,15 +647,25 @@
 
 </div>
 
-<!-- Live Clock Script -->
+<!-- Live Clock Script (100% Synchronized with User's Computer) -->
 <script>
     function updateClock() {
         const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
-        const el = document.getElementById('dashLiveClock');
-        if (el) el.textContent = `${hours}:${minutes}`;
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+
+        const dateEl = document.getElementById('dashLiveDate');
+        const clockEl = document.getElementById('dashLiveClock');
+        if (dateEl) dateEl.textContent = `${year}-${month}-${day}`;
+        if (clockEl) clockEl.textContent = `${hours}:${minutes}:${seconds}`;
     }
-    setInterval(updateClock, 30000);
+    // Update immediately on page load
+    updateClock();
+    // Live update every second to match computer's clock in real time
+    setInterval(updateClock, 1000);
 </script>
 @endsection
