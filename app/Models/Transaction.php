@@ -187,6 +187,100 @@ class Transaction extends Model
     }
 
     /**
+     * Get detailed status of exactly WHERE the transaction is right now.
+     */
+    public function getCurrentLocationDescription(): array
+    {
+        if ($this->is_cancelled) {
+            return [
+                'title' => 'پووچەڵکراوەتەوە',
+                'description' => 'ئەم مامەڵەیە بە تەواوی ڕاگیراوە و پووچەڵکراوەتەوە' . ($this->cancellation_reason ? " (هۆکار: {$this->cancellation_reason})" : ''),
+                'badge_color' => 'rose',
+                'icon' => 'fa-ban',
+                'step' => 0,
+            ];
+        }
+
+        if ($this->is_returned) {
+            return [
+                'title' => 'گەڕێنراوەتەوە (پێویستی بە ڕاستکردنەوەیە)',
+                'description' => 'گەڕێنراوەتەوە بۆ داتائەنتەری. هۆکار: ' . ($this->return_reason ?? 'هۆکار دیارینەکراوە'),
+                'badge_color' => 'rose',
+                'icon' => 'fa-triangle-exclamation',
+                'step' => 1,
+            ];
+        }
+
+        if ($this->is_submitted) {
+            return [
+                'title' => 'سەبمیت و ئەرشیفکراو',
+                'description' => 'مامەڵەکە بە تەواوی تەواوبووە و لە ئەرشیف پارێزراوە لەلایەن ' . ($this->submitted_by ?? 'کارمەند'),
+                'badge_color' => 'emerald',
+                'icon' => 'fa-box-archive',
+                'step' => 6,
+            ];
+        }
+
+        if ($this->is_booklet_completed) {
+            return [
+                'title' => 'دەفتەری گەشتیاری دەرکراوە',
+                'description' => 'ژمارەی دەفتەر: ' . $this->booklet_number . ' - ئامادەیە بۆ ڕادەستکردن و سەبمیت',
+                'badge_color' => 'indigo',
+                'icon' => 'fa-passport',
+                'step' => 5,
+            ];
+        }
+
+        if ($this->is_paid) {
+            if ($this->requiresBooklet()) {
+                return [
+                    'title' => 'لە بەشی دەفتەرە (چاوەڕوانی دەفتەر)',
+                    'description' => 'پارە دراوە (وەسڵی ۳۷-ئـ: ' . ($this->receipt_37a_number ?? '-') . ') - ئێستا لە بەشی دەفتەرە بۆ لێدانی ژمارەی دەفتەری گەشتیاری',
+                    'badge_color' => 'sky',
+                    'icon' => 'fa-passport',
+                    'step' => 5,
+                ];
+            } else {
+                return [
+                    'title' => 'پارە دراوە (چاوەڕوانی سەبمیت)',
+                    'description' => 'وەسڵی ۳۷-ئـ بڕاوە (ژمارە: ' . ($this->receipt_37a_number ?? '-') . ') - پێویستی بە دەفتەر نییە، چاوەڕێی کۆتاییهێنانە',
+                    'badge_color' => 'emerald',
+                    'icon' => 'fa-check-circle',
+                    'step' => 5,
+                ];
+            }
+        }
+
+        if ($this->is_audited) {
+            return [
+                'title' => 'لە قاسەیە (چاوەڕوانی پارەدان و وەسڵ)',
+                'description' => 'وردبینی لەلایەن ' . ($this->audited_by ?? 'وردبین') . ' کراوە - ئێستا لە بەردەم قاسەیە بۆ بڕینی وەسڵی ۳۷-ئـ و وەرگرتنی پارە',
+                'badge_color' => 'amber',
+                'icon' => 'fa-cash-register',
+                'step' => 4,
+            ];
+        }
+
+        if ($this->is_inspected) {
+            return [
+                'title' => 'لە ژووری وردبینییە (چاوەڕوانی وردبین)',
+                'description' => 'کەشف و تەخمین لەلایەن ' . ($this->inspected_by ?? 'ئەندازیار') . ' تەواوکراوە - ئێستا لەلای وردبینی ژمێریارییە',
+                'badge_color' => 'purple',
+                'icon' => 'fa-clipboard-check',
+                'step' => 3,
+            ];
+        }
+
+        return [
+            'title' => 'لە بەشی کەشف و تەخمینە (لای ئەندازیار)',
+            'description' => 'داتاکان داخڵکراون لەلایەن ' . ($this->user_input ?? 'داتائەنتەری') . ' - ئێستا چاوەڕێی پشکنینی ئۆتۆمبێلە لەلایەن ئەندازیاری تەخمین',
+            'badge_color' => 'orange',
+            'icon' => 'fa-magnifying-glass',
+            'step' => 2,
+        ];
+    }
+
+    /**
      * Check if given user can pass the CURRENT active stage.
      */
     public function canUserPassStage(User $user): bool

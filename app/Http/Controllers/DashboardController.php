@@ -8,11 +8,86 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Self-heal: If database is empty on hosted service, automatically restore all 84 baseline records
         if (Transaction::count() === 0) {
             \App\Services\DataRestoreService::restoreAll();
+        }
+
+        $user = auth()->user();
+
+        // Check if user is Data Entry or explicitly viewing Data Entry mode
+        $isDataEntry = $user && ($user->role === 'data_entry' || $request->get('view') === 'data_entry');
+
+        if ($isDataEntry) {
+            $searchTerm = trim($request->get('search') ?? $request->get('barcode') ?? '');
+            $searchedTransaction = null;
+            $searchNotFound = false;
+
+            if (!empty($searchTerm)) {
+                $searchedTransaction = Transaction::with(['transactionType', 'trafficDirectorate', 'carMake', 'carColor', 'plateType', 'director'])
+                    ->where('barcode', $searchTerm)
+                    ->orWhere('plate_number', $searchTerm)
+                    ->orWhere('chassis_number', $searchTerm)
+                    ->orWhere('phone_number', $searchTerm)
+                    ->orWhere('booklet_number', $searchTerm)
+                    ->latest()
+                    ->first();
+
+                if (!$searchedTransaction) {
+                    $searchNotFound = true;
+                }
+            }
+
+            // Recent slips registered by this user today (or recent 15) - ZERO stats/income calculations!
+            $recentMyTransactions = Transaction::with(['transactionType', 'trafficDirectorate', 'carMake', 'plateType'])
+                ->when(!$user->isAdmin(), function ($q) use ($user) {
+                    $q->where(function ($sub) use ($user) {
+                        $sub->where('created_by', $user->id)
+                            ->orWhere('user_input', $user->clean_name)
+                            ->orWhere('user_input', $user->name);
+                    });
+                })
+                ->whereDate('created_at', today())
+                ->latest()
+                ->take(15)
+                ->get();
+
+            if ($recentMyTransactions->isEmpty()) {
+                $recentMyTransactions = Transaction::with(['transactionType', 'trafficDirectorate', 'carMake', 'plateType'])
+                    ->when(!$user->isAdmin(), function ($q) use ($user) {
+                        $q->where(function ($sub) use ($user) {
+                            $sub->where('created_by', $user->id)
+                                ->orWhere('user_input', $user->clean_name)
+                                ->orWhere('user_input', $user->name);
+                        });
+                    })
+                    ->latest()
+                    ->take(10)
+                    ->get();
+            }
+
+            // Returned transactions for this data entry clerk (if any need correction)
+            $myReturnedTransactions = Transaction::with(['transactionType', 'carMake', 'plateType'])
+                ->where('is_returned', true)
+                ->when(!$user->isAdmin(), function ($q) use ($user) {
+                    $q->where(function ($sub) use ($user) {
+                        $sub->where('created_by', $user->id)
+                            ->orWhere('user_input', $user->clean_name)
+                            ->orWhere('user_input', $user->name);
+                    });
+                })
+                ->latest()
+                ->get();
+
+            return view('dashboard_data_entry', compact(
+                'searchedTransaction',
+                'searchTerm',
+                'searchNotFound',
+                'recentMyTransactions',
+                'myReturnedTransactions'
+            ));
         }
 
         $totalTransactions = Transaction::count();

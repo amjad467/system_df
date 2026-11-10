@@ -1600,6 +1600,88 @@ class TransactionController extends Controller
         return response()->json($fees);
     }
 
+    /**
+     * API endpoint for instant live search / scan lookup by barcode or plate/chassis.
+     */
+    public function apiLookup(Request $request)
+    {
+        $term = trim($request->get('term') ?? $request->get('barcode') ?? '');
+        if (empty($term)) {
+            return response()->json(['found' => false]);
+        }
+
+        $tx = Transaction::with(['transactionType', 'trafficDirectorate', 'carMake', 'carColor', 'plateType', 'director'])
+            ->where('barcode', $term)
+            ->orWhere('plate_number', $term)
+            ->orWhere('chassis_number', $term)
+            ->orWhere('phone_number', $term)
+            ->orWhere('booklet_number', $term)
+            ->latest()
+            ->first();
+
+        if (!$tx) {
+            return response()->json([
+                'found' => false, 
+                'message' => "هیچ مامەڵەیەک نەدۆزرایەوە بە گەڕانی: {$term}"
+            ]);
+        }
+
+        $location = $tx->getCurrentLocationDescription();
+
+        return response()->json([
+            'found' => true,
+            'id' => $tx->id,
+            'barcode' => $tx->barcode,
+            'visitor_name' => $tx->visitor_name,
+            'visitor_name_eng' => $tx->visitor_name_eng,
+            'second_driver_name' => $tx->second_driver_name,
+            'phone_number' => $tx->phone_number,
+            'passport_number' => $tx->passport_number,
+            'plate_number' => $tx->plate_number,
+            'plate_type' => $tx->plateType?->name_kurdish ?? '',
+            'car_make' => $tx->carMake?->name_kurdish ?? '',
+            'car_color' => $tx->carColor?->name_kurdish ?? '',
+            'model_year' => $tx->model_year,
+            'chassis_number' => $tx->chassis_number,
+            'transaction_type' => $tx->transactionType?->name_kurdish ?? '',
+            'transaction_date' => $tx->transaction_date ? $tx->transaction_date->format('Y-m-d') : ($tx->created_at ? $tx->created_at->format('Y-m-d') : ''),
+            'created_at' => $tx->created_at?->format('Y-m-d H:i') ?? '',
+            'user_input' => $tx->user_input,
+            'total_pay' => number_format($tx->total_pay),
+            'receipt_37a_number' => $tx->receipt_37a_number,
+            'booklet_number' => $tx->booklet_number,
+            
+            // Where is it?
+            'location' => $location,
+            'current_stage_name' => $tx->getCurrentStageName(),
+
+            // Pipeline checks
+            'is_returned' => (bool)$tx->is_returned,
+            'return_reason' => $tx->return_reason,
+            'is_cancelled' => (bool)$tx->is_cancelled,
+            'is_inspected' => (bool)$tx->is_inspected,
+            'inspected_by' => $tx->inspected_by,
+            'inspected_at' => $tx->inspected_at?->format('Y-m-d H:i'),
+            'is_audited' => (bool)$tx->is_audited,
+            'audited_by' => $tx->audited_by,
+            'audited_at' => $tx->audited_at?->format('Y-m-d H:i'),
+            'is_paid' => (bool)$tx->is_paid,
+            'paid_by' => $tx->paid_by,
+            'paid_at' => $tx->paid_at?->format('Y-m-d H:i'),
+            'is_booklet_completed' => (bool)$tx->is_booklet_completed,
+            'booklet_by' => $tx->booklet_by,
+            'booklet_completed_at' => $tx->booklet_completed_at?->format('Y-m-d H:i'),
+            'is_submitted' => (bool)$tx->is_submitted,
+            'submitted_by' => $tx->submitted_by,
+            'requires_booklet' => $tx->requiresBooklet(),
+
+            // URLs
+            'print_url' => route('transactions.print_data_entry', $tx->id),
+            'show_url' => route('transactions.show', $tx->id),
+            'edit_url' => route('transactions.edit', $tx->id),
+        ]);
+    }
+
     public function markPrinted(Transaction $transaction)
     {
         if ($transaction->requiresBooklet() && empty($transaction->booklet_number)) {

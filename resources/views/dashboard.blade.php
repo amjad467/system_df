@@ -25,6 +25,13 @@
                         <span class="text-slate-500">•</span>
                         <span id="dashLiveClock" class="font-bold text-sky-300">{{ now()->format('H:i:s') }}</span>
                     </span>
+
+                    @if(auth()->user()->isAdmin())
+                        <a href="{{ route('dashboard', ['view' => 'data_entry']) }}" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 border border-indigo-500/40 transition flex items-center gap-1 shadow-sm" title="پشکنینی وێستگەی کارمەندی داتائەنتەری">
+                            <i class="fa-solid fa-desktop text-xs"></i>
+                            <span>دیمەنی داتائەنتەری</span>
+                        </a>
+                    @endif
                 </div>
 
                 <div class="flex items-center gap-2 flex-wrap pt-0.5">

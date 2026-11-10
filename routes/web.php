@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/transactions/scan', [TransactionController::class, 'scanBarcode'])->name('transactions.scan');
     Route::get('/transactions/api/calculate-fee', [TransactionController::class, 'calculateApi'])->name('transactions.calculate_api');
+    Route::get('/transactions/api/lookup', [TransactionController::class, 'apiLookup'])->name('transactions.api_lookup');
 
     Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
     Route::post('/transactions/{transaction}/inspect', [TransactionController::class, 'inspect'])->name('transactions.inspect');
