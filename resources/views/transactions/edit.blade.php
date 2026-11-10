@@ -110,6 +110,7 @@
                            name="visitor_name" 
                            value="{{ old('visitor_name', $transaction->visitor_name) }}" 
                            @input="onKurdishInput($event)"
+                           @blur="if (!document.getElementById('visitor_name_eng_edit')?.value && this.value) { autoFillEnglishName('visitor_name_edit', 'visitor_name_eng_edit'); }"
                            required 
                            placeholder="ناوی سێیانی شۆفێری یەکەم بە کوردی" 
                            dir="rtl" 
@@ -136,7 +137,9 @@
                            id="visitor_name_eng_edit"
                            name="visitor_name_eng" 
                            value="{{ old('visitor_name_eng', $transaction->visitor_name_eng) }}" 
+                           @focus="if (!this.value && document.getElementById('visitor_name_edit')?.value) { autoFillEnglishName('visitor_name_edit', 'visitor_name_eng_edit'); }"
                            @input="onEnglishInput($event)"
+                           data-english-field="true"
                            placeholder="FULL NAME IN ENGLISH (CAPITAL)" 
                            dir="ltr" 
                            lang="en" 
@@ -160,6 +163,7 @@
                            name="second_driver_name" 
                            value="{{ old('second_driver_name', $transaction->second_driver_name) }}" 
                            @input="onKurdishInput($event)"
+                           @blur="if (!document.getElementById('second_driver_name_eng_edit')?.value && this.value) { autoFillEnglishName('second_driver_name_edit', 'second_driver_name_eng_edit'); }"
                            placeholder="ناوی سێیانی شۆفێری دووەم بە کوردی" 
                            dir="rtl" 
                            lang="ckb" 
@@ -185,7 +189,9 @@
                            id="second_driver_name_eng_edit"
                            name="second_driver_name_eng" 
                            value="{{ old('second_driver_name_eng', $transaction->second_driver_name_eng) }}" 
+                           @focus="if (!this.value && document.getElementById('second_driver_name_edit')?.value) { autoFillEnglishName('second_driver_name_edit', 'second_driver_name_eng_edit'); }"
                            @input="onEnglishInput($event)"
+                           data-english-field="true"
                            placeholder="SECOND DRIVER IN ENGLISH (CAPITAL)" 
                            dir="ltr" 
                            lang="en" 
@@ -202,6 +208,7 @@
                            name="passport_number" 
                            value="{{ old('passport_number', $transaction->passport_number) }}" 
                            @input="onEnglishInput($event)" 
+                           data-english-field="true"
                            placeholder="مثلاً: A12345678" 
                            dir="ltr" 
                            lang="en"
@@ -336,6 +343,7 @@
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">ژمارەی شاسی (VIN) *</label>
                     <input type="text" name="chassis_number" value="{{ old('chassis_number', $transaction->chassis_number) }}" 
                            @input="onChassisInput($event)"
+                           data-english-field="true"
                            required dir="ltr" lang="en" style="text-transform: uppercase;"
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono uppercase tracking-wider focus:border-sky-500 focus:outline-none">
                 </div>

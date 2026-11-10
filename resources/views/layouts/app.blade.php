@@ -782,19 +782,19 @@
     <!-- Smart Bi-Directional Kurdish/English Standard Keyboard Converter & Transliteration Engine -->
     <script>
         window.LangConvert = {
-            // Standard Kurdish QWERTY Keyboard Mapping (Direct 1-to-1 physical key match)
+            // Standard Kurdish & Arabic QWERTY Keyboard Mapping (Direct 1-to-1 physical key match)
             kuToEnMap: {
                 'q': 'Q', 'ق': 'Q',
                 'w': 'W', 'و': 'W',
-                'e': 'E', 'ە': 'E', 'ێ': 'E',
+                'e': 'E', 'ە': 'E', 'ێ': 'E', 'ث': 'E',
                 'r': 'R', 'ر': 'R', 'ڕ': 'R',
                 't': 'T', 'ت': 'T', 'ط': 'T',
                 'y': 'Y', 'ی': 'Y', 'ي': 'Y',
                 'u': 'U', 'ع': 'U',
                 'i': 'I',
                 'o': 'O', 'ۆ': 'O',
-                'p': 'P', 'پ': 'P',
-                'a': 'A', 'ا': 'A', 'آ': 'A', 'أ': 'A', 'ئ': 'A',
+                'p': 'P', 'پ': 'P', 'ح': 'P',
+                'a': 'A', 'ا': 'A', 'آ': 'A', 'أ': 'A', 'ئ': 'A', 'ش': 'A',
                 's': 'S', 'س': 'S', 'ص': 'S',
                 'd': 'D', 'د': 'D', 'ض': 'D',
                 'f': 'F', 'ف': 'F',
@@ -804,12 +804,12 @@
                 'k': 'K', 'ک': 'K', 'ك': 'K',
                 'l': 'L', 'ل': 'L', 'ڵ': 'L',
                 'z': 'Z', 'ز': 'Z', 'ظ': 'Z', 'ذ': 'Z',
-                'x': 'X', 'خ': 'X',
-                'c': 'C', 'چ': 'C',
+                'x': 'X', 'خ': 'X', 'ء': 'X',
+                'c': 'C', 'چ': 'C', 'ؤ': 'C',
                 'v': 'V', 'ڤ': 'V',
-                'b': 'B', 'ب': 'B',
-                'n': 'N', 'ن': 'N',
-                'm': 'M', 'م': 'M',
+                'b': 'B', 'ب': 'B', 'لا': 'B',
+                'n': 'N', 'ن': 'N', 'ى': 'N',
+                'm': 'M', 'م': 'M', 'ة': 'M',
                 '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
                 '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
                 '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
@@ -932,6 +932,67 @@
                 }).join(' ').toUpperCase();
             }
         };
+
+        // Hardware-level Keyboard Interceptor for English Fields:
+        // Regardless of whether Windows is set to Kurdish or Arabic keyboard layout,
+        // typing physical keys (M, A, B, 1, 2, etc.) directly types standard English uppercase letters
+        // WITHOUT needing the user to switch languages with Alt+Shift!
+        window.handleEnglishFieldKeydown = function(e) {
+            // Let control keys & system shortcuts pass through (Ctrl+C, Ctrl+V, Ctrl+A, Tab, Enter, Arrows, etc.)
+            if (e.ctrlKey || e.altKey || e.metaKey) return;
+            if (['Backspace', 'Delete', 'Tab', 'Enter', 'Escape', 
+                 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 
+                 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key)) {
+                return;
+            }
+
+            let char = null;
+            if (e.code && e.code.startsWith('Key')) {
+                char = e.code.slice(3).toUpperCase();
+            } else if (e.code && e.code.startsWith('Digit') && !e.shiftKey) {
+                char = e.code.slice(5);
+            } else if (e.code && e.code.startsWith('Numpad') && !isNaN(e.code.slice(6))) {
+                char = e.code.slice(6);
+            } else if (e.code === 'Space') {
+                char = ' ';
+            } else if (e.code === 'Minus' || e.code === 'NumpadSubtract') {
+                char = '-';
+            } else if (e.code === 'Slash' || e.code === 'NumpadDivide') {
+                char = '/';
+            }
+
+            if (char !== null) {
+                e.preventDefault();
+                const input = e.target;
+                const start = (input.selectionStart !== null && input.selectionStart !== undefined) ? input.selectionStart : input.value.length;
+                const end = (input.selectionEnd !== null && input.selectionEnd !== undefined) ? input.selectionEnd : input.value.length;
+                const oldVal = input.value || '';
+                const newVal = oldVal.slice(0, start) + char + oldVal.slice(end);
+                
+                input.value = newVal;
+                const nextPos = start + char.length;
+                if (input.setSelectionRange) {
+                    input.setSelectionRange(nextPos, nextPos);
+                }
+                
+                // Dispatch input event for Alpine.js x-model and vanilla listeners
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        };
+
+        // Capture-phase global delegation: intercepts on all designated English inputs across the system
+        document.addEventListener('keydown', function(e) {
+            const el = e.target;
+            if (!el || el.tagName !== 'INPUT') return;
+            
+            const isEnglishField = el.matches(
+                '[name="visitor_name_eng"], [name="second_driver_name_eng"], [name="chassis_number"], [name="passport_number"], [data-english-field="true"], .english-hardware-keyboard'
+            );
+            
+            if (isEnglishField) {
+                window.handleEnglishFieldKeydown(e);
+            }
+        }, true);
 
         // Global F2 keyboard shortcut to quickly focus the barcode scanner textbox
         window.addEventListener('keydown', function(e) {
