@@ -15,7 +15,9 @@
         ]];
     });
 @endphp
-<div x-data="transactionEditForm({{ \Illuminate\Support\Js::from($txRates) }})" class="max-w-5xl mx-auto space-y-6">
+<div x-data="transactionEditForm({{ \Illuminate\Support\Js::from($txRates) }})" 
+     @keydown.window.alt.s.prevent="document.getElementById('mainEditTransactionForm')?.submit()"
+     class="max-w-5xl mx-auto space-y-6 pb-20">
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
@@ -30,13 +32,18 @@
                 </span>
             </div>
         </div>
-        <a href="{{ route('transactions.show', $transaction->id) }}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold rounded-xl border border-slate-700 transition">
-            <i class="fa-solid fa-arrow-right ml-1"></i> گەڕانەوە
-        </a>
+        <div class="flex items-center gap-2">
+            <span class="hidden sm:inline-flex items-center gap-1 text-[11px] text-slate-400 bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-lg font-mono">
+                <kbd class="text-amber-300 font-bold">Alt + S</kbd> پاشەکەوتکردن
+            </span>
+            <a href="{{ route('transactions.show', $transaction->id) }}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold rounded-xl border border-slate-700 transition">
+                <i class="fa-solid fa-arrow-right ml-1"></i> گەڕانەوە
+            </a>
+        </div>
     </div>
 
     <!-- Main Form -->
-    <form action="{{ route('transactions.update', $transaction->id) }}" method="POST" class="space-y-6">
+    <form id="mainEditTransactionForm" action="{{ route('transactions.update', $transaction->id) }}" method="POST" class="space-y-6">
         @csrf
         @method('PUT')
 
