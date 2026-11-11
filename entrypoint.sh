@@ -18,7 +18,7 @@ touch /var/www/database/database.sqlite
 # 3. Ensure full permissions
 chmod -R 777 /var/www/database /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
 
-# 4. Check database connectivity (Auto-fallback to SQLite if PostgreSQL host cannot be resolved or is down)
+# 4. Check database connectivity (Auto-fallback to SQLite if PostgreSQL cannot connect)
 DB_FALLBACK=$(php -r '
     $conn = getenv("DB_CONNECTION");
     $dbUrl = getenv("DATABASE_URL") ?: getenv("DB_URL");
@@ -28,19 +28,12 @@ DB_FALLBACK=$(php -r '
         $host = $p["host"] ?? $host;
     }
     if ($conn === "pgsql" || $dbUrl) {
-        if ($host && !filter_var($host, FILTER_VALIDATE_IP)) {
-            $ip = @gethostbyname($host);
-            if ($ip === $host) {
-                echo "FALLBACK";
-                exit(0);
-            }
-        }
         try {
             $port = (isset($p["port"]) ? $p["port"] : getenv("DB_PORT")) ?: 5432;
             $db = (isset($p["path"]) ? ltrim($p["path"], "/") : getenv("DB_DATABASE")) ?: "postgres";
-            $user = (isset($p["user"]) ? $p["user"] : getenv("DB_USERNAME")) ?: "postgres";
-            $pass = (isset($p["pass"]) ? $p["pass"] : getenv("DB_PASSWORD")) ?: "";
-            $pdo = new PDO("pgsql:host={$host};port={$port};dbname={$db};connect_timeout=3", $user, $pass);
+            $user = (isset($p["user"]) ? urldecode($p["user"]) : getenv("DB_USERNAME")) ?: "postgres";
+            $pass = (isset($p["pass"]) ? urldecode($p["pass"]) : getenv("DB_PASSWORD")) ?: "";
+            $pdo = new PDO("pgsql:host={$host};port={$port};dbname={$db};sslmode=prefer;connect_timeout=10", $user, $pass);
             $pdo->query("SELECT 1");
         } catch (\Throwable $e) {
             echo "FALLBACK";

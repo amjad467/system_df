@@ -3,27 +3,12 @@
 use Illuminate\Support\Str;
 use Pdo\Mysql;
 
-// Resilient default database connection:
-// If PostgreSQL host is unreachable or not resolvable via DNS (e.g. expired Render PostgreSQL instance),
-// fallback cleanly to bundled SQLite to ensure the application never crashes.
+// Default database connection:
+// If DATABASE_URL is set, default to pgsql; otherwise fallback to sqlite.
 $defaultConnection = env('DB_CONNECTION');
 $dbUrl = env('DB_URL') ?: env('DATABASE_URL');
 if (!$defaultConnection) {
     $defaultConnection = $dbUrl ? 'pgsql' : 'sqlite';
-}
-
-if ($defaultConnection === 'pgsql') {
-    $host = env('DB_HOST');
-    if ($dbUrl) {
-        $parsed = parse_url($dbUrl);
-        $host = $parsed['host'] ?? $host;
-    }
-    if ($host && !filter_var($host, FILTER_VALIDATE_IP)) {
-        $ip = @gethostbyname($host);
-        if ($ip === $host) {
-            $defaultConnection = 'sqlite';
-        }
-    }
 }
 
 return [
