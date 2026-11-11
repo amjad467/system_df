@@ -89,61 +89,61 @@
     <!-- ========================================================================= -->
     <!-- 1. SLEEK ACTION & NAVIGATION TOOLBAR                                      -->
     <!-- ========================================================================= -->
-    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col md:flex-row items-center justify-between gap-3 backdrop-blur-sm">
-        <div class="flex items-center space-x-3 space-x-reverse w-full md:w-auto">
+    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-2.5 sm:p-3 shadow-xl flex flex-wrap md:flex-nowrap items-center justify-between gap-3 backdrop-blur-sm">
+        <div class="flex items-center space-x-2.5 space-x-reverse shrink-0">
             @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
-                <a href="{{ route('transactions.index') }}" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow" title="گەڕانەوە بۆ لیستی مامەڵەکان">
-                    <i class="fa-solid fa-arrow-right"></i>
-                    <span>گەڕانەوە بۆ لیست</span>
+                <a href="{{ route('transactions.index') }}" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow" title="گەڕانەوە بۆ لیستی مامەڵەکان">
+                    <i class="fa-solid fa-arrow-right text-[11px]"></i>
+                    <span>گەڕانەوە</span>
                 </a>
             @else
-                <a href="{{ route('dashboard') }}" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow" title="گەڕانەوە بۆ داشبۆرد">
-                    <i class="fa-solid fa-arrow-right"></i>
+                <a href="{{ route('dashboard') }}" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow" title="گەڕانەوە بۆ داشبۆرد">
+                    <i class="fa-solid fa-arrow-right text-[11px]"></i>
                     <span>گەڕانەوە</span>
                 </a>
             @endif
 
-            <div class="bg-white px-2.5 py-1 rounded-xl shadow-md border border-slate-700 flex items-center justify-center shrink-0">
-                <svg id="showBarcodeSvg" class="max-h-8 sm:max-h-9"></svg>
+            <div class="bg-white px-2 py-0.5 rounded-xl shadow-sm border border-slate-700 flex items-center justify-center shrink-0">
+                <svg id="showBarcodeSvg" class="h-6 sm:h-7"></svg>
             </div>
 
             <div class="min-w-0">
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5">
                     <span class="font-mono text-xs font-black text-sky-400 bg-sky-950/80 px-2 py-0.5 rounded-lg border border-sky-800/60 select-all" title="بارکۆدی مامەڵە">
                         {{ $transaction->barcode }}
                     </span>
-                    <span class="text-[11px] text-slate-400 hidden sm:inline">
-                        بەروار: <strong class="text-slate-200 font-mono">{{ $transaction->transaction_date ? $transaction->transaction_date->format('Y-m-d') : ($transaction->created_at ? $transaction->created_at->format('Y-m-d') : '-') }}</strong>
+                    <span class="text-[11px] text-slate-400 hidden lg:inline font-mono">
+                        {{ $transaction->transaction_date ? $transaction->transaction_date->format('Y-m-d') : ($transaction->created_at ? $transaction->created_at->format('Y-m-d') : '-') }}
                     </span>
                 </div>
-                <div class="text-[10px] text-slate-400 mt-0.5">
-                    تۆمارکار: <strong class="text-slate-300">{{ $transaction->user_input ?: 'سیستەم' }}</strong>
+                <div class="text-[10px] text-slate-400 mt-0.5 truncate max-w-[150px] sm:max-w-[200px]">
+                    تۆمارکار: <strong class="text-slate-300 font-medium">{{ $transaction->user_input ?: 'سیستەم' }}</strong>
                 </div>
             </div>
         </div>
 
         <!-- Action Suite Toolbar -->
-        <div class="flex items-center flex-wrap gap-2 w-full md:w-auto justify-end pt-3 md:pt-0 border-t md:border-t-0 border-slate-800">
+        <div class="flex items-center flex-nowrap sm:flex-wrap gap-1.5 justify-end">
             <!-- 1. Dedicated Primary Print Action (Contextual) -->
             @if($transaction->requiresBooklet() && (auth()->user()->isAdmin() || auth()->user()->role === 'booklet') && $transaction->is_paid && !empty($transaction->booklet_number) && (!$transaction->is_submitted || auth()->user()->isAdmin()))
                 <a href="{{ route('transactions.print_booklet', $transaction->id) }}" target="_blank" 
-                   class="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5" 
+                   class="px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5 shrink-0" 
                    title="چاپی دەفتەری گەشتیاری">
-                    <i class="fa-solid fa-passport"></i>
-                    <span>چاپی دەفتەر ({{ $transaction->booklet_number }})</span>
+                    <i class="fa-solid fa-passport text-xs"></i>
+                    <span>چاپی دەفتەر</span>
                 </a>
             @elseif(!$transaction->is_cancelled && $transaction->is_paid && (!$transaction->is_submitted || auth()->user()->isAdmin()) && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier'))
                 <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" 
-                   class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center gap-1.5" 
+                   class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center gap-1.5 shrink-0" 
                    title="چاپی وەسڵی فەرمی پارەدان">
-                    <i class="fa-solid fa-receipt"></i>
+                    <i class="fa-solid fa-receipt text-xs"></i>
                     <span>چاپی ۳۷/أ</span>
                 </a>
             @elseif((!$transaction->is_submitted || auth()->user()->isAdmin()) && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
                 <a href="{{ route('transactions.print_data_entry', $transaction->id) }}" target="_blank" 
-                   class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/30 transition flex items-center gap-1.5" 
+                   class="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/30 transition flex items-center gap-1.5 shrink-0" 
                    title="چاپی فیشەی داتائەنتەری">
-                    <i class="fa-solid fa-print"></i>
+                    <i class="fa-solid fa-print text-xs"></i>
                     <span>چاپی فیشە</span>
                 </a>
             @endif
@@ -151,9 +151,9 @@
             <!-- 2. Master Prints Dropdown -->
             <div class="relative" x-data="{ openPrintsMenu: false }">
                 <button type="button" @click="openPrintsMenu = !openPrintsMenu" 
-                        class="px-3.5 py-2 bg-slate-800 hover:bg-slate-750 text-indigo-300 hover:text-white border border-indigo-500/40 hover:border-indigo-500/70 text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-print text-indigo-400"></i>
-                    <span>بەڵگەنامە و چاپەکان</span>
+                        class="px-3 py-2 bg-slate-800 hover:bg-slate-755 text-indigo-300 hover:text-white border border-indigo-500/40 hover:border-indigo-500/70 text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 shrink-0">
+                    <i class="fa-solid fa-print text-indigo-400 text-xs"></i>
+                    <span>چاپەکان</span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openPrintsMenu ? 'rotate-180' : ''"></i>
                 </button>
 
@@ -240,10 +240,10 @@
             <!-- 3. Edit Action Button -->
             @if((auth()->user()->isAdmin() || auth()->user()->role === 'data_entry') && $transaction->canBeEditedByDataEntry() && !$transaction->is_cancelled)
                 <a href="{{ route('transactions.edit', $transaction->id) }}" 
-                   class="px-3.5 py-2 bg-amber-600/90 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5" 
+                   class="px-3 py-2 bg-amber-600/90 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 shrink-0" 
                    title="دەستکاریکردن یان ڕاستکردنەوە">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                    <span>دەستکاریکردن</span>
+                    <i class="fa-solid fa-pen-to-square text-xs"></i>
+                    <span>دەستکاری</span>
                 </a>
             @endif
 
@@ -251,8 +251,8 @@
             @if(auth()->user()->isAdmin() || auth()->user()->role === 'data_entry')
                 <div class="relative" x-data="{ openFollowUp: false }">
                     <button type="button" @click="openFollowUp = !openFollowUp" 
-                            class="px-3 py-2 bg-slate-800 hover:bg-slate-750 text-sky-300 hover:text-white border border-slate-700 text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5">
-                        <i class="fa-solid fa-arrows-split-up-and-left text-sky-400"></i>
+                            class="px-3 py-2 bg-slate-800 hover:bg-slate-750 text-sky-300 hover:text-white border border-slate-700 text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 shrink-0">
+                        <i class="fa-solid fa-arrows-split-up-and-left text-sky-400 text-xs"></i>
                         <span>مامەڵەی نوێ</span>
                         <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openFollowUp ? 'rotate-180' : ''"></i>
                     </button>
@@ -287,36 +287,43 @@
             @if($transaction->is_audited && !$transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->hasPermission('transactions.audit')))
                 <form action="{{ route('transactions.revert_audit', $transaction->id) }}" method="POST" class="inline" onsubmit="return confirm('ئایا دڵنیایت لە هەڵوەشاندنەوەی پەسەندی وردبینی؟ مامەڵەکە دەگەڕێتەوە بۆ چاوەڕوانی وردبینی.');">
                     @csrf
-                    <button type="submit" class="px-2.5 py-2 bg-purple-700/80 hover:bg-purple-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="هەڵوەشاندنەوەی وردبینی">
+                    <button type="submit" class="px-2.5 py-2 bg-purple-700/80 hover:bg-purple-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1 shrink-0" title="هەڵوەشاندنەوەی وردبینی">
                         <i class="fa-solid fa-arrow-rotate-left"></i>
                         <span>هەڵوەشاندنەوە</span>
                     </button>
                 </form>
-                <button type="button" @click="showReturnModal = true" class="px-2.5 py-2 bg-rose-600/80 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="گەڕاندنەوە بۆ پێشتر">
+                <button type="button" @click="showReturnModal = true" class="px-2.5 py-2 bg-rose-600/80 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1 shrink-0" title="گەڕاندنەوە بۆ پێشتر">
                     <i class="fa-solid fa-arrow-turn-down-left"></i>
                     <span>گەڕاندنەوە</span>
                 </button>
             @endif
 
-            <!-- 6. Admin Reset Modal Trigger -->
+            <!-- 6. Admin Actions Dropdown (Reset & Soft Delete) -->
             @if(auth()->check() && auth()->user()->isAdmin())
-                <button type="button" @click="showRevertModal = true" 
-                        class="px-3 py-2 bg-slate-800 hover:bg-slate-750 text-amber-400 hover:text-amber-300 border border-amber-500/30 text-xs font-bold rounded-xl transition flex items-center gap-1.5" 
-                        title="ڕێکخستنەوەی قۆناغی مامەڵە">
-                    <i class="fa-solid fa-arrow-rotate-left"></i>
-                    <span>ڕێکخستنەوە (Reset)</span>
-                </button>
-            @endif
-
-            <!-- 7. Admin Soft Delete -->
-            @if(auth()->check() && auth()->user()->isAdmin())
-                <form action="{{ route('transactions.destroy', $transaction->id) }}" method="POST" onsubmit="return confirm('دڵنیایت لە سڕینەوەی کاتی (Soft Delete) ی ئەم مامەڵەیە؟')" class="inline">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" title="سڕینەوەی کاتی مامەڵە" class="p-2 bg-rose-950/40 hover:bg-rose-900 border border-rose-800/40 text-rose-400 hover:text-rose-200 text-xs font-bold rounded-xl transition">
-                        <i class="fa-solid fa-trash-can"></i>
+                <div class="relative" x-data="{ openAdminMenu: false }">
+                    <button type="button" @click="openAdminMenu = !openAdminMenu" 
+                            class="px-2.5 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white border border-slate-700 text-xs font-bold rounded-xl shadow transition flex items-center gap-1 shrink-0" 
+                            title="کردارەکانی بەڕێوەبەر">
+                        <i class="fa-solid fa-ellipsis-vertical text-slate-400"></i>
                     </button>
-                </form>
+
+                    <div x-show="openAdminMenu" @click.away="openAdminMenu = false" x-cloak 
+                         class="absolute left-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-1.5 z-50 space-y-1 text-xs text-right">
+                        <button type="button" @click="showRevertModal = true; openAdminMenu = false" 
+                                class="w-full text-right flex items-center gap-2 p-2 rounded-lg text-amber-400 hover:bg-slate-800 transition">
+                            <i class="fa-solid fa-arrow-rotate-left w-4 text-center"></i>
+                            <span>ڕێکخستنەوە (Reset)</span>
+                        </button>
+                        <form action="{{ route('transactions.destroy', $transaction->id) }}" method="POST" onsubmit="return confirm('دڵنیایت لە سڕینەوەی کاتی (Soft Delete) ی ئەم مامەڵەیە؟')" class="w-full">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full text-right flex items-center gap-2 p-2 rounded-lg text-rose-400 hover:bg-rose-950/50 transition">
+                                <i class="fa-solid fa-trash-can w-4 text-center"></i>
+                                <span>سڕینەوەی کاتی</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
             @endif
         </div>
     </div>
@@ -368,9 +375,22 @@
                         {{ $transaction->visitor_name }}
                     </h1>
                     @if($transaction->visitor_name_eng)
-                        <span class="text-xs text-slate-300 font-mono tracking-wide block mt-0.5" dir="ltr">
+                        <div class="text-xs text-slate-300 font-mono tracking-wider uppercase block mt-0.5 text-right" dir="ltr">
                             {{ $transaction->visitor_name_eng }}
-                        </span>
+                        </div>
+                    @endif
+
+                    @if($transaction->parentTransaction)
+                        <div class="pt-1.5">
+                            <a href="{{ route('transactions.show', $transaction->parentTransaction->id) }}" 
+                               class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-950/80 hover:bg-sky-900 border border-sky-600/50 text-sky-300 hover:text-white text-xs font-bold transition shadow-sm" 
+                               title="بینینی مامەڵەی بنەڕەتی پەیوەندیدار">
+                                <i class="fa-solid fa-link text-[10px] text-sky-400"></i>
+                                <span>مامەڵەی بنەڕەتی:</span>
+                                <span class="font-mono text-white underline">{{ $transaction->parentTransaction->barcode }}</span>
+                                <span class="text-[10px] text-sky-300">({{ $transaction->parentTransaction->transactionType->name_kurdish ?? '' }})</span>
+                            </a>
+                        </div>
                     @endif
                 </div>
 
@@ -420,9 +440,9 @@
                     </div>
 
                     @if($transaction->chassis_number && $transaction->chassis_number !== '-')
-                        <div class="inline-flex items-center gap-1.5 text-xs font-mono text-slate-300 bg-slate-950/90 px-3 py-1 rounded-xl border border-slate-800 shadow-inner" title="ژمارەی شاسی (VIN)">
+                        <div class="inline-flex items-center gap-1.5 text-xs font-mono text-slate-300 bg-slate-950/90 px-3 py-1 rounded-xl border border-slate-800 shadow-inner" dir="ltr" title="ژمارەی شاسی (VIN)">
                             <span class="text-slate-500 font-bold">VIN:</span>
-                            <span class="text-sky-300 font-bold uppercase select-all">{{ $transaction->chassis_number }}</span>
+                            <span class="text-sky-300 font-bold uppercase select-all tracking-wider">{{ $transaction->chassis_number }}</span>
                         </div>
                     @endif
                 </div>
@@ -484,31 +504,24 @@
             </div>
 
         </div>
-    </div>
 
-    <!-- Parent / Related Transactions Relationship Card -->
-    @if($transaction->parentTransaction || $transaction->relatedTransactions->count() > 0)
-        <div class="bg-slate-800/90 border border-sky-500/40 rounded-2xl p-4 shadow-xl space-y-3">
-            <h4 class="text-xs font-bold text-sky-400 flex items-center border-b border-slate-700 pb-2">
-                <i class="fa-solid fa-network-wired ml-1.5"></i> مامەڵە بەستراوەکان بە هەمان هاووڵاتی (Related Transactions):
-            </h4>
-            <div class="flex flex-wrap gap-3">
-                @if($transaction->parentTransaction)
-                    <a href="{{ route('transactions.show', $transaction->parentTransaction->id) }}" class="p-2.5 bg-slate-900 border border-sky-500/60 rounded-xl flex items-center space-x-2 space-x-reverse text-xs hover:border-sky-400 transition">
-                        <span class="px-2 py-0.5 bg-sky-500/20 text-sky-300 rounded font-mono font-bold">{{ $transaction->parentTransaction->barcode }}</span>
-                        <span class="font-bold text-slate-100">مامەڵەی بنەڕەتی: {{ $transaction->parentTransaction->transactionType->name_kurdish ?? '' }}</span>
-                    </a>
-                @endif
-
+        <!-- Integrated Child Related Transactions Strip -->
+        @if($transaction->relatedTransactions->count() > 0)
+            <div class="mt-4 pt-3 border-t border-slate-700/60 flex items-center flex-wrap gap-2 text-xs relative z-10">
+                <span class="text-[11px] font-bold text-sky-400 flex items-center gap-1.5 shrink-0">
+                    <i class="fa-solid fa-network-wired text-[10px]"></i>
+                    <span>مامەڵە پەیوەندیدارەکان:</span>
+                </span>
                 @foreach($transaction->relatedTransactions as $rel)
-                    <a href="{{ route('transactions.show', $rel->id) }}" class="p-2.5 bg-slate-900 border border-emerald-500/60 rounded-xl flex items-center space-x-2 space-x-reverse text-xs hover:border-emerald-400 transition">
-                        <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded font-mono font-bold">{{ $rel->barcode }}</span>
-                        <span class="font-bold text-slate-100">مامەڵەی بەستراوە: {{ $rel->transactionType->name_kurdish ?? '' }}</span>
+                    <a href="{{ route('transactions.show', $rel->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-950/80 border border-emerald-500/50 hover:border-emerald-400 rounded-xl text-emerald-300 hover:text-white transition shadow-sm text-xs">
+                        <span class="font-mono font-black">{{ $rel->barcode }}</span>
+                        <span class="text-slate-300">({{ $rel->transactionType->name_kurdish ?? 'مامەڵە' }})</span>
+                        <i class="fa-solid fa-arrow-left text-[9px] text-slate-400"></i>
                     </a>
                 @endforeach
             </div>
-        </div>
-    @endif
+        @endif
+    </div>
 
     <!-- Alert Banner for Returned Transactions -->
     @if($transaction->is_returned)
@@ -1825,13 +1838,9 @@
         JsBarcode("#showBarcodeSvg", "{{ $transaction->barcode }}", {
             format: "CODE128",
             lineColor: "#000",
-            width: 1.8,
-            height: 35,
-            displayValue: true,
-            fontSize: 11,
-            fontOptions: "bold",
-            font: "Vazirmatn",
-            textMargin: 1
+            width: 1.4,
+            height: 26,
+            displayValue: false
         });
     });
 </script>
