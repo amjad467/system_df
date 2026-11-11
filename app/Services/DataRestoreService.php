@@ -184,6 +184,18 @@ class DataRestoreService
             } catch (\Throwable $e) {
                 // Ignore
             }
+
+            // Reset sequences for PostgreSQL so future auto-increment IDs do not collide
+            if ($driver === 'pgsql') {
+                $seqTables = ['transactions', 'cars', 'users', 'car_makes', 'plate_types', 'barcode_sequences', 'blocked_receipt_numbers', 'traffic_directorates', 'directors', 'security_levels'];
+                foreach ($seqTables as $tbl) {
+                    try {
+                        DB::statement("SELECT setval(pg_get_serial_sequence('{$tbl}', 'id'), coalesce(max(id), 1)) FROM {$tbl}");
+                    } catch (\Throwable $t) {
+                        // Ignore non-serial tables
+                    }
+                }
+            }
         }
 
         return $stats;
