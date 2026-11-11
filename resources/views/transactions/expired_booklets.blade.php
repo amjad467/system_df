@@ -16,9 +16,15 @@
             <a href="{{ route('transactions.create') }}" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center">
                 <i class="fa-solid fa-plus-circle ml-1.5"></i> تۆمارکردنی مامەڵەی نوێ
             </a>
-            <a href="{{ route('transactions.index') }}" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition flex items-center">
-                <i class="fa-solid fa-list-check ml-1.5"></i> هەموو مامەڵەکان
-            </a>
+            @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
+                <a href="{{ route('transactions.index') }}" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition flex items-center">
+                    <i class="fa-solid fa-list-check ml-1.5"></i> هەموو مامەڵەکان
+                </a>
+            @else
+                <a href="{{ route('dashboard') }}" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition flex items-center">
+                    <i class="fa-solid fa-chart-pie ml-1.5"></i> داشبۆرد
+                </a>
+            @endif
         </div>
     </div>
 

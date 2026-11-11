@@ -63,7 +63,7 @@
                 <kbd class="text-sky-300 font-bold">Alt + S</kbd> پاشەکەوتکردن
             </span>
 
-            <a href="{{ auth()->check() && auth()->user()->role === 'data_entry' && !auth()->user()->isAdmin() ? route('dashboard') : route('transactions.index') }}" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
+            <a href="{{ auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver') ? route('transactions.index') : route('dashboard') }}" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white text-xs font-semibold rounded-xl border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
                 <i class="fa-solid fa-arrow-right text-[11px]"></i>
                 <span>گەڕانەوە</span>
             </a>

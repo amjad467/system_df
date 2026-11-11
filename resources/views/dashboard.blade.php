@@ -207,9 +207,11 @@
                         </p>
                     </div>
                 </div>
-                <a href="{{ route('transactions.index', ['stage' => 'returned']) }}" class="text-xs font-bold text-rose-300 hover:text-white underline">
-                    بینینی سەرجەم گەڕێنراوەکان &larr;
-                </a>
+                @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
+                    <a href="{{ route('transactions.index', ['stage' => 'returned']) }}" class="text-xs font-bold text-rose-300 hover:text-white underline">
+                        بینینی سەرجەم گەڕێنراوەکان &larr;
+                    </a>
+                @endif
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-2 border-t border-rose-500/20">
@@ -633,9 +635,11 @@
                             <i class="fa-solid fa-clock-rotate-left"></i>
                             <span>مامەڵەکانی چاوەڕوانی وەرگرتنی پارە ({{ $pendingPayment }} مامەڵە لە نۆرەدا):</span>
                         </span>
-                        <a href="{{ route('transactions.index', ['stage' => 'payment']) }}" class="text-amber-400 hover:underline font-bold">
-                            بینینی تەواوی نۆرەکە &larr;
-                        </a>
+                        @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
+                            <a href="{{ route('transactions.index', ['stage' => 'payment']) }}" class="text-amber-400 hover:underline font-bold">
+                                بینینی تەواوی نۆرەکە &larr;
+                            </a>
+                        @endif
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
                         @foreach($pendingPaymentList->take(4) as $pTx)
@@ -799,7 +803,7 @@
                     <p class="text-[11px] text-slate-400">ژمارەی ئەو مامەڵانەی ئێستا لە هەر قۆناغێکدا لە گومرگ چاوەڕێی جێبەجێکردنن</p>
                 </div>
             </div>
-            @if(!auth()->check() || auth()->user()->role !== 'data_entry')
+            @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
                 <a href="{{ route('transactions.index') }}" class="text-xs font-bold text-sky-400 hover:text-sky-300">
                     خشتەی تەواوی مامەڵەکان &larr;
                 </a>
@@ -807,102 +811,201 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+            @php
+                $canViewAllTx = auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver');
+            @endphp
             
             <!-- Step 1: Inspection -->
-            <a href="{{ route('transactions.index', ['stage' => 'inspection']) }}" 
-               class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-orange-500/60 hover:bg-slate-800/50 transition group flex flex-col justify-between space-y-3 relative overflow-hidden">
-                <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-black text-orange-400 flex items-center gap-1.5">
-                        <span class="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-[10px] font-black">١</span>
-                        <span>کەشف و تەخمین</span>
-                    </span>
-                    <i class="fa-solid fa-magnifying-glass text-slate-500 group-hover:text-orange-400 transition text-sm"></i>
-                </div>
-                <div class="flex items-end justify-between">
-                    <div>
-                        <div class="text-2xl font-black text-white font-mono">{{ $pendingInspection }}</div>
-                        <span class="text-[10px] text-slate-400 block mt-0.5">پشکنین • ئەمڕۆ: <strong class="text-orange-400 font-mono">{{ $todayInspectedCount }}</strong></span>
+            @if($canViewAllTx)
+                <a href="{{ route('transactions.index', ['stage' => 'inspection']) }}" 
+                   class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-orange-500/60 hover:bg-slate-800/50 transition group flex flex-col justify-between space-y-3 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-black text-orange-400 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-[10px] font-black">١</span>
+                            <span>کەشف و تەخمین</span>
+                        </span>
+                        <i class="fa-solid fa-magnifying-glass text-slate-500 group-hover:text-orange-400 transition text-sm"></i>
                     </div>
-                    <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-orange-500/10 text-orange-300 border border-orange-500/30">
-                        چاوەڕوان
-                    </span>
+                    <div class="flex items-end justify-between">
+                        <div>
+                            <div class="text-2xl font-black text-white font-mono">{{ $pendingInspection }}</div>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">پشکنین • ئەمڕۆ: <strong class="text-orange-400 font-mono">{{ $todayInspectedCount }}</strong></span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-orange-500/10 text-orange-300 border border-orange-500/30 group-hover:bg-orange-500 group-hover:text-white transition">
+                            چاوپێخشاندن
+                        </span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-orange-500 h-full rounded-full" style="width: {{ $pendingInspection > 0 ? min(100, $pendingInspection * 10) : 0 }}%"></div>
+                    </div>
+                </a>
+            @else
+                <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex flex-col justify-between space-y-3 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-black text-orange-400 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-[10px] font-black">١</span>
+                            <span>کەشف و تەخمین</span>
+                        </span>
+                        <i class="fa-solid fa-magnifying-glass text-slate-500 text-sm"></i>
+                    </div>
+                    <div class="flex items-end justify-between">
+                        <div>
+                            <div class="text-2xl font-black text-white font-mono">{{ $pendingInspection }}</div>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">پشکنین • ئەمڕۆ: <strong class="text-orange-400 font-mono">{{ $todayInspectedCount }}</strong></span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-orange-500/10 text-orange-300 border border-orange-500/30">
+                            چاوەڕوان
+                        </span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-orange-500 h-full rounded-full" style="width: {{ $pendingInspection > 0 ? min(100, $pendingInspection * 10) : 0 }}%"></div>
+                    </div>
                 </div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div class="bg-orange-500 h-full rounded-full" style="width: {{ $pendingInspection > 0 ? min(100, $pendingInspection * 10) : 0 }}%"></div>
-                </div>
-            </a>
+            @endif
 
             <!-- Step 2: Audit -->
-            <a href="{{ route('transactions.index', ['stage' => 'audit']) }}" 
-               class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-purple-500/60 hover:bg-slate-800/50 transition group flex flex-col justify-between space-y-3 relative overflow-hidden">
-                <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-black text-purple-400 flex items-center gap-1.5">
-                        <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-[10px] font-black">٢</span>
-                        <span>وردبینی ژمێریاری</span>
-                    </span>
-                    <i class="fa-solid fa-clipboard-check text-slate-500 group-hover:text-purple-400 transition text-sm"></i>
-                </div>
-                <div class="flex items-end justify-between">
-                    <div>
-                        <div class="text-2xl font-black text-white font-mono">{{ $pendingAudit }}</div>
-                        <span class="text-[10px] text-slate-400 block mt-0.5">وردبینی • ئەمڕۆ: <strong class="text-purple-400 font-mono">{{ $todayAuditedCount }}</strong></span>
+            @if($canViewAllTx)
+                <a href="{{ route('transactions.index', ['stage' => 'audit']) }}" 
+                   class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-purple-500/60 hover:bg-slate-800/50 transition group flex flex-col justify-between space-y-3 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-black text-purple-400 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-[10px] font-black">٢</span>
+                            <span>وردبینی ژمێریاری</span>
+                        </span>
+                        <i class="fa-solid fa-clipboard-check text-slate-500 group-hover:text-purple-400 transition text-sm"></i>
                     </div>
-                    <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/30">
-                        چاوەڕوان
-                    </span>
+                    <div class="flex items-end justify-between">
+                        <div>
+                            <div class="text-2xl font-black text-white font-mono">{{ $pendingAudit }}</div>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">وردبینی • ئەمڕۆ: <strong class="text-purple-400 font-mono">{{ $todayAuditedCount }}</strong></span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/30 group-hover:bg-purple-500 group-hover:text-white transition">
+                            چاوپێخشاندن
+                        </span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-purple-500 h-full rounded-full" style="width: {{ $pendingAudit > 0 ? min(100, $pendingAudit * 10) : 0 }}%"></div>
+                    </div>
+                </a>
+            @else
+                <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex flex-col justify-between space-y-3 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-black text-purple-400 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-[10px] font-black">٢</span>
+                            <span>وردبینی ژمێریاری</span>
+                        </span>
+                        <i class="fa-solid fa-clipboard-check text-slate-500 text-sm"></i>
+                    </div>
+                    <div class="flex items-end justify-between">
+                        <div>
+                            <div class="text-2xl font-black text-white font-mono">{{ $pendingAudit }}</div>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">وردبینی • ئەمڕۆ: <strong class="text-purple-400 font-mono">{{ $todayAuditedCount }}</strong></span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/30">
+                            چاوەڕوان
+                        </span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-purple-500 h-full rounded-full" style="width: {{ $pendingAudit > 0 ? min(100, $pendingAudit * 10) : 0 }}%"></div>
+                    </div>
                 </div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div class="bg-purple-500 h-full rounded-full" style="width: {{ $pendingAudit > 0 ? min(100, $pendingAudit * 10) : 0 }}%"></div>
-                </div>
-            </a>
+            @endif
 
             <!-- Step 3: Cashier / Payment -->
-            <a href="{{ route('transactions.index', ['stage' => 'payment']) }}" 
-               class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-amber-500/60 hover:bg-slate-800/50 transition group flex flex-col justify-between space-y-3 relative overflow-hidden">
-                <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-black text-amber-400 flex items-center gap-1.5">
-                        <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-[10px] font-black">٣</span>
-                        <span>قاسە و پارەدان</span>
-                    </span>
-                    <i class="fa-solid fa-cash-register text-slate-500 group-hover:text-amber-400 transition text-sm"></i>
-                </div>
-                <div class="flex items-end justify-between">
-                    <div>
-                        <div class="text-2xl font-black text-white font-mono">{{ $pendingPayment }}</div>
-                        <span class="text-[10px] text-slate-400 block mt-0.5">وەسڵی ۳۷/أ • ئەمڕۆ: <strong class="text-amber-400 font-mono">{{ $todayPaidCount }}</strong></span>
+            @if($canViewAllTx)
+                <a href="{{ route('transactions.index', ['stage' => 'payment']) }}" 
+                   class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-amber-500/60 hover:bg-slate-800/50 transition group flex flex-col justify-between space-y-3 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-black text-amber-400 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-[10px] font-black">٣</span>
+                            <span>قاسە و پارەدان</span>
+                        </span>
+                        <i class="fa-solid fa-cash-register text-slate-500 group-hover:text-amber-400 transition text-sm"></i>
                     </div>
-                    <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30">
-                        چاوەڕوان
-                    </span>
+                    <div class="flex items-end justify-between">
+                        <div>
+                            <div class="text-2xl font-black text-white font-mono">{{ $pendingPayment }}</div>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">وەسڵی ۳۷/أ • ئەمڕۆ: <strong class="text-amber-400 font-mono">{{ $todayPaidCount }}</strong></span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30 group-hover:bg-amber-500 group-hover:text-white transition">
+                            چاوپێخشاندن
+                        </span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-amber-500 h-full rounded-full" style="width: {{ $pendingPayment > 0 ? min(100, $pendingPayment * 10) : 0 }}%"></div>
+                    </div>
+                </a>
+            @else
+                <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex flex-col justify-between space-y-3 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-black text-amber-400 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center text-[10px] font-black">٣</span>
+                            <span>قاسە و پارەدان</span>
+                        </span>
+                        <i class="fa-solid fa-cash-register text-slate-500 text-sm"></i>
+                    </div>
+                    <div class="flex items-end justify-between">
+                        <div>
+                            <div class="text-2xl font-black text-white font-mono">{{ $pendingPayment }}</div>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">وەسڵی ۳۷/أ • ئەمڕۆ: <strong class="text-amber-400 font-mono">{{ $todayPaidCount }}</strong></span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                            چاوەڕوان
+                        </span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-amber-500 h-full rounded-full" style="width: {{ $pendingPayment > 0 ? min(100, $pendingPayment * 10) : 0 }}%"></div>
+                    </div>
                 </div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div class="bg-amber-500 h-full rounded-full" style="width: {{ $pendingPayment > 0 ? min(100, $pendingPayment * 10) : 0 }}%"></div>
-                </div>
-            </a>
+            @endif
 
             <!-- Step 4: Booklet Printing -->
-            <a href="{{ route('transactions.index', ['stage' => 'booklet']) }}" 
-               class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-sky-500/60 hover:bg-slate-800/50 transition group flex flex-col justify-between space-y-3 relative overflow-hidden">
-                <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-black text-sky-400 flex items-center gap-1.5">
-                        <span class="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px] font-black">٤</span>
-                        <span>چاپی دەفتەر</span>
-                    </span>
-                    <i class="fa-solid fa-print text-slate-500 group-hover:text-sky-400 transition text-sm"></i>
-                </div>
-                <div class="flex items-end justify-between">
-                    <div>
-                        <div class="text-2xl font-black text-white font-mono">{{ $pendingBooklet }}</div>
-                        <span class="text-[10px] text-slate-400 block mt-0.5">دەفتەر • ئەمڕۆ: <strong class="text-sky-400 font-mono">{{ $todayBookletsCount }}</strong></span>
+            @if($canViewAllTx)
+                <a href="{{ route('transactions.index', ['stage' => 'booklet']) }}" 
+                   class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-sky-500/60 hover:bg-slate-800/50 transition group flex flex-col justify-between space-y-3 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-black text-sky-400 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px] font-black">٤</span>
+                            <span>چاپی دەفتەر</span>
+                        </span>
+                        <i class="fa-solid fa-print text-slate-500 group-hover:text-sky-400 transition text-sm"></i>
                     </div>
-                    <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-300 border border-sky-500/30">
-                        چاوەڕوان
-                    </span>
+                    <div class="flex items-end justify-between">
+                        <div>
+                            <div class="text-2xl font-black text-white font-mono">{{ $pendingBooklet }}</div>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">دەفتەر • ئەمڕۆ: <strong class="text-sky-400 font-mono">{{ $todayBookletsCount }}</strong></span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-300 border border-sky-500/30 group-hover:bg-sky-500 group-hover:text-white transition">
+                            چاوپێخشاندن
+                        </span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-sky-500 h-full rounded-full" style="width: {{ $pendingBooklet > 0 ? min(100, $pendingBooklet * 10) : 0 }}%"></div>
+                    </div>
+                </a>
+            @else
+                <div class="p-4 rounded-xl bg-slate-950/70 border border-slate-800 flex flex-col justify-between space-y-3 relative overflow-hidden">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-black text-sky-400 flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center text-[10px] font-black">٤</span>
+                            <span>چاپی دەفتەر</span>
+                        </span>
+                        <i class="fa-solid fa-print text-slate-500 text-sm"></i>
+                    </div>
+                    <div class="flex items-end justify-between">
+                        <div>
+                            <div class="text-2xl font-black text-white font-mono">{{ $pendingBooklet }}</div>
+                            <span class="text-[10px] text-slate-400 block mt-0.5">دەفتەر • ئەمڕۆ: <strong class="text-sky-400 font-mono">{{ $todayBookletsCount }}</strong></span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-sky-500/10 text-sky-300 border border-sky-500/30">
+                            چاوەڕوان
+                        </span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-sky-500 h-full rounded-full" style="width: {{ $pendingBooklet > 0 ? min(100, $pendingBooklet * 10) : 0 }}%"></div>
+                    </div>
                 </div>
-                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                    <div class="bg-sky-500 h-full rounded-full" style="width: {{ $pendingBooklet > 0 ? min(100, $pendingBooklet * 10) : 0 }}%"></div>
-                </div>
-            </a>
+            @endif
 
         </div>
     </div>
@@ -925,7 +1028,7 @@
                             <p class="text-[11px] text-slate-400">نوێترین جموجۆڵەکانی دەروازەی دەفتەری ئۆتۆمبێل</p>
                         </div>
                     </div>
-                    @if(!auth()->check() || auth()->user()->role !== 'data_entry')
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
                         <a href="{{ route('transactions.index') }}" class="text-xs text-sky-400 hover:text-sky-300 hover:underline font-bold flex items-center gap-1">
                             <span>بینینی هەموو مامەڵەکان</span>
                             <i class="fa-solid fa-arrow-left text-[10px]"></i>
@@ -1053,7 +1156,7 @@
             <!-- Table Footer Indicator -->
             <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
                 <span>پیشاندانی دوایین {{ $recentTransactions->count() }} مامەڵە</span>
-                @if(!auth()->check() || auth()->user()->role !== 'data_entry')
+                @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
                     <a href="{{ route('transactions.index') }}" class="text-sky-400 font-bold hover:underline">
                         گەڕان لە تەواوی مامەڵەکان &larr;
                     </a>
@@ -1143,7 +1246,7 @@
                             </div>
                         </div>
                         <div class="space-y-1.5 pt-1">
-                            @if(auth()->user()->role !== 'data_entry')
+                            @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
                                 <a href="{{ route('transactions.index') }}" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center justify-between transition">
                                     <span><i class="fa-solid fa-list-check ml-1.5 text-sky-400"></i> لیستی گشتی مامەڵەکان</span>
                                     <i class="fa-solid fa-chevron-left text-[10px] text-slate-400"></i>

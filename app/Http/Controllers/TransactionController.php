@@ -23,9 +23,9 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
-        // Data Entry clerks do not access general transactions list
-        if (auth()->check() && auth()->user()->role === 'data_entry' && !auth()->user()->isAdmin()) {
-            return redirect()->route('dashboard');
+        // Only Admin and Archiver can access the general transactions index
+        if (auth()->check() && !auth()->user()->isAdmin() && auth()->user()->role !== 'archiver') {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی لیستی گشتی مامەڵەکان تەنها بۆ ئەدمین و کارمەندی ئەرشیفە.');
         }
 
         // Self-heal: If database is empty on hosted service, automatically restore all 84 baseline records
@@ -803,19 +803,26 @@ class TransactionController extends Controller
             if ($matches->count() === 1) {
                 return redirect()->route('transactions.show', $matches->first()->id);
             } elseif ($matches->count() > 1) {
-                return redirect()->route('transactions.index', ['search' => $term]);
+                if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver')) {
+                    return redirect()->route('transactions.index', ['search' => $term]);
+                }
+                return redirect()->route('transactions.show', $matches->first()->id);
             }
         }
 
         // 3. Fallback partial search into transactions index
         if (!$transaction) {
-            $count = Transaction::where('visitor_name', 'like', "%{$term}%")
+            $partialMatches = Transaction::where('visitor_name', 'like', "%{$term}%")
                 ->orWhere('plate_number', 'like', "%{$term}%")
                 ->orWhere('phone_number', 'like', "%{$term}%")
-                ->count();
+                ->latest()
+                ->get();
 
-            if ($count > 0) {
-                return redirect()->route('transactions.index', ['search' => $term]);
+            if ($partialMatches->count() > 0) {
+                if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver')) {
+                    return redirect()->route('transactions.index', ['search' => $term]);
+                }
+                return redirect()->route('transactions.show', $partialMatches->first()->id);
             }
 
             return redirect()->back()->with('error', "هیچ مامەڵەیەک نەدۆزرایەوە بە گەڕانی: {$term}");
@@ -1606,7 +1613,10 @@ class TransactionController extends Controller
 
         AuditLogger::log('سڕینەوەی کاتی (Soft Delete)', Transaction::class, $transaction->id, "مامەڵەی بارکۆد {$barcode} خرایە ئەرشیفی سڕدراوەکان");
 
-        return redirect()->route('transactions.index')->with('success', "مامەڵەی بارکۆد ({$barcode}) بە سەرکەوتوویی خرایە ئەرشیفی سڕدراوەکانەوە (تەنەکەخۆڵ).");
+        if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver')) {
+            return redirect()->route('transactions.index')->with('success', "مامەڵەی بارکۆد ({$barcode}) بە سەرکەوتوویی خرایە ئەرشیفی سڕدراوەکانەوە (تەنەکەخۆڵ).");
+        }
+        return redirect()->route('dashboard')->with('success', "مامەڵەی بارکۆد ({$barcode}) بە سەرکەوتوویی خرایە ئەرشیفی سڕدراوەکانەوە.");
     }
 
     public function restore($id)

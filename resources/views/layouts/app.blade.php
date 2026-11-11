@@ -316,7 +316,7 @@
                         <i class="fa-solid fa-chart-pie text-sm opacity-90"></i>
                         <span>داشبۆرد</span>
                     </a>
-                    @if(!auth()->check() || auth()->user()->role !== 'data_entry')
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
                         <a href="{{ route('transactions.index') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('transactions.index') ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                             <i class="fa-solid fa-list-check text-xs opacity-80"></i>
                             <span>مامەڵەکان</span>
@@ -570,7 +570,7 @@
                     <a href="{{ route('dashboard') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-sky-600 hover:text-white">
                         <i class="fa-solid fa-chart-pie ml-1.5 text-sky-500"></i> داشبۆرد
                     </a>
-                    @if(!auth()->check() || auth()->user()->role !== 'data_entry')
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
                         <a href="{{ route('transactions.index') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-200 hover:bg-sky-600 hover:text-white">
                             <i class="fa-solid fa-list-check ml-1.5 text-emerald-500"></i> مامەڵەکان
                         </a>
@@ -767,8 +767,8 @@
                     <span>داشبۆرد</span>
                 </a>
 
-                <!-- 2. مامەڵەکان (جگە لە داتائەنتەری) -->
-                @if(auth()->user()->role !== 'data_entry')
+                <!-- 2. مامەڵەکان (تەنها بۆ ئەدمین و ئەرشیف) -->
+                @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
                     <a href="{{ route('transactions.index') }}" class="flex flex-col items-center justify-center py-1.5 text-[10px] font-bold transition {{ request()->routeIs('transactions.index*') ? 'text-sky-600 dark:text-sky-400' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
                         <i class="fa-solid fa-list-check text-base mb-0.5"></i>
                         <span>مامەڵەکان</span>
