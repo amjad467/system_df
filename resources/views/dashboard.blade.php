@@ -11,25 +11,24 @@
         <div class="absolute -top-12 -left-12 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-12 -right-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+        <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <!-- Right Side (RTL): Dignified Greeting & View Switcher -->
-            <div class="space-y-2 min-w-0">
-                <div>
-                    <h1 class="text-base sm:text-2xl font-black text-white leading-tight flex items-center gap-2 flex-wrap">
-                        <span>بەخێربێیت،</span>
-                        <span class="text-sky-300">{{ auth()->user()->clean_name }}</span>
-                        <span class="text-xs sm:text-sm px-2.5 py-0.5 rounded-xl bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold">
-                            {{ auth()->user()->clean_role_name }}
-                        </span>
+            <div class="space-y-1.5 min-w-0">
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <h1 class="text-base sm:text-2xl font-black text-white leading-tight">
+                        بەخێربێیت، <span class="text-sky-300">{{ auth()->user()->clean_name }}</span>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-1">
-                        @if(auth()->user()->isAdmin())
-                            داشبۆردی سەرپەرشتیاری و چاودێری گشتی مامەڵەکانی دەفتەری ئۆتۆمبێل
-                        @else
-                            چاودێری ڕاستەوخۆ و ڕاپەڕاندنی خێرای مامەڵەکانی دەفتەری ئۆتۆمبێل
-                        @endif
-                    </p>
+                    <span class="text-xs sm:text-sm px-2.5 py-0.5 rounded-xl bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold">
+                        {{ auth()->user()->clean_role_name }}
+                    </span>
                 </div>
+                <p class="text-xs text-slate-400">
+                    @if(auth()->user()->isAdmin())
+                        داشبۆردی سەرپەرشتیاری و چاودێری گشتی مامەڵەکانی دەفتەری ئۆتۆمبێل
+                    @else
+                        چاودێری ڕاستەوخۆ و ڕاپەڕاندنی خێرای مامەڵەکانی دەفتەری ئۆتۆمبێل
+                    @endif
+                </p>
 
                 <!-- Admin Segmented View Switcher -->
                 @if(auth()->user()->isAdmin())
@@ -51,12 +50,17 @@
                             <span>داتائەنتەری</span>
                         </a>
                     </div>
-                @else
-                    <!-- Non-Admin Today Summary Pill -->
-                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs shadow-inner mt-1">
-                        <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i>
+                @endif
+            </div>
+
+            <!-- Left Side (RTL): Today's Active Volume Summary Pill & New Action -->
+            <div class="flex items-center gap-3 shrink-0">
+                <!-- Non-Admin Today Summary Pill -->
+                @if(!auth()->user()->isAdmin())
+                    <div class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs shadow-inner">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                         <span class="text-slate-400">چالاکیی ئەمڕۆت:</span>
-                        <span class="font-mono font-black text-emerald-400">
+                        <span class="font-mono font-black text-emerald-400 text-sm">
                             @if($activeRole === 'inspector')
                                 {{ $todayInspectedCount }} کەشفکراو
                             @elseif($activeRole === 'auditor')
@@ -73,30 +77,67 @@
                         </span>
                     </div>
                 @endif
+
+                @if(auth()->user()->isAdmin() || in_array(auth()->user()->role, ['data_entry', 'inspector', 'booklet']))
+                    <a href="{{ route('transactions.create') }}" 
+                       class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg transition flex items-center gap-2 active:scale-95" title="تۆمارکردنی مامەڵەی نوێ (Alt+N)">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>تۆمارکردنی مامەڵەی نوێ</span>
+                    </a>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 2. DEDICATED BARCODE SEARCH & SCAN WORKSTATION (LIKE DATA ENTRY FORM) -->
+    <!-- ========================================================================= -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl relative">
+        <div class="max-w-2xl mx-auto space-y-3">
+            <div class="text-center space-y-1">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30 shadow-sm">
+                    <i class="fa-solid fa-barcode text-sm"></i>
+                    <span>وێستگەی سکانی خێرا و گەڕان بەدوای مامەڵە</span>
+                </span>
+                <h2 class="text-base sm:text-xl font-black text-white">
+                    بارکۆدی مامەڵە لێبدە بۆ بینینی زانیاری، شوێن و ڕاپەڕاندنی قۆناغ
+                </h2>
+                <p class="text-xs text-slate-400">
+                    دەتوانیت بە ئامێری سکانەر بارکۆد لێبدەیت، یان ژمارەی بارکۆد / تابلۆ لێرە بنووسیت (F2)
+                </p>
             </div>
 
-            <!-- Left Side (RTL): Prominent Fast Barcode Scanner Station -->
-            <div class="w-full lg:max-w-md shrink-0">
-                <form action="{{ route('transactions.scan') }}" method="POST" class="relative">
-                    @csrf
-                    <div class="flex items-center bg-slate-950 rounded-2xl border-2 border-sky-500/40 hover:border-sky-400 focus-within:border-sky-400 focus-within:ring-4 focus-within:ring-sky-500/20 shadow-xl transition">
-                        <div class="pr-3.5 pl-2 text-sky-400 flex items-center pointer-events-none">
-                            <i class="fa-solid fa-barcode text-xl"></i>
-                        </div>
-                        <input type="text" name="barcode" id="dashBarcodeInput" 
-                               placeholder="سکانی بارکۆد بکە یان لێرە بینوسە... (F2)" 
-                               class="w-full bg-transparent text-white placeholder-slate-400 text-sm font-mono font-bold py-3 pr-1 pl-20 focus:outline-none tracking-wider text-right"
-                               autocomplete="off" autofocus title="لێرە بارکۆد لێبدە (F2)">
-                        <div class="absolute left-2 flex items-center gap-1.5">
-                            <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-bold text-slate-400 bg-slate-800 border border-slate-700 rounded shadow-sm">F2</kbd>
-                            <button type="submit" class="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-1 active:scale-95">
-                                <span>گەڕان</span>
-                                <i class="fa-solid fa-arrow-left text-[10px]"></i>
-                            </button>
-                        </div>
+            <!-- Big Search Input Box -->
+            <form action="{{ route('transactions.scan') }}" method="POST" class="relative group">
+                @csrf
+                <div class="relative flex items-center bg-slate-950 rounded-2xl border-2 border-sky-500/60 hover:border-sky-400 focus-within:border-sky-300 focus-within:ring-4 focus-within:ring-sky-500/30 transition shadow-2xl">
+                    <!-- Scanner Icon -->
+                    <div class="absolute right-4 text-sky-400 pointer-events-none">
+                        <i class="fa-solid fa-barcode text-xl"></i>
                     </div>
-                </form>
-            </div>
+
+                    <input type="text" 
+                           name="barcode" 
+                           id="dashBarcodeInput" 
+                           placeholder="بارکۆدی ١٠ ڕەقەمی بنووسە یان سکانی بکە... (F2)" 
+                           class="w-full bg-transparent text-white placeholder-slate-500 text-base sm:text-lg font-mono font-black pr-14 pl-32 py-3.5 sm:py-4 focus:outline-none text-right tracking-wider"
+                           autocomplete="off"
+                           autofocus
+                           title="لێرە بارکۆد لێبدە یان بە ئامێری سکانەر لێیبدە (F2)">
+
+                    <!-- Left Action Buttons -->
+                    <div class="absolute left-2.5 flex items-center gap-1.5">
+                        <kbd class="hidden sm:inline-flex items-center px-2 py-1 text-[11px] font-mono font-bold text-slate-400 bg-slate-800 border border-slate-700 rounded-lg shadow-sm" title="داگرتنی F2 بۆ فۆکەس">
+                            F2
+                        </kbd>
+                        <button type="submit" 
+                                class="px-5 py-2 sm:py-2.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-sky-500/30 transition flex items-center gap-1.5 active:scale-95">
+                            <i class="fa-solid fa-arrow-left text-xs"></i>
+                            <span>گەڕان</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 
