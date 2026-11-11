@@ -458,62 +458,45 @@
                             </div>
                         </div>
 
-                        <!-- Consolidated Single User Profile Menu -->
-                        <div class="relative" x-data="{ openUserMenu: false }">
-                            <button @click="openUserMenu = !openUserMenu" type="button" 
-                                    class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-750 text-slate-200 border border-slate-700/80 transition shadow-sm active:scale-95"
-                                    title="مێنۆی بەکارهێنەر">
-                                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm shrink-0">
-                                    <i class="fa-solid fa-user-check"></i>
-                                </div>
-                                <div class="text-right leading-tight hidden md:block min-w-0 pr-0.5">
-                                    <span class="text-xs font-black text-white block truncate max-w-[130px]">{{ auth()->user()->clean_name }}</span>
-                                    <span class="text-[10px] text-sky-400 font-bold block truncate">{{ auth()->user()->clean_role_name }}</span>
-                                </div>
-                                <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200" :class="openUserMenu ? 'rotate-180' : ''"></i>
-                            </button>
-
-                            <div x-show="openUserMenu" @click.away="openUserMenu = false" x-cloak 
-                                 x-transition.origin.top.left.duration.150ms
-                                 class="absolute left-0 mt-2 w-64 bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl p-2 z-50 space-y-1.5 text-xs text-right">
-                                
-                                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2.5">
-                                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center text-sm font-black shadow-md shrink-0">
-                                        <i class="fa-solid fa-user-shield"></i>
-                                    </div>
-                                    <div class="min-w-0">
-                                        <span class="text-xs font-black text-white block truncate">{{ auth()->user()->clean_name }}</span>
-                                        <span class="text-[11px] text-sky-400 font-bold block truncate">{{ auth()->user()->clean_role_name }}</span>
-                                        <span class="text-[9px] text-slate-400 font-mono block mt-0.5">{{ auth()->user()->email }}</span>
-                                    </div>
-                                </div>
-
-                                <button type="button" @click="showMyPasswordModal = true; openUserMenu = false" 
-                                        class="w-full text-right flex items-center gap-2.5 px-3 py-2 rounded-xl text-amber-300 hover:bg-slate-800 transition font-bold">
-                                    <i class="fa-solid fa-key w-4 text-center text-amber-400"></i>
-                                    <span>گۆڕینی وشەی نهێنی (پاسۆرد)</span>
-                                </button>
-
-                                @if(auth()->user()->isAdmin())
-                                    <button type="button" x-show="!isInstalled" @click="promptInstall(); openUserMenu = false" 
-                                            class="w-full text-right flex items-center gap-2.5 px-3 py-2 rounded-xl text-sky-300 hover:bg-slate-800 transition font-bold">
-                                        <i class="fa-solid fa-cloud-arrow-down w-4 text-center text-sky-400"></i>
-                                        <span>داگرتنی سیستەم وەک ئەپ (PWA)</span>
-                                    </button>
-                                @endif
-
-                                <div class="border-t border-slate-800 my-1"></div>
-
-                                <form action="{{ route('logout') }}" method="POST" class="w-full">
-                                    @csrf
-                                    <button type="submit" 
-                                            class="w-full text-right flex items-center gap-2.5 px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition font-black">
-                                        <i class="fa-solid fa-power-off w-4 text-center text-rose-400"></i>
-                                        <span>چوونەدەرەوە لە سیستەم</span>
-                                    </button>
-                                </form>
+                        <!-- Employee Identity Pill -->
+                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/90 border border-slate-700/80 shadow-sm text-right leading-tight">
+                            <div class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-xs shrink-0">
+                                <i class="fa-solid fa-user-check"></i>
+                            </div>
+                            <div class="hidden sm:block min-w-0 pr-0.5">
+                                <span class="text-xs font-black text-white block truncate max-w-[130px]">{{ auth()->user()->clean_name }}</span>
+                                <span class="text-[10px] text-sky-400 font-bold block truncate">{{ auth()->user()->clean_role_name }}</span>
                             </div>
                         </div>
+
+                        <!-- Change Password Button (Prominent & Accessible) -->
+                        <button type="button" @click="showMyPasswordModal = true" 
+                                class="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 flex items-center gap-1.5 text-xs font-bold transition shadow-sm active:scale-95" 
+                                title="گۆڕینی وشەی نهێنی (پاسۆرد)">
+                            <i class="fa-solid fa-key text-xs sm:text-sm text-amber-400"></i>
+                            <span class="hidden md:inline">گۆڕینی پاسۆرد</span>
+                        </button>
+
+                        <!-- PWA Install (Admin Only) -->
+                        @if(auth()->user()->isAdmin())
+                            <button type="button" x-show="!isInstalled" @click="promptInstall()" 
+                                    class="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-sky-300 border border-slate-700 text-xs font-bold transition shadow-sm" 
+                                    title="داگرتنی سیستەم وەک ئەپ">
+                                <i class="fa-solid fa-cloud-arrow-down text-sky-400"></i>
+                                <span>داگرتنی ئەپ</span>
+                            </button>
+                        @endif
+
+                        <!-- Logout Button (Prominent & Accessible) -->
+                        <form action="{{ route('logout') }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" 
+                                    class="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 flex items-center gap-1.5 text-xs font-bold transition shadow-sm active:scale-95" 
+                                    title="چوونەدەرەوە لە سیستەم">
+                                <i class="fa-solid fa-power-off text-xs sm:text-sm text-rose-400"></i>
+                                <span class="hidden md:inline">چوونەدەرەوە</span>
+                            </button>
+                        </form>
                     @endauth
                 </div>
             </div>

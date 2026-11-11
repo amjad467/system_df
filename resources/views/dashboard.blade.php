@@ -15,11 +15,19 @@
             <!-- Right Side (RTL): Dignified Greeting & View Switcher -->
             <div class="space-y-2 min-w-0">
                 <div>
-                    <h1 class="text-lg sm:text-2xl font-black text-white leading-tight">
-                        بەخێربێیت، <span class="text-sky-300">{{ auth()->user()->clean_name }}</span>
+                    <h1 class="text-base sm:text-2xl font-black text-white leading-tight flex items-center gap-2 flex-wrap">
+                        <span>بەخێربێیت،</span>
+                        <span class="text-sky-300">{{ auth()->user()->clean_name }}</span>
+                        <span class="text-xs sm:text-sm px-2.5 py-0.5 rounded-xl bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold">
+                            {{ auth()->user()->clean_role_name }}
+                        </span>
                     </h1>
-                    <p class="text-xs text-slate-400 mt-0.5">
-                        داشبۆردی سەرپەرشتیاری و چاودێری ڕاستەوخۆی مامەڵەکانی دەفتەری ئۆتۆمبێل
+                    <p class="text-xs text-slate-400 mt-1">
+                        @if(auth()->user()->isAdmin())
+                            داشبۆردی سەرپەرشتیاری و چاودێری گشتی مامەڵەکانی دەفتەری ئۆتۆمبێل
+                        @else
+                            چاودێری ڕاستەوخۆ و ڕاپەڕاندنی خێرای مامەڵەکانی دەفتەری ئۆتۆمبێل
+                        @endif
                     </p>
                 </div>
 
@@ -42,6 +50,27 @@
                             <i class="fa-solid fa-keyboard text-xs"></i>
                             <span>داتائەنتەری</span>
                         </a>
+                    </div>
+                @else
+                    <!-- Non-Admin Today Summary Pill -->
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs shadow-inner mt-1">
+                        <i class="fa-solid fa-clock-rotate-left text-emerald-400"></i>
+                        <span class="text-slate-400">چالاکیی ئەمڕۆت:</span>
+                        <span class="font-mono font-black text-emerald-400">
+                            @if($activeRole === 'inspector')
+                                {{ $todayInspectedCount }} کەشفکراو
+                            @elseif($activeRole === 'auditor')
+                                {{ $todayAuditedCount }} وردبینیکراو
+                            @elseif($activeRole === 'cashier')
+                                {{ $todayPaidCount }} وەسڵ • {{ number_format($todayIncome) }} د.ع
+                            @elseif($activeRole === 'booklet')
+                                {{ $todayBookletsCount }} دەفتەر
+                            @elseif($activeRole === 'archiver')
+                                {{ $todayArchivedCount }} ئەرشیف
+                            @else
+                                {{ $todayDataEntryCount }} تۆمار
+                            @endif
+                        </span>
                     </div>
                 @endif
             </div>
