@@ -808,6 +808,28 @@
         </nav>
     @endauth
 
+    <!-- Live Database Connection Indicator (Admin Only) -->
+    @auth
+        @if(auth()->user()->isAdmin())
+            @php
+                $currentDriver = \Illuminate\Support\Facades\DB::connection()->getDriverName();
+            @endphp
+            <div class="fixed bottom-3 right-3 z-50 pointer-events-auto">
+                @if($currentDriver === 'pgsql')
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 text-[10px] font-mono font-bold shadow-2xl backdrop-blur-md" title="سیستەم پەیوەستە بە داتابەیسی بەردەوامی کلاود (Supabase PostgreSQL) و داتاکان هەرگیز ناسڕێنەوە">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span>کلاود: Supabase PostgreSQL (هەمیشەیی)</span>
+                    </div>
+                @else
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-950/90 border border-amber-500/50 text-amber-300 text-[10px] font-mono font-bold shadow-2xl backdrop-blur-md" title="سیستەم ئێستا لەسەر فایلی کاتی SQLite کار دەکات چونکە ناونیشانی IPv4 Pooler لە ڕێندەر دانەنراوە">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                        <span>کاتی: SQLite Fallback</span>
+                    </div>
+                @endif
+            </div>
+        @endif
+    @endauth
+
     <!-- Footer (Desktop) -->
     <footer class="hidden md:block bg-slate-800/60 border-t border-slate-800 py-4 text-center text-xs text-slate-500">
         <p>سیستەمی یەکگرتووی بەڕێوەبردنی دەرهێنانی دەفتەری ئۆتۆمبێلی گەشتیاری &copy; {{ date('Y') }} - دروستکراوە  له‌لايه‌ن فه‌رمانبه‌رى ئاتى  امجد صالح عبدالله</p>

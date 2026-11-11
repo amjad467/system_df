@@ -35,16 +35,19 @@ DB_FALLBACK=$(php -r '
             $pass = (isset($p["pass"]) ? urldecode($p["pass"]) : getenv("DB_PASSWORD")) ?: "";
             $pdo = new PDO("pgsql:host={$host};port={$port};dbname={$db};sslmode=prefer;connect_timeout=10", $user, $pass);
             $pdo->query("SELECT 1");
+            echo "OK";
+            exit(0);
         } catch (\Throwable $e) {
+            file_put_contents("/tmp/db_error.log", $e->getMessage());
             echo "FALLBACK";
             exit(0);
         }
     }
-    echo "OK";
+    echo "FALLBACK";
 ' 2>/dev/null || echo "FALLBACK")
 
 if [ "$DB_FALLBACK" = "FALLBACK" ]; then
-    echo "PostgreSQL host unreachable or invalid. Falling back cleanly to bundled SQLite database..."
+    echo "PostgreSQL connection failed: $(cat /tmp/db_error.log 2>/dev/null || echo 'No connection string provided'). Falling back to SQLite..."
     export DB_CONNECTION=sqlite
     export DB_DATABASE=/var/www/database/database.sqlite
     unset DATABASE_URL
@@ -59,6 +62,8 @@ if [ "$DB_FALLBACK" = "FALLBACK" ]; then
         sed -i 's/^DB_URL=/#DB_URL=/' /var/www/.env 2>/dev/null || true
         sed -i 's/^DB_HOST=/#DB_HOST=/' /var/www/.env 2>/dev/null || true
     fi
+else
+    echo "=== CONNECTED SUCCESSFULLY TO PERSISTENT POSTGRESQL DATABASE ==="
 fi
 
 # 5. Safe cache clear
