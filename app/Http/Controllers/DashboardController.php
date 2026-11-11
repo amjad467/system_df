@@ -149,6 +149,7 @@ class DashboardController extends Controller
 
         // 3. Financial Metrics (STRICTLY FOR CASHIER & ADMIN ONLY!)
         $canSeeMoney = $user && ($user->isAdmin() || $user->role === 'cashier');
+        $showAllTimeCards = $user && ($user->isAdmin() || $user->role === 'archiver' || ($user->isAdmin() && $request->get('view') === 'archiver'));
         $totalIncome = 0;
         $todayIncome = 0;
 
@@ -281,6 +282,7 @@ class DashboardController extends Controller
         return view('dashboard', compact(
             'activeRole',
             'canSeeMoney',
+            'showAllTimeCards',
             'totalTransactions',
             'totalIncome',
             'todayIncome',
