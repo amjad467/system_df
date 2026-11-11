@@ -6,181 +6,67 @@
     <!-- ========================================================================= -->
     <!-- 1. WORKSTATION HEADER, FAST SCANNER & OPERATIONAL SUMMARY -->
     <!-- ========================================================================= -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950 p-4 sm:p-5 rounded-3xl border border-slate-800 shadow-xl">
+    <div class="relative overflow-hidden bg-slate-900/90 p-4 sm:p-5 rounded-3xl border border-slate-800 shadow-xl backdrop-blur-md">
         <!-- Subtle Ambient Glow -->
-        <div class="absolute -top-12 -left-12 w-56 h-56 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-12 -right-12 w-56 h-56 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -top-12 -left-12 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-12 -right-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
-            <!-- Right Side (RTL): Desk Identity & Live Date/Time -->
-            <div class="space-y-1.5 min-w-0 shrink-0">
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30 flex items-center gap-1.5 shadow-sm">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                        بەڕێوەبەرایەتی گومرگی سلێمانی
-                    </span>
-
-                    <span class="px-3 py-1 rounded-2xl text-xs sm:text-sm font-medium bg-slate-950/90 text-slate-200 border border-slate-700/80 font-mono flex items-center gap-2 shadow-inner" title="کاتی ڕاستەوخۆی کۆمپیوتەرەکەت">
-                        <i class="fa-regular fa-calendar-days text-sky-400 text-xs"></i>
-                        <span class="app-live-date text-slate-200">{{ now()->format('Y-m-d') }}</span>
-                        <span class="text-slate-600 font-bold">•</span>
-                        <i class="fa-regular fa-clock text-emerald-400 text-xs"></i>
-                        <span class="app-live-clock font-black text-emerald-400 tracking-wider">{{ now()->format('H:i:s') }}</span>
-                    </span>
-
-                    @if(auth()->user()->isAdmin())
-                        <div class="flex items-center gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-[11px]">
-                            <span class="text-slate-400 px-1 font-bold">دیمەن:</span>
-                            <a href="{{ route('dashboard') }}" class="px-2 py-0.5 rounded-lg font-bold {{ !request()->has('view') ? 'bg-sky-600 text-white' : 'text-slate-300 hover:text-white' }}">گشتی</a>
-                            <a href="{{ route('dashboard', ['view' => 'cashier']) }}" class="px-2 py-0.5 rounded-lg font-bold {{ request('view') === 'cashier' ? 'bg-amber-600 text-white' : 'text-slate-300 hover:text-white' }}">قاسە</a>
-                            <a href="{{ route('dashboard', ['view' => 'archiver']) }}" class="px-2 py-0.5 rounded-lg font-bold {{ request('view') === 'archiver' ? 'bg-purple-600 text-white' : 'text-slate-300 hover:text-white' }}">ئەرشیف</a>
-                            <a href="{{ route('dashboard', ['view' => 'data_entry']) }}" class="px-2 py-0.5 rounded-lg font-bold text-slate-300 hover:text-white">داتائەنتەری</a>
-                        </div>
-                    @endif
-                </div>
-
-                <div class="flex items-center gap-2 flex-wrap pt-0.5">
-                    <h1 class="text-base sm:text-xl font-black text-white tracking-normal">
-                        داشبۆردی سەرەکی • <span class="text-sky-300">{{ auth()->user()->clean_role_name }}</span>
+        <div class="relative z-10 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+            <!-- Right Side (RTL): Dignified Greeting & View Switcher -->
+            <div class="space-y-2 min-w-0">
+                <div>
+                    <h1 class="text-lg sm:text-2xl font-black text-white leading-tight">
+                        بەخێربێیت، <span class="text-sky-300">{{ auth()->user()->clean_name }}</span>
                     </h1>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                        داشبۆردی سەرپەرشتیاری و چاودێری ڕاستەوخۆی مامەڵەکانی دەفتەری ئۆتۆمبێل
+                    </p>
                 </div>
-                <p class="text-xs text-slate-400 max-w-sm leading-relaxed">
-                    چاودێری ڕاستەوخۆ و ڕاپەڕاندنی خێرای مامەڵەکانی دەفتەری ئۆتۆمبێل.
-                </p>
+
+                <!-- Admin Segmented View Switcher -->
+                @if(auth()->user()->isAdmin())
+                    <div class="inline-flex items-center p-1 rounded-xl bg-slate-950 border border-slate-800 text-xs shadow-inner mt-1">
+                        <a href="{{ route('dashboard') }}" class="px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 {{ !request()->has('view') ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">
+                            <i class="fa-solid fa-gauge-high text-xs"></i>
+                            <span>دیمەنی گشتی</span>
+                        </a>
+                        <a href="{{ route('dashboard', ['view' => 'cashier']) }}" class="px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 {{ request('view') === 'cashier' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">
+                            <i class="fa-solid fa-cash-register text-xs"></i>
+                            <span>قاسە و ژمێریاری</span>
+                        </a>
+                        <a href="{{ route('dashboard', ['view' => 'archiver']) }}" class="px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 {{ request('view') === 'archiver' ? 'bg-teal-600 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">
+                            <i class="fa-solid fa-box-archive text-xs"></i>
+                            <span>ئەرشیف</span>
+                        </a>
+                        <a href="{{ route('dashboard', ['view' => 'data_entry']) }}" class="px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+                            <i class="fa-solid fa-keyboard text-xs"></i>
+                            <span>داتائەنتەری</span>
+                        </a>
+                    </div>
+                @endif
             </div>
 
-            <!-- Center: Prominent Fast Barcode Scanner Station -->
-            <div class="flex-1 max-w-xl w-full mx-auto px-0 xl:px-4 py-1">
-                <div class="flex items-center justify-between mb-1.5 px-1 text-xs">
-                    <span class="flex items-center gap-1.5 font-bold text-sky-300">
-                        <i class="fa-solid fa-barcode text-sky-400 text-sm"></i>
-                        <span>وێستگەی سکانی خێرای مامەڵە</span>
-                    </span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shadow-sm">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                        ئامادەیە بۆ سکان • Ready
-                    </span>
-                </div>
-
-                <form action="{{ route('transactions.scan') }}" method="POST" class="relative group">
+            <!-- Left Side (RTL): Prominent Fast Barcode Scanner Station -->
+            <div class="w-full lg:max-w-md shrink-0">
+                <form action="{{ route('transactions.scan') }}" method="POST" class="relative">
                     @csrf
-                    <div class="absolute -inset-0.5 bg-gradient-to-r from-sky-500 via-indigo-500 to-sky-400 rounded-2xl blur-sm opacity-35 group-hover:opacity-75 group-focus-within:opacity-100 transition duration-300 pointer-events-none"></div>
-
-                    <div class="relative flex items-center bg-slate-950 rounded-2xl">
-                        <div class="absolute right-3.5 sm:right-4 flex items-center gap-2 text-sky-400 group-focus-within:text-sky-300 transition pointer-events-none">
-                            <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center border border-sky-500/30">
-                                <i class="fa-solid fa-barcode text-base sm:text-lg"></i>
-                            </div>
+                    <div class="flex items-center bg-slate-950 rounded-2xl border-2 border-sky-500/40 hover:border-sky-400 focus-within:border-sky-400 focus-within:ring-4 focus-within:ring-sky-500/20 shadow-xl transition">
+                        <div class="pr-3.5 pl-2 text-sky-400 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-barcode text-xl"></i>
                         </div>
-                        
-                        <input type="text" 
-                               name="barcode" 
-                               id="dashBarcodeInput" 
-                               placeholder="سکانی بارکۆد بکە یاخود لێرە بینوسە... (F2)" 
-                               class="w-full bg-slate-950 text-white placeholder-slate-400 text-base sm:text-lg font-mono font-black rounded-2xl border-2 border-sky-500/50 hover:border-sky-400 focus:border-sky-300 focus:ring-4 focus:ring-sky-500/30 pr-15 pl-28 py-3 sm:py-3.5 shadow-2xl transition duration-200 tracking-wider text-right"
-                               autocomplete="off"
-                               autofocus
-                               title="لێرە بارکۆد لێبدە یان بە ئامێری سکانەر لێیبدە (F2)">
-                        
-                        <div class="absolute left-2.5 flex items-center gap-1.5">
-                            <kbd class="hidden md:inline-flex items-center px-2 py-1 text-[11px] font-mono font-bold text-slate-300 bg-slate-800/90 border border-slate-700 rounded-lg shadow-sm" title="داگرتنی کلیلی F2 بۆ فۆکەس">
-                                F2
-                            </kbd>
-                            <button type="submit" 
-                                    class="px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs sm:text-sm font-black rounded-xl shadow-lg shadow-sky-500/30 transition flex items-center gap-1.5 active:scale-95 hover:scale-102" 
-                                    title="گەڕان بەپێی بارکۆد">
+                        <input type="text" name="barcode" id="dashBarcodeInput" 
+                               placeholder="سکانی بارکۆد بکە یان لێرە بینوسە... (F2)" 
+                               class="w-full bg-transparent text-white placeholder-slate-400 text-sm font-mono font-bold py-3 pr-1 pl-20 focus:outline-none tracking-wider text-right"
+                               autocomplete="off" autofocus title="لێرە بارکۆد لێبدە (F2)">
+                        <div class="absolute left-2 flex items-center gap-1.5">
+                            <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-bold text-slate-400 bg-slate-800 border border-slate-700 rounded shadow-sm">F2</kbd>
+                            <button type="submit" class="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-1 active:scale-95">
                                 <span>گەڕان</span>
-                                <i class="fa-solid fa-arrow-left text-xs"></i>
+                                <i class="fa-solid fa-arrow-left text-[10px]"></i>
                             </button>
                         </div>
                     </div>
                 </form>
-            </div>
-
-            <!-- Left Side (RTL): Live Daily Operational Summary -->
-            <div class="flex items-center flex-wrap gap-2.5 shrink-0 pt-2 xl:pt-0 border-t xl:border-t-0 border-slate-800/80 justify-start xl:justify-end">
-                
-                <!-- Quick Metric 1: Today's Registered Slips -->
-                <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
-                    <div class="w-7 h-7 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center text-xs">
-                        <i class="fa-solid fa-file-invoice"></i>
-                    </div>
-                    <div>
-                        <div class="text-[10px] text-slate-400 font-medium">تۆمارکراوی ئەمڕۆ</div>
-                        <div class="text-sm font-bold font-mono text-white leading-none">{{ $todayDataEntryCount }}</div>
-                    </div>
-                </div>
-
-                <!-- Quick Metric 2: Role-tailored today metric -->
-                @if($canSeeMoney)
-                    <!-- Today's Income (ONLY CASHIER & ADMIN) -->
-                    <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
-                        <div class="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xs">
-                            <i class="fa-solid fa-coins"></i>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-slate-400 font-medium">داهاتی وەرگیراوی ئەمڕۆ</div>
-                            <div class="text-sm font-bold font-mono text-emerald-400 leading-none">
-                                {{ number_format($todayIncome) }} <span class="text-[10px] font-sans text-slate-400">د.ع</span>
-                            </div>
-                        </div>
-                    </div>
-                @elseif($activeRole === 'inspector')
-                    <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
-                        <div class="w-7 h-7 rounded-lg bg-orange-500/15 text-orange-400 flex items-center justify-center text-xs">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-slate-400 font-medium">تەخمینی ئەمڕۆ</div>
-                            <div class="text-sm font-bold font-mono text-orange-400 leading-none">{{ $todayInspectedCount }}</div>
-                        </div>
-                    </div>
-                @elseif($activeRole === 'auditor')
-                    <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
-                        <div class="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center text-xs">
-                            <i class="fa-solid fa-clipboard-check"></i>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-slate-400 font-medium">وردبینی ئەمڕۆ</div>
-                            <div class="text-sm font-bold font-mono text-purple-400 leading-none">{{ $todayAuditedCount }}</div>
-                        </div>
-                    </div>
-                @elseif($activeRole === 'booklet')
-                    <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
-                        <div class="w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center text-xs">
-                            <i class="fa-solid fa-passport"></i>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-slate-400 font-medium">دەفتەری ئەمڕۆ</div>
-                            <div class="text-sm font-bold font-mono text-indigo-400 leading-none">{{ $todayBookletsCount }}</div>
-                        </div>
-                    </div>
-                @elseif($activeRole === 'archiver')
-                    <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
-                        <div class="w-7 h-7 rounded-lg bg-teal-500/15 text-teal-400 flex items-center justify-center text-xs">
-                            <i class="fa-solid fa-box-archive"></i>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-slate-400 font-medium">ئەرشیفکراوی ئەمڕۆ</div>
-                            <div class="text-sm font-bold font-mono text-teal-400 leading-none">{{ $todayArchivedCount }}</div>
-                        </div>
-                    </div>
-                @endif
-
-                <!-- Expired Booklets Alert Chip (Admin & Archiver ONLY) -->
-                @if($showAllTimeCards && $expiredBookletsCount > 0)
-                    <a href="{{ route('transactions.expired_booklets') }}" 
-                       class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 transition shadow-sm" 
-                       title="کلیک بکە بۆ بینینی دەفتەرە بەسەرچووەکان">
-                        <div class="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs">
-                            <i class="fa-solid fa-triangle-exclamation"></i>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-rose-300 font-medium">بەسەرچوو</div>
-                            <div class="text-sm font-bold font-mono text-rose-200 leading-none">{{ $expiredBookletsCount }}</div>
-                        </div>
-                    </a>
-                @endif
             </div>
         </div>
     </div>
@@ -537,7 +423,7 @@
     <!-- ========================================================================= -->
     <!-- 4. CASHIER WORKSTATION & ACCOUNTING 66 SEARCH/PRINT STATION -->
     <!-- ========================================================================= -->
-    @if(auth()->user()->isAdmin() || $activeRole === 'cashier')
+    @if($activeRole === 'cashier')
         <div class="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border-2 border-amber-500/40 rounded-3xl p-5 shadow-2xl space-y-4">
             <div class="flex items-center justify-between flex-wrap gap-3 border-b border-amber-500/20 pb-3">
                 <div class="flex items-center gap-3">
@@ -664,7 +550,7 @@
     <!-- ========================================================================= -->
     <!-- 5. ARCHIVER & SUBMIT WORKSTATION: FULL BOOKLET STATISTICS (NO MONEY!) -->
     <!-- ========================================================================= -->
-    @if(auth()->user()->isAdmin() || $activeRole === 'archiver')
+    @if($activeRole === 'archiver')
         <div class="bg-gradient-to-r from-teal-950/40 via-slate-900 to-indigo-950/40 border-2 border-teal-500/40 rounded-3xl p-5 shadow-2xl space-y-4">
             <div class="flex items-center justify-between flex-wrap gap-3 border-b border-teal-500/20 pb-3">
                 <div class="flex items-center gap-3">

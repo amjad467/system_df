@@ -26,13 +26,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Theme Init Script (Prevent Flash) -->
+    <!-- Theme Init Script: Consistent Executive Dark Palette -->
     <script>
-        if (localStorage.getItem('color-theme') === 'light') {
-            document.documentElement.classList.remove('dark');
-        } else {
-            document.documentElement.classList.add('dark');
-        }
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('color-theme', 'dark');
     </script>
 
     <!-- Tailwind CSS CDN -->
@@ -164,18 +161,8 @@
     dismissBanner() {
         this.showInstallBanner = false;
         localStorage.setItem('pwa_banner_dismissed', '1');
-    },
-    toggleTheme() {
-        this.isDark = !this.isDark;
-        if (this.isDark) {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('color-theme', 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('color-theme', 'light');
-        }
     }
-}" x-init="initPwa()" class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-sky-500 selection:text-white transition-colors duration-200">
+}" x-init="initPwa()" class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-sky-500 selection:text-white">
 
     <!-- PWA Install Banner for Mobile & Tablet (Admin ONLY) -->
     @if(auth()->check() && auth()->user()->isAdmin())
@@ -262,12 +249,12 @@
     </div>
 
     <!-- Top Navigation Bar -->
-    <header class="bg-white/95 dark:bg-slate-800/90 backdrop-blur border-b border-slate-200 dark:border-slate-700/80 sticky top-0 z-40 transition-colors duration-200">
+    <header class="bg-slate-900/95 border-b border-slate-800 backdrop-blur-md sticky top-0 z-40 transition-colors duration-200 shadow-lg">
         <div class="max-w-[1680px] w-full mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-14 sm:h-16 gap-2">
                 <!-- Logo & Brand -->
                 <div class="flex items-center space-x-2 sm:space-x-3 space-x-reverse min-w-0 shrink-0">
-                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 shrink-0">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700 shrink-0">
                         <i class="fa-solid" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
                     </button>
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 sm:gap-3 group">
@@ -275,10 +262,10 @@
                             <i class="fa-solid fa-passport text-white text-base sm:text-xl"></i>
                         </div>
                         <div class="min-w-0">
-                            <h1 class="text-xs sm:text-base lg:text-lg font-black text-slate-900 dark:text-white leading-tight truncate">
+                            <h1 class="text-xs sm:text-base lg:text-lg font-black text-white leading-tight truncate">
                                 بەڕێوەبەرایەتی گومرگی سلێمانی
                             </h1>
-                            <p class="text-[10px] sm:text-xs font-bold text-sky-600 dark:text-sky-400 truncate leading-tight">
+                            <p class="text-[10px] sm:text-xs font-bold text-sky-400 truncate leading-tight">
                                 سیستەمی ئەلیکترۆنی دەفتەری ئۆتۆمبێل
                             </p>
                         </div>
@@ -286,12 +273,12 @@
                 </div>
 
                 <!-- Live Clock & Date Display (Prominent & Real-time) -->
-                <div class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 shadow-sm shrink-0" title="بەروار و کاتی ڕاستەوخۆی کۆمپیوتەرەکەت">
-                    <i class="fa-regular fa-calendar-days text-sky-500 text-xs"></i>
-                    <span class="app-live-date text-xs font-mono font-bold text-slate-700 dark:text-slate-200">{{ now()->format('Y-m-d') }}</span>
-                    <span class="text-slate-400 dark:text-slate-600 font-bold">•</span>
-                    <i class="fa-regular fa-clock text-emerald-500 text-xs"></i>
-                    <span class="app-live-clock text-xs font-mono font-black text-emerald-600 dark:text-emerald-400 tracking-wider">{{ now()->format('H:i:s') }}</span>
+                <div class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-950/80 border border-slate-800 shadow-inner shrink-0" title="بەروار و کاتی ڕاستەوخۆی کۆمپیوتەرەکەت">
+                    <i class="fa-regular fa-calendar-days text-sky-400 text-xs"></i>
+                    <span class="app-live-date text-xs font-mono font-bold text-slate-300">{{ now()->format('Y-m-d') }}</span>
+                    <span class="text-slate-600 font-bold">•</span>
+                    <i class="fa-regular fa-clock text-emerald-400 text-xs"></i>
+                    <span class="app-live-clock text-xs font-mono font-black text-emerald-400 tracking-wider">{{ now()->format('H:i:s') }}</span>
                 </div>
 
                 <!-- Fast Barcode Scanner Form (Desktop / Tablet - Visible when not on dashboard) -->
@@ -415,34 +402,13 @@
                     @endif
                 </nav>
 
-                <!-- Action Section (Dark mode, Notifs, Profile) -->
-                <div class="flex items-center space-x-1.5 sm:space-x-2 space-x-reverse">
+                <!-- Action Section: Notifications & Unified Profile Menu -->
+                <div class="flex items-center space-x-2 space-x-reverse shrink-0">
                     <!-- Mobile Barcode Quick Trigger -->
-                    <button type="button" @click="showMobileBarcodeModal = true" class="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-sky-400 border border-slate-200 dark:border-slate-700" title="سکانی خێرای بارکۆد">
+                    <button type="button" @click="showMobileBarcodeModal = true" class="md:hidden p-2 rounded-xl bg-slate-800 text-sky-400 border border-slate-700" title="سکانی خێرای بارکۆد">
                         <i class="fa-solid fa-barcode text-sm"></i>
                     </button>
 
-                    @if(auth()->check() && auth()->user()->isAdmin())
-                        <!-- Mobile App Install Quick Button (Admin ONLY) -->
-                        <button type="button" x-show="!isInstalled" @click="promptInstall()" class="md:hidden flex items-center gap-1 px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-sky-400 text-[11px] font-bold border border-slate-200 dark:border-slate-700 transition" title="دابەزاندنی سیستەم وەک ئەپ">
-                            <i class="fa-solid fa-cloud-arrow-down text-xs"></i>
-                            <span>ئەپ</span>
-                        </button>
-
-                        <!-- PWA Desktop Install Button (Admin ONLY) -->
-                        <button type="button" x-show="!isInstalled" @click="promptInstall()" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-750 text-sky-600 dark:text-sky-400 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition" title="دابەزاندنی سیستەم وەک بەرنامەی سەربەخۆ (PWA)">
-                            <i class="fa-solid fa-cloud-arrow-down text-xs"></i>
-                            <span>داگرتنی ئەپ</span>
-                        </button>
-                    @endif
-
-                    <!-- Dark / Light Mode Toggle Button -->
-                    <button @click="toggleTheme()" type="button" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-amber-500 dark:text-yellow-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition border border-slate-200 dark:border-slate-700" title="گۆڕینی دۆخی ڕووناکی / تاریکی">
-                        <i class="fa-solid fa-sun text-sm" x-show="!isDark"></i>
-                        <i class="fa-solid fa-moon text-sm" x-show="isDark"></i>
-                    </button>
-
-                    <!-- User Profile & Logout -->
                     @auth
                         @php
                             $unreadNotifications = \App\Services\NotificationService::getUnreadForCurrentUser();
@@ -450,18 +416,20 @@
 
                         <!-- Notification Bell -->
                         <div class="relative" x-data="{ openNotifs: false }">
-                            <button @click="openNotifs = !openNotifs" class="relative p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition border border-slate-200 dark:border-slate-700">
-                                <i class="fa-solid fa-bell text-sm text-sky-500"></i>
+                            <button @click="openNotifs = !openNotifs" type="button" class="relative p-2 rounded-xl bg-slate-800/90 text-slate-300 hover:text-white hover:bg-slate-750 transition border border-slate-700/80 shadow-sm" title="ئاگادارییەکان">
+                                <i class="fa-solid fa-bell text-sm text-sky-400"></i>
                                 @if($unreadNotifications->count() > 0)
-                                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-rose-600 text-white rounded-full text-[9px] font-extrabold flex items-center justify-center animate-pulse">
+                                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-rose-600 text-white rounded-full text-[9px] font-black flex items-center justify-center animate-pulse shadow">
                                         {{ $unreadNotifications->count() }}
                                     </span>
                                 @endif
                             </button>
 
-                            <div x-show="openNotifs" @click.away="openNotifs = false" x-cloak class="absolute left-0 mt-2 w-72 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-3 z-50 space-y-2">
-                                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                                    <h4 class="text-xs font-bold text-sky-500 dark:text-sky-400 flex items-center gap-1.5">
+                            <div x-show="openNotifs" @click.away="openNotifs = false" x-cloak 
+                                 x-transition.origin.top.left.duration.150ms
+                                 class="absolute left-0 mt-2 w-72 sm:w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-3 z-50 space-y-2 text-right">
+                                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                                    <h4 class="text-xs font-bold text-sky-400 flex items-center gap-1.5">
                                         <i class="fa-solid fa-bell"></i>
                                         <span>ئاگادارییەکان</span>
                                         <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 font-mono font-bold">{{ $unreadNotifications->count() }} نوێ</span>
@@ -469,7 +437,7 @@
                                     @if($unreadNotifications->count() > 0)
                                         <form action="{{ route('notifications.mark_all_read') }}" method="POST">
                                             @csrf
-                                            <button type="submit" class="text-[10px] text-sky-600 dark:text-sky-400 hover:text-sky-500 font-bold hover:underline flex items-center gap-1">
+                                            <button type="submit" class="text-[10px] text-sky-400 hover:text-sky-300 font-bold hover:underline flex items-center gap-1">
                                                 <i class="fa-solid fa-check-double text-[9px]"></i>
                                                 <span>هەمووی وەک بینراو</span>
                                             </button>
@@ -478,10 +446,10 @@
                                 </div>
                                 <div class="max-h-60 overflow-y-auto space-y-1.5 touch-scroll">
                                     @forelse($unreadNotifications as $notif)
-                                        <a href="{{ route('notifications.read', $notif->id) }}" class="block p-2 bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/60 transition">
-                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-100 block">{{ $notif->title }}</span>
-                                            <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">{{ $notif->message }}</span>
-                                            <span class="text-[9px] text-sky-500 dark:text-sky-400 font-mono block mt-1">{{ $notif->created_at->diffForHumans() }}</span>
+                                        <a href="{{ route('notifications.read', $notif->id) }}" class="block p-2 bg-slate-800/80 hover:bg-slate-800 rounded-xl border border-slate-700/60 transition">
+                                            <span class="text-xs font-bold text-white block">{{ $notif->title }}</span>
+                                            <span class="text-[11px] text-slate-300 block mt-0.5">{{ $notif->message }}</span>
+                                            <span class="text-[9px] text-sky-400 font-mono block mt-1">{{ $notif->created_at->diffForHumans() }}</span>
                                         </a>
                                     @empty
                                         <p class="text-xs text-slate-500 text-center py-3">هیچ ئاگادارییەکی نوێت نییە.</p>
@@ -490,32 +458,61 @@
                             </div>
                         </div>
 
-                        <div class="mr-1 sm:mr-2 border-r border-slate-200 dark:border-slate-700 pr-2 sm:pr-3 flex items-center gap-2">
-                            <!-- Single Dignified Employee Profile Badge in Header -->
-                            <div class="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 shadow-sm">
-                                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm shrink-0">
+                        <!-- Consolidated Single User Profile Menu -->
+                        <div class="relative" x-data="{ openUserMenu: false }">
+                            <button @click="openUserMenu = !openUserMenu" type="button" 
+                                    class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-750 text-slate-200 border border-slate-700/80 transition shadow-sm active:scale-95"
+                                    title="مێنۆی بەکارهێنەر">
+                                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm shrink-0">
                                     <i class="fa-solid fa-user-check"></i>
                                 </div>
-                                <div class="text-right leading-tight min-w-0">
-                                    <span class="text-xs font-black text-slate-800 dark:text-slate-100 block truncate max-w-[140px]">{{ auth()->user()->clean_name }}</span>
-                                    <span class="text-[10px] text-sky-600 dark:text-sky-400 font-bold block truncate">{{ auth()->user()->clean_role_name }}</span>
+                                <div class="text-right leading-tight hidden md:block min-w-0 pr-0.5">
+                                    <span class="text-xs font-black text-white block truncate max-w-[130px]">{{ auth()->user()->clean_name }}</span>
+                                    <span class="text-[10px] text-sky-400 font-bold block truncate">{{ auth()->user()->clean_role_name }}</span>
                                 </div>
-                            </div>
-
-                            <!-- Larger Labeled Change Password Button -->
-                            <button type="button" @click="showMyPasswordModal = true" title="گۆڕینی پاسوۆردی کەسی" class="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1.5 text-xs font-bold transition shadow-sm active:scale-95">
-                                <i class="fa-solid fa-key text-xs sm:text-sm"></i>
-                                <span class="hidden md:inline">گۆڕینی پاسۆرد</span>
+                                <i class="fa-solid fa-chevron-down text-[9px] text-slate-400 transition-transform duration-200" :class="openUserMenu ? 'rotate-180' : ''"></i>
                             </button>
 
-                            <!-- Larger Labeled Logout Button -->
-                            <form action="{{ route('logout') }}" method="POST" class="inline">
-                                @csrf
-                                <button type="submit" title="چوونەدەرەوە لە سیستەم" class="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1.5 text-xs font-bold transition shadow-sm active:scale-95">
-                                    <i class="fa-solid fa-power-off text-xs sm:text-sm"></i>
-                                    <span class="hidden md:inline">چوونەدەرەوە</span>
+                            <div x-show="openUserMenu" @click.away="openUserMenu = false" x-cloak 
+                                 x-transition.origin.top.left.duration.150ms
+                                 class="absolute left-0 mt-2 w-64 bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl p-2 z-50 space-y-1.5 text-xs text-right">
+                                
+                                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center gap-2.5">
+                                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center text-sm font-black shadow-md shrink-0">
+                                        <i class="fa-solid fa-user-shield"></i>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <span class="text-xs font-black text-white block truncate">{{ auth()->user()->clean_name }}</span>
+                                        <span class="text-[11px] text-sky-400 font-bold block truncate">{{ auth()->user()->clean_role_name }}</span>
+                                        <span class="text-[9px] text-slate-400 font-mono block mt-0.5">{{ auth()->user()->email }}</span>
+                                    </div>
+                                </div>
+
+                                <button type="button" @click="showMyPasswordModal = true; openUserMenu = false" 
+                                        class="w-full text-right flex items-center gap-2.5 px-3 py-2 rounded-xl text-amber-300 hover:bg-slate-800 transition font-bold">
+                                    <i class="fa-solid fa-key w-4 text-center text-amber-400"></i>
+                                    <span>گۆڕینی وشەی نهێنی (پاسۆرد)</span>
                                 </button>
-                            </form>
+
+                                @if(auth()->user()->isAdmin())
+                                    <button type="button" x-show="!isInstalled" @click="promptInstall(); openUserMenu = false" 
+                                            class="w-full text-right flex items-center gap-2.5 px-3 py-2 rounded-xl text-sky-300 hover:bg-slate-800 transition font-bold">
+                                        <i class="fa-solid fa-cloud-arrow-down w-4 text-center text-sky-400"></i>
+                                        <span>داگرتنی سیستەم وەک ئەپ (PWA)</span>
+                                    </button>
+                                @endif
+
+                                <div class="border-t border-slate-800 my-1"></div>
+
+                                <form action="{{ route('logout') }}" method="POST" class="w-full">
+                                    @csrf
+                                    <button type="submit" 
+                                            class="w-full text-right flex items-center gap-2.5 px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition font-black">
+                                        <i class="fa-solid fa-power-off w-4 text-center text-rose-400"></i>
+                                        <span>چوونەدەرەوە لە سیستەم</span>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     @endauth
                 </div>
@@ -743,11 +740,15 @@
                 </div>
             </div>
 
-            <div class="bg-rose-500/10 border border-rose-500/30 text-rose-400 px-4 py-3 rounded-xl shadow-lg flex items-center justify-between mb-4 text-xs sm:text-sm">
-                <div class="flex items-center">
-                    <i class="fa-solid fa-circle-xmark text-lg sm:text-xl ml-3"></i>
-                    <span>{{ session('duplicate_error') ?? session('error') }}</span>
+            <div x-data="{ showErr: true }" x-show="showErr" x-cloak 
+                 class="bg-rose-950/90 border border-rose-500/50 text-rose-200 px-4 py-3 rounded-2xl shadow-xl flex items-center justify-between mb-4 text-xs sm:text-sm backdrop-blur-md">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-circle-xmark text-lg text-rose-400 shrink-0"></i>
+                    <span class="font-bold">{{ session('duplicate_error') ?? session('error') }}</span>
                 </div>
+                <button type="button" @click="showErr = false" class="text-rose-400 hover:text-white p-1 rounded-lg transition" title="داخستن">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
             </div>
         @endif
     </div>
