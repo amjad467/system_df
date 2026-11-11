@@ -80,36 +80,52 @@
         <div class="absolute -bottom-12 -right-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <!-- Left Info (Identity) -->
-            <div class="space-y-1.5">
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="px-3 py-1 rounded-full text-xs font-black bg-sky-500/20 text-sky-300 border border-sky-500/30 flex items-center gap-1.5 shadow-sm">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <!-- Left Info (Identity & Live Clock) -->
+            <div class="space-y-2">
+                <div class="flex items-center gap-2.5 flex-wrap">
+                    <span class="px-3.5 py-1.5 rounded-2xl text-xs font-black bg-sky-500/20 text-sky-300 border border-sky-500/30 flex items-center gap-2 shadow-sm">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
                         <span>وێستگەی کارمەندی داتائەنتەری</span>
                     </span>
 
-                    <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-slate-800 text-slate-300 border border-slate-700/80 flex items-center gap-1.5 shadow-sm">
-                        <i class="fa-regular fa-clock text-sky-400 text-xs"></i>
-                        <span id="dashLiveDate">{{ now()->format('Y-m-d') }}</span>
-                        <span class="text-slate-500">•</span>
-                        <span id="dashLiveClock" class="font-bold text-sky-300">{{ now()->format('H:i:s') }}</span>
+                    <span class="px-3.5 py-1.5 rounded-2xl text-xs sm:text-sm font-mono font-bold bg-slate-950/90 text-slate-200 border border-slate-700/90 flex items-center gap-2 shadow-inner" title="بەروار و کاتی ڕاستەوخۆی کۆمپیوتەر">
+                        <i class="fa-regular fa-calendar-days text-sky-400 text-xs"></i>
+                        <span class="app-live-date text-slate-200">{{ now()->format('Y-m-d') }}</span>
+                        <span class="text-slate-600 font-bold">•</span>
+                        <i class="fa-regular fa-clock text-emerald-400 text-xs"></i>
+                        <span class="app-live-clock font-black text-emerald-400 tracking-wider">{{ now()->format('H:i:s') }}</span>
                     </span>
 
                     @if(auth()->user()->isAdmin())
-                        <a href="{{ route('dashboard') }}" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border border-purple-500/40 transition flex items-center gap-1" title="گەڕانەوە بۆ داشبۆردی گشتی کارگێڕی">
+                        <a href="{{ route('dashboard') }}" class="px-3 py-1.5 rounded-2xl text-xs font-bold bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border border-purple-500/40 transition flex items-center gap-1.5 shadow-sm" title="گەڕانەوە بۆ داشبۆردی سەرەکی ئەدمین">
                             <i class="fa-solid fa-chart-pie text-xs"></i>
                             <span>داشبۆردی سەرەکی (Admin)</span>
                         </a>
                     @endif
                 </div>
 
-                <div class="pt-1">
+                <div class="pt-0.5">
                     <h1 class="text-base sm:text-xl font-black text-white">
-                        بەخێربێیت، <span class="text-sky-300">{{ auth()->user()->clean_name }}</span>
+                        بەشی داتائەنتەری و تۆمارکردن
                     </h1>
                     <p class="text-xs text-slate-400 mt-0.5">
-                        فۆڕمی کارکردنی خێرا: سکانکردنی بارکۆد، زانینی شوێنی ئێستای مامەڵە، و چاپی دەستبەجێی فیشە.
+                        سکانکردنی بارکۆد، زانینی شوێنی ئێستای مامەڵە، و چاپی دەستبەجێی فیشە.
                     </p>
+                </div>
+
+                <!-- Quick Daily Metrics for Data Entry (No Money!) -->
+                <div class="flex items-center gap-2 pt-1 flex-wrap">
+                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs shadow-sm">
+                        <i class="fa-solid fa-file-circle-plus text-sky-400 text-xs"></i>
+                        <span class="text-slate-400">مامەڵەی تۆمارکراوی ئەمڕۆ:</span>
+                        <span class="font-mono font-black text-sky-300 text-sm">{{ $todayMyEntriesCount ?? $recentMyTransactions->count() }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl {{ $myReturnedTransactions->count() > 0 ? 'bg-rose-950/60 border-rose-500/40 text-rose-300' : 'bg-slate-950/80 border-slate-800 text-slate-400' }} border text-xs shadow-sm">
+                        <i class="fa-solid fa-arrow-rotate-left {{ $myReturnedTransactions->count() > 0 ? 'text-rose-400' : 'text-slate-500' }} text-xs"></i>
+                        <span>گەڕێنراوە بۆ چاککردن:</span>
+                        <span class="font-mono font-black text-sm {{ $myReturnedTransactions->count() > 0 ? 'text-rose-300' : 'text-slate-400' }}">{{ $myReturnedTransactions->count() }}</span>
+                    </div>
                 </div>
             </div>
 

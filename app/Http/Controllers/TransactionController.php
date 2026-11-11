@@ -761,6 +761,14 @@ class TransactionController extends Controller
 
         AuditLogger::log('گەڕاندنەوەی مامەڵە بۆ چاککردنەوە', Transaction::class, $transaction->id, "هۆکار: {$validated['return_reason']}");
 
+        NotificationService::send(
+            $transaction->created_by,
+            'data_entry',
+            'ئاگاداری: مامەڵە گەڕێنراوەتەوە',
+            "مامەڵەی ({$transaction->visitor_name}) بە بارکۆدی {$transaction->barcode} بەهۆی هەڵەوە گەڕێنراوەتەوە. هۆکار: {$validated['return_reason']}",
+            route('transactions.show', $transaction->id)
+        );
+
         return redirect()->route('transactions.show', $transaction->id)
             ->with('warning', 'مامەڵەکە گەڕێنراوەتەوە بۆ بەشی تەخمین/داتائەنتەری بۆ ڕاستکردنەوە.');
     }
@@ -830,6 +838,14 @@ class TransactionController extends Controller
 
         AuditLogger::log('ئەنجامدانی کەشف و تەخمین', Transaction::class, $transaction->id, "تەخمین پەسەندکرا بۆ بارکۆد: {$transaction->barcode}");
 
+        NotificationService::send(
+            null,
+            'auditor',
+            'تەخمین پەسەندکرا',
+            "مامەڵەی ({$transaction->visitor_name}) بە بارکۆدی {$transaction->barcode} کەشفی تەواو بوو و ئامادەیە بۆ وردبینی.",
+            route('transactions.show', $transaction->id)
+        );
+
         return redirect()->back()->with('success', 'کەشف و تەخمین بە سەرکەوتوویی پەسەندکرا. قۆناغی دەستکاریکردن قوفڵ بوو.');
     }
 
@@ -884,6 +900,14 @@ class TransactionController extends Controller
         ]);
 
         AuditLogger::log('وردبینیکردنی مامەڵە', Transaction::class, $transaction->id, "وردبینی پەسەندکرا بۆ بارکۆد: {$transaction->barcode}");
+
+        NotificationService::send(
+            null,
+            'cashier',
+            'وردبینی پەسەندکرا',
+            "مامەڵەی ({$transaction->visitor_name}) بە بارکۆدی {$transaction->barcode} وردبینی کرا و ئامادەیە بۆ وەرگرتنی رسومات و بڕینی وەسڵ.",
+            route('transactions.show', $transaction->id)
+        );
 
         return redirect()->route('transactions.show', $transaction->id)->with('success', 'وردبینی مامەڵەکە بە سەرکەوتوویی ئەنجامدرا.');
     }
@@ -952,6 +976,14 @@ class TransactionController extends Controller
 
         AuditLogger::log('وەرگرتنی پارە و بڕینی وەسڵ', Transaction::class, $transaction->id, "وەسڵی ۳۷/أ: {$request->receipt_37a_number} - کۆی پارە: {$transaction->total_pay} د.ع");
 
+        NotificationService::send(
+            null,
+            'booklet',
+            'پارەدانی مامەڵە تەواو بوو',
+            "مامەڵەی ({$transaction->visitor_name}) بە بارکۆدی {$transaction->barcode} پارەکەی وەرگیرا و وەسڵی ۳۷/أ بڕا. ئامادەیە بۆ بەشی دەفتەر.",
+            route('transactions.show', $transaction->id)
+        );
+
         return redirect()->back()->with('success', 'پارەدانی مامەڵەکە و وەسڵی ۳۷/أ بە سەرکەوتوویی تۆمارکرا.');
     }
 
@@ -1005,6 +1037,14 @@ class TransactionController extends Controller
         ]);
 
         AuditLogger::log('تەواوکردنی دەفتەر', Transaction::class, $transaction->id, "ژمارەی سەر دەفتەر: {$bookletNum}");
+
+        NotificationService::send(
+            null,
+            'archiver',
+            'دەفتەری مامەڵە تۆمارکرا',
+            "مامەڵەی ({$transaction->visitor_name}) دەفتەری ژمارە ({$bookletNum}) بۆ دروستکرا و ئامادەیە بۆ سەبمیت و ئەرشیف.",
+            route('transactions.show', $transaction->id)
+        );
 
         return redirect()->back()->with('success', "ژمارەی دەفتەر ({$bookletNum}) بە سەرکەوتوویی تۆمارکرا و چاپی دەفتەر ئەکتیڤ بوو.");
     }
@@ -1085,6 +1125,14 @@ class TransactionController extends Controller
         $transaction->update($updateData);
 
         AuditLogger::log('سەبمیتکردن و ئەرشیفکردنی مامەڵە (ستێپی کۆتایی)', Transaction::class, $transaction->id, "مامەڵەی بارکۆد {$transaction->barcode} لەلایەن " . (auth()->user()?->name ?? 'کارمەند') . " سەبمیت و ئەرشیف کرا");
+
+        NotificationService::send(
+            $transaction->created_by,
+            'data_entry',
+            'مامەڵە بە سەرکەوتوویی ئەرشیفکرا',
+            "مامەڵەی ({$transaction->visitor_name}) بە بارکۆدی {$transaction->barcode} بە تەواوەتی سەبمیت و ئەرشیفکرا.",
+            route('transactions.show', $transaction->id)
+        );
 
         return redirect()->back()->with('success', 'مامەڵەکە بە سەرکەوتوویی نێردرا بۆ ستێپی کۆتایی (سەبمیت و ئەرشیفکرا).');
     }

@@ -270,17 +270,28 @@
                     <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 shrink-0">
                         <i class="fa-solid" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
                     </button>
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-2 group">
-                        <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20 shrink-0 group-hover:scale-105 transition">
+                    <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 sm:gap-3 group">
+                        <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-sky-500 via-indigo-600 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/20 shrink-0 group-hover:scale-105 transition">
                             <i class="fa-solid fa-passport text-white text-base sm:text-xl"></i>
                         </div>
                         <div class="min-w-0">
-                            <h1 class="text-xs sm:text-base font-black bg-clip-text text-transparent bg-gradient-to-r from-sky-600 dark:from-sky-400 to-indigo-700 dark:to-indigo-300 leading-tight truncate">
-                                گومرگی سلێمانی
+                            <h1 class="text-xs sm:text-base lg:text-lg font-black text-slate-900 dark:text-white leading-tight truncate">
+                                بەڕێوەبەرایەتی گومرگی سلێمانی
                             </h1>
-                            <p class="text-[9px] sm:text-[11px] text-slate-500 dark:text-slate-400 truncate">دەفتەری ئۆتۆمبێل</p>
+                            <p class="text-[10px] sm:text-xs font-bold text-sky-600 dark:text-sky-400 truncate leading-tight">
+                                سیستەمی ئەلیکترۆنی دەفتەری ئۆتۆمبێل
+                            </p>
                         </div>
                     </a>
+                </div>
+
+                <!-- Live Clock & Date Display (Prominent & Real-time) -->
+                <div class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 shadow-sm shrink-0" title="بەروار و کاتی ڕاستەوخۆی کۆمپیوتەرەکەت">
+                    <i class="fa-regular fa-calendar-days text-sky-500 text-xs"></i>
+                    <span class="app-live-date text-xs font-mono font-bold text-slate-700 dark:text-slate-200">{{ now()->format('Y-m-d') }}</span>
+                    <span class="text-slate-400 dark:text-slate-600 font-bold">•</span>
+                    <i class="fa-regular fa-clock text-emerald-500 text-xs"></i>
+                    <span class="app-live-clock text-xs font-mono font-black text-emerald-600 dark:text-emerald-400 tracking-wider">{{ now()->format('H:i:s') }}</span>
                 </div>
 
                 <!-- Fast Barcode Scanner Form (Desktop / Tablet - Visible when not on dashboard) -->
@@ -300,9 +311,9 @@
                 @endif
 
                 <!-- Navigation Links (Desktop) -->
-                <nav class="hidden lg:flex items-center space-x-1 space-x-reverse min-w-0 flex-wrap">
-                    <a href="{{ route('dashboard') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('dashboard') ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                        <i class="fa-solid fa-chart-pie text-xs opacity-80"></i>
+                <nav class="hidden lg:flex items-center space-x-1.5 space-x-reverse min-w-0 flex-wrap">
+                    <a href="{{ route('dashboard') }}" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black transition flex items-center gap-2 {{ request()->routeIs('dashboard') ? 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30' : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                        <i class="fa-solid fa-chart-pie text-sm opacity-90"></i>
                         <span>داشبۆرد</span>
                     </a>
                     @if(!auth()->check() || auth()->user()->role !== 'data_entry')
@@ -338,8 +349,8 @@
 
                     <!-- مامەڵەی نوێ (Allowed via Permission) -->
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.create')))
-                        <a href="{{ route('transactions.create') }}" class="px-3 py-1.5 rounded-xl text-xs sm:text-[13px] font-black bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-600/30 flex items-center gap-1.5 transition">
-                            <i class="fa-solid fa-plus-circle text-xs"></i>
+                        <a href="{{ route('transactions.create') }}" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md shadow-emerald-600/30 flex items-center gap-2 transition hover:scale-105 active:scale-95">
+                            <i class="fa-solid fa-plus-circle text-sm"></i>
                             <span>تۆماری نوێ</span>
                         </a>
                     @endif
@@ -449,10 +460,22 @@
                             </button>
 
                             <div x-show="openNotifs" @click.away="openNotifs = false" x-cloak class="absolute left-0 mt-2 w-72 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-3 z-50 space-y-2">
-                                <h4 class="text-xs font-bold text-sky-500 dark:text-sky-400 border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center justify-between">
-                                    <span><i class="fa-solid fa-bell ml-1"></i> ئاگادارییەکانی دەسەڵاتی تۆ</span>
-                                    <span class="text-[10px] text-slate-500 font-mono">{{ $unreadNotifications->count() }} نوێ</span>
-                                </h4>
+                                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                    <h4 class="text-xs font-bold text-sky-500 dark:text-sky-400 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-bell"></i>
+                                        <span>ئاگادارییەکان</span>
+                                        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 font-mono font-bold">{{ $unreadNotifications->count() }} نوێ</span>
+                                    </h4>
+                                    @if($unreadNotifications->count() > 0)
+                                        <form action="{{ route('notifications.mark_all_read') }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="text-[10px] text-sky-600 dark:text-sky-400 hover:text-sky-500 font-bold hover:underline flex items-center gap-1">
+                                                <i class="fa-solid fa-check-double text-[9px]"></i>
+                                                <span>هەمووی وەک بینراو</span>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                                 <div class="max-h-60 overflow-y-auto space-y-1.5 touch-scroll">
                                     @forelse($unreadNotifications as $notif)
                                         <a href="{{ route('notifications.read', $notif->id) }}" class="block p-2 bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/60 transition">
@@ -467,18 +490,30 @@
                             </div>
                         </div>
 
-                        <div class="mr-1 sm:mr-2 border-r border-slate-200 dark:border-slate-700 pr-2 sm:pr-3 flex items-center space-x-1.5 sm:space-x-2 space-x-reverse">
-                            <div class="text-right hidden sm:block leading-tight">
-                                <span class="text-xs font-bold text-slate-800 dark:text-slate-100 block truncate max-w-[130px]">{{ auth()->user()->clean_name }}</span>
-                                <span class="text-[10px] text-sky-600 dark:text-sky-400 font-semibold block">{{ auth()->user()->clean_role_name }}</span>
+                        <div class="mr-1 sm:mr-2 border-r border-slate-200 dark:border-slate-700 pr-2 sm:pr-3 flex items-center gap-2">
+                            <!-- Single Dignified Employee Profile Badge in Header -->
+                            <div class="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 shadow-sm">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm shrink-0">
+                                    <i class="fa-solid fa-user-check"></i>
+                                </div>
+                                <div class="text-right leading-tight min-w-0">
+                                    <span class="text-xs font-black text-slate-800 dark:text-slate-100 block truncate max-w-[140px]">{{ auth()->user()->clean_name }}</span>
+                                    <span class="text-[10px] text-sky-600 dark:text-sky-400 font-bold block truncate">{{ auth()->user()->clean_role_name }}</span>
+                                </div>
                             </div>
-                            <button type="button" @click="showMyPasswordModal = true" title="گۆڕینی پاسوۆردی کەسی" class="w-8 h-8 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 dark:text-amber-400 flex items-center justify-center transition">
-                                <i class="fa-solid fa-key text-xs"></i>
+
+                            <!-- Larger Labeled Change Password Button -->
+                            <button type="button" @click="showMyPasswordModal = true" title="گۆڕینی پاسوۆردی کەسی" class="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1.5 text-xs font-bold transition shadow-sm active:scale-95">
+                                <i class="fa-solid fa-key text-xs sm:text-sm"></i>
+                                <span class="hidden md:inline">گۆڕینی پاسۆرد</span>
                             </button>
-                            <form action="{{ route('logout') }}" method="POST">
+
+                            <!-- Larger Labeled Logout Button -->
+                            <form action="{{ route('logout') }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" title="چوونەدەرەوە" class="w-8 h-8 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 dark:text-rose-400 flex items-center justify-center transition">
-                                    <i class="fa-solid fa-power-off text-xs"></i>
+                                <button type="submit" title="چوونەدەرەوە لە سیستەم" class="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center gap-1.5 text-xs font-bold transition shadow-sm active:scale-95">
+                                    <i class="fa-solid fa-power-off text-xs sm:text-sm"></i>
+                                    <span class="hidden md:inline">چوونەدەرەوە</span>
                                 </button>
                             </form>
                         </div>
@@ -1032,6 +1067,25 @@
                 }
             }
         });
+
+        // Global Real-time Live Clock matching User's Computer Clock
+        function updateAppLiveClock() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+
+            const dateStr = `${year}-${month}-${day}`;
+            const timeStr = `${hours}:${minutes}:${seconds}`;
+
+            document.querySelectorAll('.app-live-date, #dashLiveDate').forEach(el => el.textContent = dateStr);
+            document.querySelectorAll('.app-live-clock, #dashLiveClock').forEach(el => el.textContent = timeStr);
+        }
+        updateAppLiveClock();
+        setInterval(updateAppLiveClock, 1000);
     </script>
 </body>
 </html>

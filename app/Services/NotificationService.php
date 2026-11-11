@@ -36,6 +36,30 @@ class NotificationService
             $q->where('user_id', $user->id)
               ->orWhere('target_role', $user->role)
               ->orWhere('target_role', 'all');
-        })->where('is_read', false)->latest()->take(10)->get();
+            if ($user->isAdmin()) {
+                $q->orWhereNotNull('target_role');
+            }
+        })->where('is_read', false)->latest()->take(20)->get();
+    }
+
+    /**
+     * Mark all notifications as read for current user
+     */
+    public static function markAllAsReadForCurrentUser(): int
+    {
+        if (!auth()->check()) {
+            return 0;
+        }
+
+        $user = auth()->user();
+
+        return Notification::where(function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+              ->orWhere('target_role', $user->role)
+              ->orWhere('target_role', 'all');
+            if ($user->isAdmin()) {
+                $q->orWhereNotNull('target_role');
+            }
+        })->where('is_read', false)->update(['is_read' => true]);
     }
 }

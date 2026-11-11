@@ -4,52 +4,53 @@
 <div class="space-y-6 w-full max-w-full">
 
     <!-- ========================================================================= -->
-    <!-- 1. EXECUTIVE WELCOME, FAST BARCODE SCANNER & LIVE OPERATIONAL SUMMARY -->
+    <!-- 1. WORKSTATION HEADER, FAST SCANNER & OPERATIONAL SUMMARY -->
     <!-- ========================================================================= -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-xl">
+    <div class="relative overflow-hidden bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950 p-4 sm:p-5 rounded-3xl border border-slate-800 shadow-xl">
         <!-- Subtle Ambient Glow -->
         <div class="absolute -top-12 -left-12 w-56 h-56 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-12 -right-12 w-56 h-56 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div class="relative z-10 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
-            <!-- Right Side (RTL): Identity & Balanced Greeting -->
+            <!-- Right Side (RTL): Desk Identity & Live Date/Time -->
             <div class="space-y-1.5 min-w-0 shrink-0">
                 <div class="flex items-center gap-2 flex-wrap">
-                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-500/15 text-sky-300 border border-sky-500/25 flex items-center gap-1.5 shadow-sm">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30 flex items-center gap-1.5 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                         بەڕێوەبەرایەتی گومرگی سلێمانی
                     </span>
-                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700/80 font-mono flex items-center gap-1.5 shadow-sm" title="کاتی ڕاستەوخۆی کۆمپیوتەرەکەت">
-                        <i class="fa-regular fa-clock text-sky-400 text-[10px]"></i>
-                        <span id="dashLiveDate">{{ now()->format('Y-m-d') }}</span>
-                        <span class="text-slate-500">•</span>
-                        <span id="dashLiveClock" class="font-bold text-sky-300">{{ now()->format('H:i:s') }}</span>
+
+                    <span class="px-3 py-1 rounded-2xl text-xs sm:text-sm font-medium bg-slate-950/90 text-slate-200 border border-slate-700/80 font-mono flex items-center gap-2 shadow-inner" title="کاتی ڕاستەوخۆی کۆمپیوتەرەکەت">
+                        <i class="fa-regular fa-calendar-days text-sky-400 text-xs"></i>
+                        <span class="app-live-date text-slate-200">{{ now()->format('Y-m-d') }}</span>
+                        <span class="text-slate-600 font-bold">•</span>
+                        <i class="fa-regular fa-clock text-emerald-400 text-xs"></i>
+                        <span class="app-live-clock font-black text-emerald-400 tracking-wider">{{ now()->format('H:i:s') }}</span>
                     </span>
 
                     @if(auth()->user()->isAdmin())
-                        <a href="{{ route('dashboard', ['view' => 'data_entry']) }}" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 border border-indigo-500/40 transition flex items-center gap-1 shadow-sm" title="پشکنینی وێستگەی کارمەندی داتائەنتەری">
-                            <i class="fa-solid fa-desktop text-xs"></i>
-                            <span>دیمەنی داتائەنتەری</span>
-                        </a>
+                        <div class="flex items-center gap-1 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-[11px]">
+                            <span class="text-slate-400 px-1 font-bold">دیمەن:</span>
+                            <a href="{{ route('dashboard') }}" class="px-2 py-0.5 rounded-lg font-bold {{ !request()->has('view') ? 'bg-sky-600 text-white' : 'text-slate-300 hover:text-white' }}">گشتی</a>
+                            <a href="{{ route('dashboard', ['view' => 'cashier']) }}" class="px-2 py-0.5 rounded-lg font-bold {{ request('view') === 'cashier' ? 'bg-amber-600 text-white' : 'text-slate-300 hover:text-white' }}">قاسە</a>
+                            <a href="{{ route('dashboard', ['view' => 'archiver']) }}" class="px-2 py-0.5 rounded-lg font-bold {{ request('view') === 'archiver' ? 'bg-purple-600 text-white' : 'text-slate-300 hover:text-white' }}">ئەرشیف</a>
+                            <a href="{{ route('dashboard', ['view' => 'data_entry']) }}" class="px-2 py-0.5 rounded-lg font-bold text-slate-300 hover:text-white">داتائەنتەری</a>
+                        </div>
                     @endif
                 </div>
 
                 <div class="flex items-center gap-2 flex-wrap pt-0.5">
-                    <h1 class="text-base sm:text-lg font-bold text-white tracking-normal">
-                        بەخێربێیت، <span class="text-sky-300 font-extrabold">{{ auth()->user()->clean_name }}</span>
+                    <h1 class="text-base sm:text-xl font-black text-white tracking-normal">
+                        داشبۆردی سەرەکی • <span class="text-sky-300">{{ auth()->user()->clean_role_name }}</span>
                     </h1>
-                    <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-indigo-500/15 text-indigo-300 border border-indigo-500/25">
-                        {{ auth()->user()->clean_role_name }}
-                    </span>
                 </div>
                 <p class="text-xs text-slate-400 max-w-sm leading-relaxed">
-                    داشبۆردی سەرەکی چاودێری و ڕاپەڕاندنی مامەڵەکان.
+                    چاودێری ڕاستەوخۆ و ڕاپەڕاندنی خێرای مامەڵەکانی دەفتەری ئۆتۆمبێل.
                 </p>
             </div>
 
-            <!-- Center: Prominent, High-Visibility Barcode Scanner Station -->
+            <!-- Center: Prominent Fast Barcode Scanner Station -->
             <div class="flex-1 max-w-xl w-full mx-auto px-0 xl:px-4 py-1">
-                <!-- Top Micro Header: Visual Identity & Scanner Status -->
                 <div class="flex items-center justify-between mb-1.5 px-1 text-xs">
                     <span class="flex items-center gap-1.5 font-bold text-sky-300">
                         <i class="fa-solid fa-barcode text-sky-400 text-sm"></i>
@@ -63,18 +64,15 @@
 
                 <form action="{{ route('transactions.scan') }}" method="POST" class="relative group">
                     @csrf
-                    <!-- Ambient Glow Halo (Highlights visibility across the screen) -->
                     <div class="absolute -inset-0.5 bg-gradient-to-r from-sky-500 via-indigo-500 to-sky-400 rounded-2xl blur-sm opacity-35 group-hover:opacity-75 group-focus-within:opacity-100 transition duration-300 pointer-events-none"></div>
 
                     <div class="relative flex items-center bg-slate-950 rounded-2xl">
-                        <!-- Barcode Scanner Icon with Highlight Plate -->
                         <div class="absolute right-3.5 sm:right-4 flex items-center gap-2 text-sky-400 group-focus-within:text-sky-300 transition pointer-events-none">
                             <div class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center border border-sky-500/30">
                                 <i class="fa-solid fa-barcode text-base sm:text-lg"></i>
                             </div>
                         </div>
                         
-                        <!-- High Contrast, Large, Crystal Clear Barcode Input -->
                         <input type="text" 
                                name="barcode" 
                                id="dashBarcodeInput" 
@@ -84,7 +82,6 @@
                                autofocus
                                title="لێرە بارکۆد لێبدە یان بە ئامێری سکانەر لێیبدە (F2)">
                         
-                        <!-- Left Action Button & F2 Shortcut Badge -->
                         <div class="absolute left-2.5 flex items-center gap-1.5">
                             <kbd class="hidden md:inline-flex items-center px-2 py-1 text-[11px] font-mono font-bold text-slate-300 bg-slate-800/90 border border-slate-700 rounded-lg shadow-sm" title="داگرتنی کلیلی F2 بۆ فۆکەس">
                                 F2
@@ -102,29 +99,73 @@
 
             <!-- Left Side (RTL): Live Daily Operational Summary -->
             <div class="flex items-center flex-wrap gap-2.5 shrink-0 pt-2 xl:pt-0 border-t xl:border-t-0 border-slate-800/80 justify-start xl:justify-end">
-                <!-- Today's Transactions Metric Chip -->
+                
+                <!-- Quick Metric 1: Today's Registered Slips -->
                 <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
                     <div class="w-7 h-7 rounded-lg bg-sky-500/15 text-sky-400 flex items-center justify-center text-xs">
                         <i class="fa-solid fa-file-invoice"></i>
                     </div>
                     <div>
-                        <div class="text-[10px] text-slate-400 font-medium">مامەڵەی ئەمڕۆ</div>
-                        <div class="text-sm font-bold font-mono text-white leading-none">{{ $todayTransactions }}</div>
+                        <div class="text-[10px] text-slate-400 font-medium">تۆمارکراوی ئەمڕۆ</div>
+                        <div class="text-sm font-bold font-mono text-white leading-none">{{ $todayDataEntryCount }}</div>
                     </div>
                 </div>
 
-                <!-- Today's Income Metric Chip -->
-                <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
-                    <div class="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xs">
-                        <i class="fa-solid fa-coins"></i>
-                    </div>
-                    <div>
-                        <div class="text-[10px] text-slate-400 font-medium">داهاتی ئەمڕۆ</div>
-                        <div class="text-sm font-bold font-mono text-emerald-400 leading-none">
-                            {{ number_format($todayIncome) }} <span class="text-[10px] font-sans text-slate-400">د.ع</span>
+                <!-- Quick Metric 2: Role-tailored today metric -->
+                @if($canSeeMoney)
+                    <!-- Today's Income (ONLY CASHIER & ADMIN) -->
+                    <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
+                        <div class="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-400 font-medium">داهاتی وەرگیراوی ئەمڕۆ</div>
+                            <div class="text-sm font-bold font-mono text-emerald-400 leading-none">
+                                {{ number_format($todayIncome) }} <span class="text-[10px] font-sans text-slate-400">د.ع</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                @elseif($activeRole === 'inspector')
+                    <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
+                        <div class="w-7 h-7 rounded-lg bg-orange-500/15 text-orange-400 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-400 font-medium">تەخمینی ئەمڕۆ</div>
+                            <div class="text-sm font-bold font-mono text-orange-400 leading-none">{{ $todayInspectedCount }}</div>
+                        </div>
+                    </div>
+                @elseif($activeRole === 'auditor')
+                    <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
+                        <div class="w-7 h-7 rounded-lg bg-purple-500/15 text-purple-400 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-clipboard-check"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-400 font-medium">وردبینی ئەمڕۆ</div>
+                            <div class="text-sm font-bold font-mono text-purple-400 leading-none">{{ $todayAuditedCount }}</div>
+                        </div>
+                    </div>
+                @elseif($activeRole === 'booklet')
+                    <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-500/15 text-indigo-400 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-passport"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-400 font-medium">دەفتەری ئەمڕۆ</div>
+                            <div class="text-sm font-bold font-mono text-indigo-400 leading-none">{{ $todayBookletsCount }}</div>
+                        </div>
+                    </div>
+                @elseif($activeRole === 'archiver')
+                    <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/70 shadow-sm">
+                        <div class="w-7 h-7 rounded-lg bg-teal-500/15 text-teal-400 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-box-archive"></i>
+                        </div>
+                        <div>
+                            <div class="text-[10px] text-slate-400 font-medium">ئەرشیفکراوی ئەمڕۆ</div>
+                            <div class="text-sm font-bold font-mono text-teal-400 leading-none">{{ $todayArchivedCount }}</div>
+                        </div>
+                    </div>
+                @endif
 
                 <!-- Expired Booklets Alert Chip (If Any) -->
                 @if($expiredBookletsCount > 0)
@@ -162,7 +203,7 @@
                             </span>
                         </h3>
                         <p class="text-xs text-slate-300">
-                            تکایە بەشی داتائەنتەری پێداچوونەوە بە هۆکاری گەڕانەوەکە بکەن و دووبارە ڕەوانەی بکەنەوە.
+                            تکایە بەشی پەیوەندیدار پێداچوونەوە بە هۆکاری گەڕانەوەکە بکەن و دووبارە ڕەوانەی بکەنەوە.
                         </p>
                     </div>
                 </div>
@@ -171,7 +212,6 @@
                 </a>
             </div>
 
-            <!-- Returned Items Cards Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-2 border-t border-rose-500/20">
                 @foreach($returnedTransactions->take(6) as $rt)
                     <div class="bg-slate-900/90 border border-rose-500/30 p-3 rounded-xl flex items-center justify-between text-xs gap-3 shadow hover:border-rose-500/60 transition">
@@ -193,7 +233,7 @@
     @endif
 
     <!-- ========================================================================= -->
-    <!-- 3. TOP FINANCIAL & TRANSACTION VOLUME KPI CARDS -->
+    <!-- 3. TOP KPI CARDS (FINANCIAL ONLY FOR CASHIER & ADMIN, NO MONEY FOR OTHERS) -->
     <!-- ========================================================================= -->
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         
@@ -209,44 +249,78 @@
                 <div class="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
                     {{ number_format($totalTransactions) }}
                 </div>
-                @if($todayTransactions > 0)
+                @if($todayDataEntryCount > 0)
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        +{{ $todayTransactions }} ئەمڕۆ
+                        +{{ $todayDataEntryCount }} ئەمڕۆ
                     </span>
                 @else
                     <span class="text-[10px] text-slate-500 font-bold">سەرجەم تۆمارەکان</span>
                 @endif
             </div>
             <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                <span>چالاک لە سیستەم:</span>
-                <span class="text-sky-300 font-mono font-bold">{{ number_format($totalTransactions - $returnedCount) }} مامەڵە</span>
+                <span>تەواوکراوی گشتی:</span>
+                <span class="text-sky-300 font-mono font-bold">{{ number_format($completedBooklets) }} دەفتەر</span>
             </div>
         </div>
 
-        <!-- Card 2: Total Revenue -->
-        <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl hover:border-emerald-500/40 transition group">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-400">کۆی داهاتی دارایی (IQD)</span>
-                <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-500/20 transition shadow-sm">
-                    <i class="fa-solid fa-coins text-lg"></i>
+        <!-- Card 2: Financial Revenue (CASHIER & ADMIN ONLY) OR Desk Today Metric (OTHERS) -->
+        @if($canSeeMoney)
+            <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl hover:border-emerald-500/40 transition group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-400">کۆی داهاتی دارایی (IQD)</span>
+                    <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-500/20 transition shadow-sm">
+                        <i class="fa-solid fa-coins text-lg"></i>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-baseline justify-between">
+                    <div class="text-2xl sm:text-3xl font-black text-emerald-400 font-mono tracking-tight">
+                        {{ number_format($totalIncome) }}
+                        <span class="text-xs font-normal text-emerald-300/80">د.ع</span>
+                    </div>
+                    @if($todayIncome > 0)
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
+                            +{{ number_format($todayIncome) }}
+                        </span>
+                    @endif
+                </div>
+                <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>وەرگیراوی وەسڵی ۳۷/أ:</span>
+                    <span class="text-emerald-300 font-bold">{{ $todayPaidCount }} مامەڵەی ئەمڕۆ</span>
                 </div>
             </div>
-            <div class="mt-3 flex items-baseline justify-between">
-                <div class="text-2xl sm:text-3xl font-black text-emerald-400 font-mono tracking-tight">
-                    {{ number_format($totalIncome) }}
-                    <span class="text-xs font-normal text-emerald-300/80">د.ع</span>
+        @else
+            <!-- Non-financial Step Card -->
+            <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl hover:border-sky-500/40 transition group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-400">مامەڵەی تەواوکراوی ئەمڕۆ</span>
+                    <div class="w-11 h-11 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-sky-500/20 transition shadow-sm">
+                        <i class="fa-solid fa-circle-check text-lg"></i>
+                    </div>
                 </div>
-                @if($todayIncome > 0)
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
-                        +{{ number_format($todayIncome) }}
+                <div class="mt-3 flex items-baseline justify-between">
+                    <div class="text-2xl sm:text-3xl font-black text-sky-400 font-mono tracking-tight">
+                        @if($activeRole === 'inspector')
+                            {{ number_format($todayInspectedCount) }}
+                        @elseif($activeRole === 'auditor')
+                            {{ number_format($todayAuditedCount) }}
+                        @elseif($activeRole === 'booklet')
+                            {{ number_format($todayBookletsCount) }}
+                        @elseif($activeRole === 'archiver')
+                            {{ number_format($todayArchivedCount) }}
+                        @else
+                            {{ number_format($todayDataEntryCount) }}
+                        @endif
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                        ئەمڕۆ
                     </span>
-                @endif
+                </div>
+                <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>دۆخی قۆناغ:</span>
+                    <span class="text-sky-300 font-bold">چالاک</span>
+                </div>
             </div>
-            <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                <span>وەرگیراوی وەسڵی ٣٧-ئـ:</span>
-                <span class="text-emerald-300 font-bold">قاسەی گومرگ</span>
-            </div>
-        </div>
+        @endif
 
         <!-- Card 3: Completed Booklets -->
         <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl hover:border-indigo-500/40 transition group">
@@ -268,8 +342,8 @@
                 </span>
             </div>
             <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                <span>چاپکراو و ڕادەستکراو:</span>
-                <span class="text-indigo-300 font-bold">دەفتەری فەرمی</span>
+                <span>چاپکراوی ئەمڕۆ:</span>
+                <span class="text-indigo-300 font-bold font-mono">{{ $todayBookletsCount }} دەفتەر</span>
             </div>
         </div>
 
@@ -298,7 +372,260 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- 4. VISUAL WORKFLOW PIPELINE (هێڵی قۆناغەکانی ڕاییبوونی مامەڵە) -->
+    <!-- 4. CASHIER WORKSTATION & ACCOUNTING 66 SEARCH/PRINT STATION -->
+    <!-- ========================================================================= -->
+    @if(auth()->user()->isAdmin() || $activeRole === 'cashier')
+        <div class="bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border-2 border-amber-500/40 rounded-3xl p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-3 border-b border-amber-500/20 pb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg font-black border border-amber-500/30 shadow-sm">
+                        <i class="fa-solid fa-file-invoice-dollar"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                            <span>وێستگەی ژمێریار و چاپی محاسبة ٦٦ بۆ هەموو کاتەکان</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">ژمێریاری و پارەدان</span>
+                        </h2>
+                        <p class="text-xs text-slate-400">
+                            گەڕانی خێرا لە نێوان پسوولە و مامەڵەکان و چاپی دەستبەجێی فۆڕمی فەرمی محاسبة ٦٦ بۆ هەر بەروارێک.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Daily Revenue Snapshot Pill -->
+                <div class="flex items-center gap-3 bg-slate-950/90 px-4 py-2 rounded-2xl border border-amber-500/30 shadow-inner">
+                    <div class="text-right">
+                        <span class="text-[10px] text-amber-300 font-bold block">وەرگرتنی پارەی ئەمڕۆ</span>
+                        <span class="text-base sm:text-lg font-black font-mono text-emerald-400 leading-tight">
+                            {{ number_format($todayIncome) }} <span class="text-xs text-slate-400 font-normal">د.ع</span>
+                        </span>
+                    </div>
+                    <div class="h-8 w-px bg-slate-800"></div>
+                    <div class="text-right">
+                        <span class="text-[10px] text-slate-400 font-medium block">وەسڵی ۳۷/أ بڕاو</span>
+                        <span class="text-base font-black font-mono text-white leading-tight">{{ $todayPaidCount }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accounting 66 Direct Filter and Search Bar -->
+            <form action="{{ route('reports.accounting_66') }}" method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end bg-slate-950/70 p-4 rounded-2xl border border-slate-800">
+                <div class="md:col-span-4 space-y-1">
+                    <label class="block text-xs font-bold text-slate-300">
+                        <i class="fa-solid fa-magnifying-glass text-amber-400 ml-1"></i>
+                        گەڕان بەپێی ژمارەی پسوولەی ۳۷/أ، بارکۆد، تابلۆ، یان ناو:
+                    </label>
+                    <input type="text" name="search" placeholder="وەک: 1040 یان 2611030001..." 
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400">
+                </div>
+
+                <div class="md:col-span-3 space-y-1">
+                    <label class="block text-xs font-bold text-slate-300">لە بەرواری:</label>
+                    <input type="date" name="date_from" value="{{ today()->format('Y-m-d') }}" 
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400">
+                </div>
+
+                <div class="md:col-span-3 space-y-1">
+                    <label class="block text-xs font-bold text-slate-300">بۆ بەرواری:</label>
+                    <input type="date" name="date_to" value="{{ today()->format('Y-m-d') }}" 
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400">
+                </div>
+
+                <div class="md:col-span-2 flex items-center gap-2">
+                    <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-black text-xs rounded-xl shadow-lg shadow-amber-600/30 transition flex items-center justify-center gap-1.5 active:scale-95">
+                        <i class="fa-solid fa-print text-xs"></i>
+                        <span>کردنەوە و چاپی ٦٦</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Quick Action Preset Buttons for Accounting 66 -->
+            <div class="flex items-center justify-between flex-wrap gap-2 text-xs pt-1">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-slate-400 font-bold">فلتەری خێرا:</span>
+                    <a href="{{ route('reports.accounting_66', ['date_from' => today()->format('Y-m-d'), 'date_to' => today()->format('Y-m-d')]) }}" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition font-bold">
+                        محاسبة ٦٦ ی ئەمڕۆ
+                    </a>
+                    <a href="{{ route('reports.accounting_66', ['date_from' => today()->subDay()->format('Y-m-d'), 'date_to' => today()->subDay()->format('Y-m-d')]) }}" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition font-bold">
+                        دوێنێ
+                    </a>
+                    <a href="{{ route('reports.accounting_66', ['date_from' => today()->startOfMonth()->format('Y-m-d'), 'date_to' => today()->format('Y-m-d')]) }}" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition font-bold">
+                        ئەم مانگە
+                    </a>
+                    <a href="{{ route('reports.accounting_66') }}" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition font-bold">
+                        سەرجەم کاتەکان
+                    </a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('reports.accounting_66.export') }}" class="px-3 py-1 rounded-lg bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 border border-indigo-500/40 transition font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-file-excel text-xs"></i>
+                        <span>داگرتنی داتا (CSV)</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Pending Payments Queue Waiting for Cashier -->
+            @if(isset($pendingPaymentList) && $pendingPaymentList->count() > 0)
+                <div class="pt-2 border-t border-amber-500/20 space-y-2">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-extrabold text-amber-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <span>مامەڵەکانی چاوەڕوانی وەرگرتنی پارە ({{ $pendingPayment }} مامەڵە لە نۆرەدا):</span>
+                        </span>
+                        <a href="{{ route('transactions.index', ['stage' => 'payment']) }}" class="text-amber-400 hover:underline font-bold">
+                            بینینی تەواوی نۆرەکە &larr;
+                        </a>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                        @foreach($pendingPaymentList->take(4) as $pTx)
+                            <div class="bg-slate-950 p-3 rounded-xl border border-amber-500/30 flex items-center justify-between text-xs gap-2 shadow-sm">
+                                <div class="min-w-0">
+                                    <span class="font-mono text-sky-400 font-bold block">{{ $pTx->barcode }}</span>
+                                    <span class="font-bold text-white block truncate">{{ $pTx->visitor_name }}</span>
+                                    <span class="font-mono text-emerald-400 font-black block mt-0.5">{{ number_format($pTx->total_pay) }} د.ع</span>
+                                </div>
+                                <a href="{{ route('transactions.show', $pTx->id) }}" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-black text-xs rounded-lg shadow shrink-0 transition flex items-center gap-1">
+                                    <i class="fa-solid fa-cash-register text-[10px]"></i>
+                                    <span>وەرگرتن</span>
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        </div>
+    @endif
+
+    <!-- ========================================================================= -->
+    <!-- 5. ARCHIVER & SUBMIT WORKSTATION: FULL BOOKLET STATISTICS (NO MONEY!) -->
+    <!-- ========================================================================= -->
+    @if(auth()->user()->isAdmin() || $activeRole === 'archiver')
+        <div class="bg-gradient-to-r from-teal-950/40 via-slate-900 to-indigo-950/40 border-2 border-teal-500/40 rounded-3xl p-5 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between flex-wrap gap-3 border-b border-teal-500/20 pb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-teal-500/20 text-teal-400 flex items-center justify-center text-lg font-black border border-teal-500/30 shadow-sm">
+                        <i class="fa-solid fa-box-archive"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                            <span>وێستگەی کارمەندی ئەرشیف و سەپمیت • ئاماری دەفتەرەکان</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] bg-teal-500/20 text-teal-300 border border-teal-500/30 font-bold">بێ پارە • Volume Only</span>
+                        </h2>
+                        <p class="text-xs text-slate-400">
+                            ئاماری وردی سەرجەم جۆرەکانی دەفتەر بەپێی بەروار و بۆکس فایل بەبێ پیشاندانی داتای دارایی.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Archiver Daily Activity Pill -->
+                <div class="flex items-center gap-3 bg-slate-950/90 px-4 py-2 rounded-2xl border border-teal-500/30 shadow-inner">
+                    <div class="text-right">
+                        <span class="text-[10px] text-teal-300 font-bold block">ئەرشیفکراوی ئەمڕۆ</span>
+                        <span class="text-base sm:text-lg font-black font-mono text-teal-300 leading-tight">
+                            {{ $todayArchivedCount }} <span class="text-xs text-slate-400 font-normal">مامەڵە</span>
+                        </span>
+                    </div>
+                    <div class="h-8 w-px bg-slate-800"></div>
+                    <div class="text-right">
+                        <span class="text-[10px] text-slate-400 font-medium block">چاوەڕوانی سەپمیت</span>
+                        <span class="text-base font-black font-mono text-amber-400 leading-tight">{{ $pendingSubmit }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Range Filter for Archiver Statistics -->
+            <form action="{{ route('dashboard') }}" method="GET" class="flex items-center justify-between flex-wrap gap-3 bg-slate-950/70 p-3.5 rounded-2xl border border-slate-800">
+                <input type="hidden" name="view" value="{{ $activeRole }}">
+                <div class="flex items-center gap-2 flex-wrap text-xs">
+                    <span class="text-slate-300 font-bold">فلتەری کات:</span>
+                    <a href="{{ route('dashboard', ['view' => $activeRole, 'archiver_filter' => 'today']) }}" class="px-3 py-1.5 rounded-xl font-bold transition {{ ($archiverFilter ?? 'today') === 'today' && empty($archiverFrom) ? 'bg-teal-600 text-white' : 'bg-slate-800 text-slate-300 hover:text-white' }}">
+                        ئەمڕۆ
+                    </a>
+                    <a href="{{ route('dashboard', ['view' => $activeRole, 'archiver_filter' => 'week']) }}" class="px-3 py-1.5 rounded-xl font-bold transition {{ ($archiverFilter ?? '') === 'week' ? 'bg-teal-600 text-white' : 'bg-slate-800 text-slate-300 hover:text-white' }}">
+                        ئەم هەفتەیە
+                    </a>
+                    <a href="{{ route('dashboard', ['view' => $activeRole, 'archiver_filter' => 'month']) }}" class="px-3 py-1.5 rounded-xl font-bold transition {{ ($archiverFilter ?? '') === 'month' ? 'bg-teal-600 text-white' : 'bg-slate-800 text-slate-300 hover:text-white' }}">
+                        ئەم مانگە
+                    </a>
+                    <a href="{{ route('dashboard', ['view' => $activeRole, 'archiver_filter' => 'all']) }}" class="px-3 py-1.5 rounded-xl font-bold transition {{ ($archiverFilter ?? '') === 'all' ? 'bg-teal-600 text-white' : 'bg-slate-800 text-slate-300 hover:text-white' }}">
+                        سەرجەم کاتەکان
+                    </a>
+                </div>
+
+                <!-- Custom Range Inputs -->
+                <div class="flex items-center gap-2 text-xs flex-wrap">
+                    <span class="text-slate-400">یان دیاریکردنی بەروار:</span>
+                    <input type="date" name="from_date" value="{{ $archiverFrom ?? '' }}" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1 text-xs text-white focus:outline-none focus:border-teal-400">
+                    <span class="text-slate-500">بۆ</span>
+                    <input type="date" name="to_date" value="{{ $archiverTo ?? '' }}" class="bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1 text-xs text-white focus:outline-none focus:border-teal-400">
+                    <button type="submit" class="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl transition">
+                        فلتەر
+                    </button>
+                </div>
+            </form>
+
+            <!-- Booklet Statistics by Type Breakdown Grid (STRICTLY NO MONEY) -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                @foreach($allTxTypes as $type)
+                    @php
+                        $cleanTypeName = trim(str_replace(['(نوێ)', '（نوێ）', '( نوێ )', 'نوێ'], '', $type->name_kurdish ?? '-'));
+                        $countForType = $archiverCountsRaw[$type->id] ?? 0;
+                    @endphp
+                    <div class="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 hover:border-teal-500/50 transition text-right space-y-1 shadow-sm">
+                        <span class="text-[11px] font-bold text-slate-300 block truncate" title="{{ $type->name_kurdish }}">
+                            {{ $cleanTypeName }}
+                        </span>
+                        <div class="flex items-baseline justify-between pt-1">
+                            <span class="text-xl sm:text-2xl font-black font-mono text-teal-400">{{ number_format($countForType) }}</span>
+                            <span class="text-[10px] text-slate-500 font-sans">مامەڵە</span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <!-- Grand Total Count for Archiver -->
+            <div class="flex items-center justify-between bg-slate-950 px-4 py-2.5 rounded-2xl border border-slate-800 text-xs">
+                <span class="font-bold text-slate-300 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-column text-teal-400"></i>
+                    <span>کۆی گشتی سەرجەم دەفتەرە ئەرشیفکراوەکان لەم ماوەیەدا:</span>
+                </span>
+                <span class="font-mono font-black text-sm text-teal-300">{{ number_format($archiverTotalCount) }} مامەڵەی فەرمی</span>
+            </div>
+
+            <!-- Pending Archive List Ready for Boxfile Submission -->
+            @if(isset($pendingSubmitList) && $pendingSubmitList->count() > 0)
+                <div class="pt-2 border-t border-teal-500/20 space-y-2">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-extrabold text-teal-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <span>چاوەڕوانی سەپمیت و ئەرشیف ({{ $pendingSubmit }} مامەڵە ئامادەن بۆ بۆکس فایل):</span>
+                        </span>
+                        <a href="{{ route('transactions.index', ['stage' => 'archive']) }}" class="text-teal-400 hover:underline font-bold">
+                            بینینی تەواوی ئەرشیف &larr;
+                        </a>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                        @foreach($pendingSubmitList->take(4) as $sTx)
+                            <div class="bg-slate-950 p-3 rounded-xl border border-teal-500/30 flex items-center justify-between text-xs gap-2 shadow-sm">
+                                <div class="min-w-0">
+                                    <span class="font-mono text-sky-400 font-bold block">{{ $sTx->barcode }}</span>
+                                    <span class="font-bold text-white block truncate">{{ $sTx->visitor_name }}</span>
+                                    <span class="text-[10px] text-slate-400 block truncate">{{ $sTx->carMake->name_kurdish ?? '' }}</span>
+                                </div>
+                                <a href="{{ route('transactions.show', $sTx->id) }}" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white font-black text-xs rounded-lg shadow shrink-0 transition flex items-center gap-1">
+                                    <i class="fa-solid fa-check text-[10px]"></i>
+                                    <span>سەپمیت</span>
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        </div>
+    @endif
+
+    <!-- ========================================================================= -->
+    <!-- 6. VISUAL WORKFLOW PIPELINE -->
     <!-- ========================================================================= -->
     <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl space-y-3">
         <div class="flex items-center justify-between flex-wrap gap-2">
@@ -311,9 +638,11 @@
                     <p class="text-[11px] text-slate-400">ژمارەی ئەو مامەڵانەی ئێستا لە هەر قۆناغێکدا لە گومرگ چاوەڕێی جێبەجێکردنن</p>
                 </div>
             </div>
-            <a href="{{ route('transactions.index') }}" class="text-xs font-bold text-sky-400 hover:text-sky-300">
-                خشتەی تەواوی مامەڵەکان &larr;
-            </a>
+            @if(!auth()->check() || auth()->user()->role !== 'data_entry')
+                <a href="{{ route('transactions.index') }}" class="text-xs font-bold text-sky-400 hover:text-sky-300">
+                    خشتەی تەواوی مامەڵەکان &larr;
+                </a>
+            @endif
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
@@ -379,7 +708,7 @@
                 <div class="flex items-end justify-between">
                     <div>
                         <div class="text-2xl font-black text-white font-mono">{{ $pendingPayment }}</div>
-                        <span class="text-[10px] text-slate-400 block mt-0.5">بڕینی وەسڵی ۳۷-ئـ</span>
+                        <span class="text-[10px] text-slate-400 block mt-0.5">بڕینی وەسڵی ۳۷/أ</span>
                     </div>
                     <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30">
                         چاوەڕوان
@@ -418,7 +747,7 @@
     </div>
 
     <!-- ========================================================================= -->
-    <!-- 5. MAIN CONTENT SPLIT: RECENT TRANSACTIONS (68%) & SIDEBAR (32%) -->
+    <!-- 7. MAIN CONTENT SPLIT: RECENT TRANSACTIONS & AUDIT LOGS -->
     <!-- ========================================================================= -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
         
@@ -435,10 +764,12 @@
                             <p class="text-[11px] text-slate-400">نوێترین جموجۆڵەکانی دەروازەی دەفتەری ئۆتۆمبێل</p>
                         </div>
                     </div>
-                    <a href="{{ route('transactions.index') }}" class="text-xs text-sky-400 hover:text-sky-300 hover:underline font-bold flex items-center gap-1">
-                        <span>بینینی هەموو مامەڵەکان</span>
-                        <i class="fa-solid fa-arrow-left text-[10px]"></i>
-                    </a>
+                    @if(!auth()->check() || auth()->user()->role !== 'data_entry')
+                        <a href="{{ route('transactions.index') }}" class="text-xs text-sky-400 hover:text-sky-300 hover:underline font-bold flex items-center gap-1">
+                            <span>بینینی هەموو مامەڵەکان</span>
+                            <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                        </a>
+                    @endif
                 </div>
 
                 <!-- Desktop Table View -->
@@ -450,7 +781,11 @@
                                 <th class="p-3">خاوەن مامەڵە / شۆفێر</th>
                                 <th class="p-3">ژمارەی تابلۆ</th>
                                 <th class="p-3">جۆری مامەڵە</th>
-                                <th class="p-3 text-center">بڕی پارە</th>
+                                @if($canSeeMoney)
+                                    <th class="p-3 text-center">بڕی پارە</th>
+                                @else
+                                    <th class="p-3 text-center">بەروار</th>
+                                @endif
                                 <th class="p-3 text-center">بارودۆخ</th>
                                 <th class="p-3 text-center">کردار</th>
                             </tr>
@@ -483,14 +818,22 @@
                                             {{ $cleanTypeName }}
                                         </span>
                                     </td>
-                                    <td class="p-3 text-center font-mono font-bold text-emerald-400 whitespace-nowrap">
-                                        {{ number_format($tx->total_pay) }} <span class="text-[10px] text-emerald-300/70 font-normal">د.ع</span>
-                                    </td>
+                                    @if($canSeeMoney)
+                                        <td class="p-3 text-center font-mono font-bold text-emerald-400 whitespace-nowrap">
+                                            {{ number_format($tx->total_pay) }} <span class="text-[10px] text-emerald-300/70 font-normal">د.ع</span>
+                                        </td>
+                                    @else
+                                        <td class="p-3 text-center font-mono text-slate-300 whitespace-nowrap">
+                                            {{ $tx->created_at ? $tx->created_at->format('Y-m-d') : '-' }}
+                                        </td>
+                                    @endif
                                     <td class="p-3 text-center whitespace-nowrap">
                                         @if($tx->is_cancelled || !empty($tx->cancelled_at))
                                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">پووچەڵکراوە</span>
+                                        @elseif($tx->is_submitted)
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/10 text-teal-400 border border-teal-500/30">ئەرشیفکراوە</span>
                                         @elseif($tx->is_booklet_completed)
-                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">تەواوکراوە</span>
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">دەفتەر دەرکراوە</span>
                                         @elseif($tx->is_paid)
                                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30">پارەدراوە</span>
                                         @elseif($tx->is_audited)
@@ -527,7 +870,11 @@
                             </div>
                             <div class="flex items-center justify-between">
                                 <span class="font-bold text-white text-xs">{{ $tx->visitor_name }}</span>
-                                <span class="font-mono text-emerald-400 font-bold text-xs">{{ number_format($tx->total_pay) }} د.ع</span>
+                                @if($canSeeMoney)
+                                    <span class="font-mono text-emerald-400 font-bold text-xs">{{ number_format($tx->total_pay) }} د.ع</span>
+                                @else
+                                    <span class="font-mono text-slate-400 text-xs">{{ $tx->created_at ? $tx->created_at->format('Y-m-d') : '' }}</span>
+                                @endif
                             </div>
                             <div class="flex items-center justify-between pt-1 border-t border-slate-800">
                                 <x-vehicle-plate :plate="$tx->plate_number" :type="$tx->plateType" size="sm" />
@@ -545,13 +892,15 @@
             <!-- Table Footer Indicator -->
             <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
                 <span>پیشاندانی دوایین {{ $recentTransactions->count() }} مامەڵە</span>
-                <a href="{{ route('transactions.index') }}" class="text-sky-400 font-bold hover:underline">
-                    گەڕان لە تەواوی مامەڵەکان &larr;
-                </a>
+                @if(!auth()->check() || auth()->user()->role !== 'data_entry')
+                    <a href="{{ route('transactions.index') }}" class="text-sky-400 font-bold hover:underline">
+                        گەڕان لە تەواوی مامەڵەکان &larr;
+                    </a>
+                @endif
             </div>
         </div>
 
-        <!-- Right: Insights & Distribution & Audit Log (4 Cols) -->
+        <!-- Right: Insights & Audit Log (4 Cols) -->
         <div class="lg:col-span-4 space-y-5">
             
             <!-- Widget 1: Transaction Types Distribution -->
@@ -625,18 +974,20 @@
                         <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1.5 text-xs">
                             <div class="flex items-center justify-between">
                                 <span class="text-slate-400">بەکارهێنەر:</span>
-                                <span class="font-bold text-white">{{ auth()->user()->name }}</span>
+                                <span class="font-bold text-white">{{ auth()->user()->clean_name }}</span>
                             </div>
                             <div class="flex items-center justify-between">
                                 <span class="text-slate-400">پلە و دەسەڵات:</span>
-                                <span class="font-black text-sky-400">{{ auth()->user()->role_name_kurdish }}</span>
+                                <span class="font-black text-sky-400">{{ auth()->user()->clean_role_name }}</span>
                             </div>
                         </div>
                         <div class="space-y-1.5 pt-1">
-                            <a href="{{ route('transactions.index') }}" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center justify-between transition">
-                                <span><i class="fa-solid fa-list-check ml-1.5 text-sky-400"></i> لیستی گشتی مامەڵەکان</span>
-                                <i class="fa-solid fa-chevron-left text-[10px] text-slate-400"></i>
-                            </a>
+                            @if(auth()->user()->role !== 'data_entry')
+                                <a href="{{ route('transactions.index') }}" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold flex items-center justify-between transition">
+                                    <span><i class="fa-solid fa-list-check ml-1.5 text-sky-400"></i> لیستی گشتی مامەڵەکان</span>
+                                    <i class="fa-solid fa-chevron-left text-[10px] text-slate-400"></i>
+                                </a>
+                            @endif
                             @if(auth()->user()->hasPermission('transactions.create'))
                                 <a href="{{ route('transactions.create') }}" class="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-between transition">
                                     <span><i class="fa-solid fa-plus-circle ml-1.5"></i> تۆمارکردنی نوێ</span>
@@ -653,26 +1004,4 @@
     </div>
 
 </div>
-
-<!-- Live Clock Script (100% Synchronized with User's Computer) -->
-<script>
-    function updateClock() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-
-        const dateEl = document.getElementById('dashLiveDate');
-        const clockEl = document.getElementById('dashLiveClock');
-        if (dateEl) dateEl.textContent = `${year}-${month}-${day}`;
-        if (clockEl) clockEl.textContent = `${hours}:${minutes}:${seconds}`;
-    }
-    // Update immediately on page load
-    updateClock();
-    // Live update every second to match computer's clock in real time
-    setInterval(updateClock, 1000);
-</script>
 @endsection

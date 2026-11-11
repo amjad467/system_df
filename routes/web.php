@@ -85,6 +85,11 @@ Route::middleware('auth')->group(function () {
         return redirect($notification->link ?? route('dashboard'));
     })->name('notifications.read');
 
+    Route::post('/notifications/mark-all-read', function () {
+        \App\Services\NotificationService::markAllAsReadForCurrentUser();
+        return redirect()->back()->with('success', 'سەرجەم ئاگادارییەکان وەک بینراو دیاری کران.');
+    })->name('notifications.mark_all_read');
+
     // Print views & Official Reports Actions
     Route::post('/transactions/{transaction}/mark-printed', [TransactionController::class, 'markPrinted'])->name('transactions.mark_printed');
     Route::get('/transactions/{transaction}/print-data-entry', [TransactionController::class, 'printDataEntry'])->name('transactions.print_data_entry');
