@@ -71,17 +71,17 @@ DB_CHECK_RESULT=$(php -r '
     if (!empty($ref)) {
         $poolerHost = "aws-0-eu-central-1.pooler.supabase.com";
         $poolerUser = "postgres." . $ref;
-        // Prioritize Session pooler port 5432 (full feature & migration support), then Transaction pooler 6543
-        $candidates[] = ["host" => $poolerHost, "user" => $poolerUser, "port" => 5432, "ssl" => "sslmode=require"];
+        // Prioritize Transaction pooler port 6543 (always open & active on Supabase IPv4), then Session pooler 5432
         $candidates[] = ["host" => $poolerHost, "user" => $poolerUser, "port" => 6543, "ssl" => "sslmode=require"];
+        $candidates[] = ["host" => $poolerHost, "user" => $poolerUser, "port" => 5432, "ssl" => "sslmode=require"];
     }
 
     if (!empty($host)) {
         if (!empty($port) && $port != 5432 && $port != 6543) {
             $candidates[] = ["host" => $host, "user" => $user, "port" => $port, "ssl" => "sslmode=require"];
         }
-        $candidates[] = ["host" => $host, "user" => $user, "port" => 5432, "ssl" => "sslmode=require"];
         $candidates[] = ["host" => $host, "user" => $user, "port" => 6543, "ssl" => "sslmode=require"];
+        $candidates[] = ["host" => $host, "user" => $user, "port" => 5432, "ssl" => "sslmode=require"];
     }
 
     $connected = false;
