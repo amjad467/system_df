@@ -828,8 +828,26 @@
                         <span>🟡 کاتی: SQLite Fallback</span>
                     </div>
                     @if($dbStatus && !empty($dbStatus['error']))
-                        <div class="max-w-xs px-2 py-1 rounded bg-red-950/90 border border-red-500/40 text-red-300 text-[9px] font-mono truncate" title="{{ $dbStatus['error'] }}">
-                            هەڵە: {{ Str::limit($dbStatus['error'], 45) }}
+                        @php
+                            $errText = $dbStatus['error'];
+                            $userHelp = null;
+                            if (str_contains($errText, 'password authentication failed')) {
+                                $userHelp = 'تێپەڕەوشە (Password) ی داتابەیسەکە هەڵەیە! تکایە لە Supabase تێپەڕەوشەی نوێ ڕێکبخەرەوە.';
+                            } elseif (str_contains($errText, 'no tenant identifier') || str_contains($errText, 'tenant not found')) {
+                                $userHelp = 'پێویستە ناوی بەکارهێنەر postgres.sdlduahwpqjzdkfslthg بێت.';
+                            } elseif (str_contains($errText, 'timeout')) {
+                                $userHelp = 'پۆرتەکە کاتی بەسەرچوو (Timeout)؛ پۆرت 6543 تاقی دەکرێتەوە.';
+                            }
+                        @endphp
+                        <div class="max-w-md p-2 rounded-lg bg-red-950/95 border border-red-500/60 text-red-200 text-xs shadow-2xl backdrop-blur-md text-right space-y-1">
+                            @if($userHelp)
+                                <div class="font-bold text-amber-300 flex items-center gap-1 justify-end">
+                                    <span>⚠️ {{ $userHelp }}</span>
+                                </div>
+                            @endif
+                            <div class="text-[9px] font-mono text-red-300/90 break-all dir-ltr text-left bg-black/50 p-1.5 rounded select-all max-h-24 overflow-y-auto" title="{{ $errText }}">
+                                {{ $errText }}
+                            </div>
                         </div>
                     @endif
                 @endif

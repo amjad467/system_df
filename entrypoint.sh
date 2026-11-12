@@ -71,14 +71,17 @@ DB_CHECK_RESULT=$(php -r '
     if (!empty($ref)) {
         $poolerHost = "aws-0-eu-central-1.pooler.supabase.com";
         $poolerUser = "postgres." . $ref;
-        $candidates[] = ["host" => $poolerHost, "user" => $poolerUser, "port" => 5432, "ssl" => "sslmode=require"];
+        // Port 6543 (Transaction Mode) connects immediately on Supabase; port 5432 is Session Mode
         $candidates[] = ["host" => $poolerHost, "user" => $poolerUser, "port" => 6543, "ssl" => "sslmode=require"];
+        $candidates[] = ["host" => $poolerHost, "user" => $poolerUser, "port" => 5432, "ssl" => "sslmode=require"];
     }
 
     if (!empty($host)) {
-        $candidates[] = ["host" => $host, "user" => $user, "port" => $port, "ssl" => "sslmode=require"];
-        $candidates[] = ["host" => $host, "user" => $user, "port" => 5432, "ssl" => "sslmode=require"];
+        if (!empty($port) && $port != 5432 && $port != 6543) {
+            $candidates[] = ["host" => $host, "user" => $user, "port" => $port, "ssl" => "sslmode=require"];
+        }
         $candidates[] = ["host" => $host, "user" => $user, "port" => 6543, "ssl" => "sslmode=require"];
+        $candidates[] = ["host" => $host, "user" => $user, "port" => 5432, "ssl" => "sslmode=require"];
     }
 
     $connected = false;
@@ -91,14 +94,19 @@ DB_CHECK_RESULT=$(php -r '
         $cP = $cand["port"];
         $cSSL = $cand["ssl"];
         try {
-            $dsn = "pgsql:host={$cH};port={$cP};dbname={$db};{$cSSL};connect_timeout=6";
+            $dsn = "pgsql:host={$cH};port={$cP};dbname={$db};{$cSSL};connect_timeout=4";
             $pdo = new PDO($dsn, $cU, $pass);
             $pdo->query("SELECT 1");
             $connected = true;
             $winner = $cand;
             break;
         } catch (\Throwable $e) {
-            $lastError = "[Host: {$cH}:{$cP}, User: {$cU}]: " . $e->getMessage();
+            $err = $e->getMessage();
+            $lastError = "[Host: {$cH}:{$cP}, User: {$cU}]: {$err}";
+            // If password authentication failed, stop trying other ports as the credentials are wrong
+            if (str_contains($err, "password authentication failed")) {
+                break;
+            }
         }
     }
 
