@@ -54,62 +54,68 @@
 }" @keydown.escape.window="showDrawer = false">
 
     <!-- سەرپەڕە و کردارە سەرەکییەکان (Header & Actions) -->
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900/60 border border-slate-800 p-4 rounded-2xl shadow-lg backdrop-blur-sm">
-        <div>
-            <div class="flex items-center gap-2.5">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
-                    <i class="fa-solid fa-list-check text-lg"></i>
-                </div>
-                <div>
-                    <h2 class="text-xl font-black text-white flex items-center gap-2">
-                        بەڕێوەبردنی قۆناغەکانی مامەڵە
-                    </h2>
-                    <p class="text-xs text-slate-400">بەدواداچوون، پەسەندکردن و بەڕێکردنی مامەڵەکان بەپێی قۆناغی کارکردن.</p>
-                </div>
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 bg-slate-900/80 border border-slate-800/80 p-3.5 sm:p-4 rounded-2xl shadow-lg backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20 shrink-0">
+                <i class="fa-solid fa-list-check text-lg"></i>
+            </div>
+            <div>
+                <h2 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+                    بەڕێوەبردنی قۆناغەکانی مامەڵە
+                </h2>
+                <p class="text-[11px] sm:text-xs text-slate-400">بەدواداچوون، پەسەندکردن و بەڕێکردنی مامەڵەکان بەپێی قۆناغی کارکردن.</p>
             </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end">
             <!-- نیشاندەری باری بەروار -->
             @if($dateFilter === 'today')
-                <span class="px-3 py-1.5 rounded-xl text-xs font-black bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
+                <span class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     مامەڵەکانی ئەمڕۆ ({{ $today }})
                 </span>
             @elseif($dateFilter === 'yesterday')
-                <span class="px-3 py-1.5 rounded-xl text-xs font-black bg-sky-500/10 text-sky-400 border border-sky-500/30 flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
+                <span class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30 flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-clock-rotate-left text-xs"></i>
                     مامەڵەکانی دوێنێ
                 </span>
             @elseif($dateFilter === 'this_week')
-                <span class="px-3 py-1.5 rounded-xl text-xs font-black bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-calendar-week"></i>
+                <span class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-calendar-week text-xs"></i>
                     ٧ ڕۆژی ڕابردوو
                 </span>
             @elseif($dateFilter === 'all')
-                <span class="px-3 py-1.5 rounded-xl text-xs font-black bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-database"></i>
+                <span class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-database text-xs"></i>
                     گشت ڕۆژەکان و ئەرشیف
                 </span>
             @else
-                <span class="px-3 py-1.5 rounded-xl text-xs font-black bg-purple-500/10 text-purple-400 border border-purple-500/30 flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-calendar-days"></i>
+                <span class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-purple-500/10 text-purple-400 border border-purple-500/30 flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-calendar-days text-xs"></i>
                     بەرواری دیاریکراو
                 </span>
             @endif
 
             @if(auth()->check() && auth()->user()->isAdmin())
-                <a href="{{ route('restore_records') }}" onclick="return confirm('ئایا دڵنیایت لە هاوردەکردن/گەڕاندنەوەی سەرجەم ٨٤ تۆمارە بنەڕەتییەکان و هەموو داتاکانی ئەکسێس؟');" class="px-3.5 py-2 bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/40 font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5" title="گەڕاندنەوەی هەموو تۆمارە کۆنەکان و هاوردەکراوەکان">
-                    <i class="fa-solid fa-cloud-arrow-down text-indigo-400"></i> گەڕاندنەوەی سەرجەم تۆمارەکان (84 تۆمار)
+                <a href="{{ route('restore_records') }}" onclick="return confirm('ئایا دڵنیایت لە هاوردەکردن/گەڕاندنەوەی سەرجەم ٨٤ تۆمارە بنەڕەتییەکان و هەموو داتاکانی ئەکسێس؟');" 
+                   class="px-2.5 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5" 
+                   title="گەڕاندنەوەی سەرجەم ٨٤ تۆمارە بنەڕەتییەکان">
+                    <i class="fa-solid fa-rotate-left text-xs text-indigo-400"></i>
+                    <span class="hidden xl:inline">گەڕاندنەوە</span>
                 </a>
-                <a href="{{ route('transactions.trash') }}" class="px-3.5 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold text-xs rounded-xl shadow transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-trash-can text-rose-400"></i> سڕاوەکان
+                <a href="{{ route('transactions.trash') }}" 
+                   class="px-2.5 py-1.5 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5"
+                   title="مامەڵە سڕاوەکان">
+                    <i class="fa-solid fa-trash-can text-xs text-rose-400"></i>
+                    <span>سڕاوەکان</span>
                 </a>
             @endif
 
             @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
-                <a href="{{ route('transactions.create') }}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/25 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-plus-circle"></i> مامەڵەی نوێ
+                <a href="{{ route('transactions.create') }}" 
+                   class="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5 active:scale-95">
+                    <i class="fa-solid fa-plus-circle text-xs"></i>
+                    <span>مامەڵەی نوێ</span>
                 </a>
             @endif
         </div>
