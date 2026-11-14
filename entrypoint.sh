@@ -130,7 +130,9 @@ DB_CHECK_RESULT=$(php -r '
                     . "export DB_USERNAME=\"{$wU}\"\n"
                     . "export DB_PASSWORD=\"{$wPass}\"\n"
                     . "export DB_SSLMODE=require\n"
-                    . "export DATABASE_URL=\"postgresql://{$wU}:{$encodedPass}@{$wH}:{$wP}/{$wDb}?sslmode=require\"\n";
+                    . "export DATABASE_URL=\"postgresql://{$wU}:{$encodedPass}@{$wH}:{$wP}/{$wDb}?sslmode=require\"\n"
+                    . "export SESSION_DRIVER=file\n"
+                    . "export CACHE_STORE=file\n";
         @file_put_contents("/tmp/pg_env.sh", $envContent);
 
         @file_put_contents("/var/www/storage/app/db_status.json", json_encode([
@@ -177,6 +179,9 @@ else
         sed -i 's/^DB_HOST=/#DB_HOST=/' /var/www/.env 2>/dev/null || true
     fi
 fi
+
+export SESSION_DRIVER=file
+export CACHE_STORE=file
 
 # 5. Clear caches
 php artisan config:clear 2>/dev/null || true
