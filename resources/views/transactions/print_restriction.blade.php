@@ -103,17 +103,28 @@
             </div>
             <div>
                 <span>ڕێکەوتی: </span>
-                <span dir="ltr" class="inline-block font-mono text-base font-bold">{{ date('Y/m') }}/ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
+                <span dir="ltr" class="inline-block font-mono text-base font-bold">{{ $transaction->transaction_date ? $transaction->transaction_date->format('d-m-Y') : date('d-m-Y') }}</span>
             </div>
         </div>
+
+        @php
+            $rawDirName = trim((string)($transaction->trafficDirectorate->name_kurdish ?? 'پارێزگای هەولێر'));
+            if (str_starts_with($rawDirName, 'بەڕێوەبەرایەتی هاتوچۆی') || str_starts_with($rawDirName, 'بەڕێوەبەرایەتی هاتووچۆی')) {
+                $cleanDirName = $rawDirName;
+            } elseif (str_starts_with($rawDirName, 'هاتوچۆی') || str_starts_with($rawDirName, 'هاتووچۆی')) {
+                $cleanDirName = 'بەڕێوەبەرایەتی ' . $rawDirName;
+            } else {
+                $cleanDirName = 'بەڕێوەبەرایەتی هاتوچۆی ' . $rawDirName;
+            }
+        @endphp
 
         <!-- Title & Subject -->
         <div class="text-center space-y-1.5 pt-2">
             <h2 class="text-xl font-black">
-                بۆ\ بەڕێوەبەرایەتی هاتووچۆی {{ $transaction->trafficDirectorate->name_kurdish ?? 'دهۆك' }}
+                بۆ / {{ $cleanDirName }}
             </h2>
             <h3 class="text-lg font-extrabold underline underline-offset-4">
-                بابەت\ دانانی نیشانەی ڕەفتارنەکردن
+                بابەت / دانانی نیشانەی ڕەفتارنەکردن
             </h3>
         </div>
 

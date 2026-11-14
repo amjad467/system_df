@@ -111,17 +111,28 @@
             </div>
             <div>
                 <span>ڕێکەوتی: </span>
-                <span dir="ltr" class="inline-block font-mono text-base font-bold">{{ $transaction->date_nusraw_puchal ? $transaction->date_nusraw_puchal->format('Y/m') : date('Y/m') }}/ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
+                <span dir="ltr" class="inline-block font-mono text-base font-bold">{{ $transaction->date_nusraw_puchal ? $transaction->date_nusraw_puchal->format('d-m-Y') : ($transaction->transaction_date ? $transaction->transaction_date->format('d-m-Y') : date('d-m-Y')) }}</span>
             </div>
         </div>
+
+        @php
+            $rawDirName = trim((string)($transaction->trafficDirectorate->name_kurdish ?? 'پارێزگای هەولێر'));
+            if (str_starts_with($rawDirName, 'بەڕێوەبەرایەتی هاتوچۆی') || str_starts_with($rawDirName, 'بەڕێوەبەرایەتی هاتووچۆی')) {
+                $cleanDirName = $rawDirName;
+            } elseif (str_starts_with($rawDirName, 'هاتوچۆی') || str_starts_with($rawDirName, 'هاتووچۆی')) {
+                $cleanDirName = 'بەڕێوەبەرایەتی ' . $rawDirName;
+            } else {
+                $cleanDirName = 'بەڕێوەبەرایەتی هاتوچۆی ' . $rawDirName;
+            }
+        @endphp
 
         <!-- Title & Subject -->
         <div class="text-center space-y-1.5 pt-2">
             <h2 class="text-xl font-black">
-                بۆ\ بەڕێوەبەرایەتی هاتووچۆی {{ $transaction->trafficDirectorate->name_kurdish ?? 'دهۆك' }}
+                بۆ / {{ $cleanDirName }}
             </h2>
             <h3 class="text-lg font-extrabold underline underline-offset-4">
-                بابەت\ پووچەڵکردنەوە
+                بابەت / پووچەڵکردنەوە
             </h3>
         </div>
 
@@ -129,10 +140,10 @@
         <div class="text-base font-bold leading-relaxed px-2 py-3 text-justify">
             @php
                 $customsNo = $transaction->no_nusraw_puchal ?? '2020000';
-                $customsDate = $transaction->date_nusraw_puchal ? $transaction->date_nusraw_puchal->format('Y-m-d') : ($transaction->transaction_date ? $transaction->transaction_date->format('Y-m-d') : '2026-05-23');
+                $customsDate = $transaction->date_nusraw_puchal ? $transaction->date_nusraw_puchal->format('d-m-Y') : ($transaction->transaction_date ? $transaction->transaction_date->format('d-m-Y') : date('d-m-Y'));
             @endphp
             <p>
-                دوابەدوای نوسراومان ژمارە ( <span class="font-mono text-lg font-black">{{ $customsNo }}</span> ) لە ( <span class="font-mono text-lg font-black">{{ $customsDate }}</span> ) نیشانەی ڕەفتارنەکردن هەڵبگرن لەسەر ئۆتۆمبێلی کە خەسڵەتەکانی لەخوارەوە دیاریکراوە و خاوەنەکەی سەردانی بەڕێوەبەرایەتی کردووە دەفتەری ڕێگەپێدانی کەچووچەڵکردۆتەوە ئازادە لەهەر کارێکی یاسایی ئەنجامی بدات بۆ ئۆتۆمبێلەکەی بۆ ئاگاداریتان .
+                دوابەدوای نوسراومان ژمارە ( <span class="font-mono text-lg font-black">{{ $customsNo }}</span> ) لە ( <span class="font-mono text-lg font-black">{{ $customsDate }}</span> ) نیشانەی ڕەفتارنەکردن هەڵبگرن لەسەر ئۆتۆمبێلی کە خەسڵەتەکانی لەخوارەوە دیاریکراوە و خاوەنەکەی سەردانی بەڕێوەبەرایەتی کردووە دەفتەری ڕێگەپێدانی کە پووچەڵکردۆتەوە ئازادە لەهەر کارێکی یاسایی ئەنجامی بدات بۆ ئۆتۆمبێلەکەی بۆ ئاگاداریتان .
             </p>
             <p class="text-center font-black mt-3">له‌گه‌ڵ ڕێزدا...</p>
         </div>

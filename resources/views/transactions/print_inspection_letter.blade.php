@@ -103,17 +103,28 @@
             </div>
             <div>
                 <span>ڕێکەوتی: </span>
-                <span dir="ltr" class="inline-block font-mono text-base font-bold">{{ date('Y/m') }}/ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
+                <span dir="ltr" class="inline-block font-mono text-base font-bold">{{ $transaction->transaction_date ? $transaction->transaction_date->format('d-m-Y') : date('d-m-Y') }}</span>
             </div>
         </div>
+
+        @php
+            $rawDirName = trim((string)($transaction->trafficDirectorate->name_kurdish ?? 'پارێزگای سلێمانی'));
+            if (str_starts_with($rawDirName, 'بەڕێوەبەرایەتی هاتوچۆی') || str_starts_with($rawDirName, 'بەڕێوەبەرایەتی هاتووچۆی')) {
+                $cleanDirName = $rawDirName;
+            } elseif (str_starts_with($rawDirName, 'هاتوچۆی') || str_starts_with($rawDirName, 'هاتووچۆی')) {
+                $cleanDirName = 'بەڕێوەبەرایەتی ' . $rawDirName;
+            } else {
+                $cleanDirName = 'بەڕێوەبەرایەتی هاتوچۆی ' . $rawDirName;
+            }
+        @endphp
 
         <!-- Title & Subject -->
         <div class="text-center space-y-1.5 pt-2">
             <h2 class="text-xl font-black">
-                بۆ\ بەڕێوەبەرایەتی هاتووچۆی {{ $transaction->trafficDirectorate->name_kurdish ?? 'سلیمانی' }}
+                بۆ / {{ $cleanDirName }}
             </h2>
             <h3 class="text-lg font-extrabold underline underline-offset-4">
-                بابەت\ پشکنین
+                بابەت / پشکنین
             </h3>
         </div>
 
@@ -121,7 +132,7 @@
         <div class="text-base font-bold leading-relaxed px-2 py-3 text-justify">
             @php
                 $receiptNo = $transaction->receipt_37a_number ?? '2544';
-                $receiptDate = $transaction->paid_at ? $transaction->paid_at->format('Y-m-d') : ($transaction->transaction_date ? $transaction->transaction_date->format('Y-m-d') : date('Y-m-d'));
+                $receiptDate = $transaction->paid_at ? $transaction->paid_at->format('d-m-Y') : ($transaction->transaction_date ? $transaction->transaction_date->format('d-m-Y') : date('d-m-Y'));
             @endphp
             <p>
                 لەسەر داوای هاووڵاتی ( <span class="text-lg font-black">{{ $transaction->visitor_name }}</span> ) هەستاین بەپشکنینی ئۆتۆمبێلی ناوبراو خەسڵەتەکانی لەخوارەوە دیاری کراوە بەمەبەستی پووچەڵکردنەوەی دەفتەری چوونه‌ده‌ره‌وەکەی لەبەڕێوەبەرایەتی گومرگی هەولێر دەرکردووه و اجورکەشفی لێوەڕگیرا لەبەڕێوەبەرایەتیمان بەپسولەی ژمارە ( <span class="font-mono text-lg font-black">{{ $receiptNo }}</span> ) لە ( <span class="font-mono text-lg font-black">{{ $receiptDate }}</span> )
