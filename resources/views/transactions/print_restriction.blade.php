@@ -109,13 +109,8 @@
 
         @php
             $rawDirName = trim((string)($transaction->trafficDirectorate->name_kurdish ?? 'پارێزگای هەولێر'));
-            if (str_starts_with($rawDirName, 'بەڕێوەبەرایەتی هاتوچۆی') || str_starts_with($rawDirName, 'بەڕێوەبەرایەتی هاتووچۆی')) {
-                $cleanDirName = $rawDirName;
-            } elseif (str_starts_with($rawDirName, 'هاتوچۆی') || str_starts_with($rawDirName, 'هاتووچۆی')) {
-                $cleanDirName = 'بەڕێوەبەرایەتی ' . $rawDirName;
-            } else {
-                $cleanDirName = 'بەڕێوەبەرایەتی هاتوچۆی ' . $rawDirName;
-            }
+            $cleanDirName = preg_replace('/^(بەڕێوەبەرایەتی\s+)?(هاتوچۆی\s+|هاتووچۆی\s+)+/u', '', $rawDirName);
+            $cleanDirName = 'بەڕێوەبەرایەتی هاتووچۆی ' . trim($cleanDirName);
         @endphp
 
         <!-- Title & Subject -->

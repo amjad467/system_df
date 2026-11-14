@@ -28,16 +28,6 @@
             'textColor' => 'text-sky-300',
             'iconBg' => 'bg-sky-500/20 border-sky-500/40 text-sky-400 shadow-sky-500/30',
         ],
-        5 => [ // پووچەڵکردنەوەی دەفتەر
-            'label' => 'پووچەڵکردنەوەی دەفتەر',
-            'accentGradient' => 'from-rose-500 via-red-500 to-rose-700',
-            'gradient' => 'from-rose-950/95 via-slate-900 to-rose-950/60',
-            'border' => 'border-rose-500/90 shadow-rose-500/30 ring-2 ring-rose-500/40',
-            'pill' => 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm',
-            'icon' => 'fa-solid fa-ban text-rose-400',
-            'textColor' => 'text-rose-300',
-            'iconBg' => 'bg-rose-500/25 border-rose-500/50 text-rose-300 shadow-rose-500/30',
-        ],
         3 => [ // ناوگۆڕین
             'label' => 'ناوگۆڕین (گۆڕینی خاوەنداریەتی)',
             'accentGradient' => 'from-purple-500 via-violet-400 to-purple-600',
@@ -58,6 +48,16 @@
             'textColor' => 'text-amber-300',
             'iconBg' => 'bg-amber-500/20 border-amber-500/40 text-amber-400 shadow-amber-500/30',
         ],
+        5 => [ // پووچەڵکردنەوەی دەفتەر
+            'label' => 'پووچەڵکردنەوەی دەفتەر',
+            'accentGradient' => 'from-rose-500 via-red-500 to-rose-700',
+            'gradient' => 'from-rose-950/95 via-slate-900 to-rose-950/60',
+            'border' => 'border-rose-500/90 shadow-rose-500/30 ring-2 ring-rose-500/40',
+            'pill' => 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-sm',
+            'icon' => 'fa-solid fa-ban text-rose-400',
+            'textColor' => 'text-rose-300',
+            'iconBg' => 'bg-rose-500/25 border-rose-500/50 text-rose-300 shadow-rose-500/30',
+        ],
         6 => [ // بەڵێننامە
             'label' => 'بەڵێننامە',
             'accentGradient' => 'from-amber-500 via-yellow-400 to-orange-500',
@@ -67,6 +67,26 @@
             'icon' => 'fa-solid fa-file-contract text-amber-400',
             'textColor' => 'text-amber-300',
             'iconBg' => 'bg-amber-500/20 border-amber-500/40 text-amber-400 shadow-amber-500/30',
+        ],
+        7 => [ // ناوگۆڕین و دەفتەرگۆڕین
+            'label' => 'ناوگۆڕین و دەفتەرگۆڕین',
+            'accentGradient' => 'from-purple-500 via-amber-400 to-indigo-600',
+            'gradient' => 'from-purple-950/95 via-slate-900 to-indigo-950/60',
+            'border' => 'border-purple-500/80 shadow-purple-500/20 ring-1 ring-purple-500/30',
+            'pill' => 'bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-sm',
+            'icon' => 'fa-solid fa-file-pen text-purple-400',
+            'textColor' => 'text-purple-300',
+            'iconBg' => 'bg-purple-500/20 border-purple-500/40 text-purple-400 shadow-purple-500/30',
+        ],
+        8 => [ // پشکنین
+            'label' => 'پشکنین',
+            'accentGradient' => 'from-sky-500 via-teal-400 to-cyan-600',
+            'gradient' => 'from-sky-950/95 via-slate-900 to-cyan-950/60',
+            'border' => 'border-sky-500/80 shadow-sky-500/20 ring-1 ring-sky-500/30',
+            'pill' => 'bg-sky-500/15 text-sky-300 border border-sky-500/30 shadow-sm',
+            'icon' => 'fa-solid fa-file-circle-check text-sky-400',
+            'textColor' => 'text-sky-300',
+            'iconBg' => 'bg-sky-500/20 border-sky-500/40 text-sky-400 shadow-sky-500/30',
         ],
         default => [
             'label' => $typeName,
@@ -411,15 +431,15 @@
     <div class="bg-slate-900/95 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden relative backdrop-blur-xl">
         
         <!-- A. LUXURY ACCENT TOP BAR (Distinct glow line matching the transaction type) -->
-        <div class="h-1.5 w-full bg-gradient-to-r {{ $typeTheme['accentGradient'] }}"></div>
+        <div class="h-1.5 w-full bg-gradient-to-r {{ $typeTheme['accentGradient'] ?? 'from-indigo-500 via-sky-400 to-indigo-600' }}"></div>
 
         <!-- B. CARD HEADER: STATUS & TRANSACTION METADATA STRIP -->
         <div class="px-5 py-3 sm:px-6 bg-slate-950/60 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
             <!-- Right: Transaction Type & Current Stage -->
             <div class="flex items-center gap-2 flex-wrap">
                 <!-- Transaction Type Pill -->
-                <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-black {{ $typeTheme['pill'] }}">
-                    <i class="{{ $typeTheme['icon'] }} text-xs"></i>
+                <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-black {{ $typeTheme['pill'] ?? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 shadow-sm' }}">
+                    <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-folder-open text-indigo-400' }} text-xs"></i>
                     <span>{{ $typeName }}</span>
                     <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-black/20">#{{ $transaction->transaction_type_id }}</span>
                 </span>
@@ -776,8 +796,8 @@
                 <div>
                     <h3 class="text-sm font-black text-white flex items-center gap-2 flex-wrap">
                         <span>قۆناغ و ستێپەکانی کارکردنی مامەڵە (Workflow Stepper)</span>
-                        <span class="text-xs font-black px-2.5 py-0.5 rounded-lg border {{ $typeTheme['pill'] }} inline-flex items-center gap-1">
-                            <i class="{{ $typeTheme['icon'] }} text-[10px]"></i>
+                        <span class="text-xs font-black px-2.5 py-0.5 rounded-lg border {{ $typeTheme['pill'] ?? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30' }} inline-flex items-center gap-1">
+                            <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-folder-open text-indigo-400' }} text-[10px]"></i>
                             <span>{{ $typeName }}</span>
                         </span>
                     </h3>
@@ -1342,10 +1362,10 @@
             </div>
 
             <!-- جۆری مامەڵە بە بارزی لە مۆداڵی پارەدان -->
-            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] }} bg-slate-950/90 flex items-center justify-between shadow-lg">
+            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] ?? 'border-emerald-500/80 shadow-emerald-500/20' }} bg-slate-950/90 flex items-center justify-between shadow-lg">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] }}">
-                        <i class="{{ $typeTheme['icon'] }}"></i>
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] ?? 'bg-emerald-500/20 text-emerald-400' }}">
+                        <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-receipt' }}"></i>
                     </div>
                     <div>
                         <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵە:</span>
@@ -1549,10 +1569,10 @@
             </div>
 
             <!-- جۆری مامەڵە بە بارزی لە مۆداڵی دەفتەر -->
-            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] }} bg-slate-950/90 flex items-center justify-between shadow-lg">
+            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] ?? 'border-blue-500/80 shadow-blue-500/20' }} bg-slate-950/90 flex items-center justify-between shadow-lg">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] }}">
-                        <i class="{{ $typeTheme['icon'] }}"></i>
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] ?? 'bg-blue-500/20 text-blue-400' }}">
+                        <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-book-bookmark' }}"></i>
                     </div>
                     <div>
                         <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵە:</span>
@@ -1591,10 +1611,10 @@
             </div>
 
             <!-- جۆری مامەڵە بە بارزی -->
-            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] }} bg-slate-950/90 flex items-center justify-between shadow-lg">
+            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] ?? 'border-rose-500/80 shadow-rose-500/20' }} bg-slate-950/90 flex items-center justify-between shadow-lg">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] }}">
-                        <i class="{{ $typeTheme['icon'] }}"></i>
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] ?? 'bg-rose-500/20 text-rose-400' }}">
+                        <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-ban' }}"></i>
                     </div>
                     <div>
                         <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵە:</span>
@@ -1634,10 +1654,10 @@
             </h3>
 
             <!-- جۆری مامەڵە بە بارزی -->
-            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] }} bg-slate-950/90 flex items-center justify-between shadow-lg">
+            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] ?? 'border-rose-500/80 shadow-rose-500/20' }} bg-slate-950/90 flex items-center justify-between shadow-lg">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] }}">
-                        <i class="{{ $typeTheme['icon'] }}"></i>
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] ?? 'bg-rose-500/20 text-rose-400' }}">
+                        <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-ban' }}"></i>
                     </div>
                     <div>
                         <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵە:</span>
@@ -1674,10 +1694,10 @@
             </h3>
 
             <!-- جۆری مامەڵە بە بارزی -->
-            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] }} bg-slate-950/90 flex items-center justify-between shadow-lg">
+            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] ?? 'border-rose-500/80 shadow-rose-500/20' }} bg-slate-950/90 flex items-center justify-between shadow-lg">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] }}">
-                        <i class="{{ $typeTheme['icon'] }}"></i>
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] ?? 'bg-rose-500/20 text-rose-400' }}">
+                        <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-ban' }}"></i>
                     </div>
                     <div>
                         <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵە:</span>
@@ -1772,10 +1792,10 @@
             </div>
 
             <!-- جۆری مامەڵە بە بارزی لە مۆداڵی وردبینی -->
-            <div class="p-3.5 rounded-xl border-2 {{ $typeTheme['border'] }} bg-slate-950/90 flex items-center justify-between shadow-lg">
+            <div class="p-3.5 rounded-xl border-2 {{ $typeTheme['border'] ?? 'border-emerald-500/80 shadow-emerald-500/20' }} bg-slate-950/90 flex items-center justify-between shadow-lg">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] }}">
-                        <i class="{{ $typeTheme['icon'] }}"></i>
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] ?? 'bg-emerald-500/20 text-emerald-400' }}">
+                        <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-clipboard-check' }}"></i>
                     </div>
                     <div>
                         <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵەی ژێر وردبینی:</span>
@@ -1870,10 +1890,10 @@
             </div>
 
             <!-- جۆری مامەڵە بە بارزی لە مۆداڵی سەبمیت و ئەرشیف -->
-            <div class="p-3.5 rounded-xl border-2 {{ $typeTheme['border'] }} bg-slate-950/90 flex items-center justify-between shadow-lg">
+            <div class="p-3.5 rounded-xl border-2 {{ $typeTheme['border'] ?? 'border-indigo-500/80 shadow-indigo-500/20' }} bg-slate-950/90 flex items-center justify-between shadow-lg">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] }}">
-                        <i class="{{ $typeTheme['icon'] }}"></i>
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] ?? 'bg-indigo-500/20 text-indigo-400' }}">
+                        <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-box-archive' }}"></i>
                     </div>
                     <div>
                         <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵە:</span>
@@ -1993,8 +2013,8 @@
                         <i class="fa-solid fa-barcode text-[10px] ml-1"></i>{{ $transaction->barcode }}
                     </span>
                     <!-- جۆری مامەڵە بە بارزی لە باری خێرای قۆناغەکان -->
-                    <span class="px-2.5 py-1 rounded-lg text-xs font-black border flex items-center gap-1.5 {{ $typeTheme['pill'] }}" title="جۆری مامەڵە">
-                        <i class="{{ $typeTheme['icon'] }} text-[10px]"></i>
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-black border flex items-center gap-1.5 {{ $typeTheme['pill'] ?? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30' }}" title="جۆری مامەڵە">
+                        <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-folder-open text-indigo-400' }} text-[10px]"></i>
                         <span>{{ $typeName }}</span>
                     </span>
                     <x-vehicle-plate :plate="$transaction->plate_number" :type="$transaction->plateType" size="sm" />

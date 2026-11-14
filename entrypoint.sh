@@ -73,7 +73,8 @@ DB_CHECK_RESULT=$(php -r '
         "user" => "postgres.sdlduahwpqjzdkfslthg",
         "pass" => "W6vOP8FFXl5UOJh5",
         "port" => 5432,
-        "ssl" => "sslmode=require"
+        "db"   => "postgres",
+        "ssl"  => "sslmode=require"
     ];
 
     // 2. Also test user-configured environment variables if different
@@ -100,18 +101,25 @@ DB_CHECK_RESULT=$(php -r '
         $cU = $cand["user"];
         $cP = $cand["port"];
         $cPass = $cand["pass"];
-        $cDb = $cand["db"];
-        $cSSL = $cand["ssl"];
-        try {
-            $dsn = "pgsql:host={$cH};port={$cP};dbname={$cDb};{$cSSL};connect_timeout=4";
-            $pdo = new PDO($dsn, $cU, $cPass);
-            $pdo->query("SELECT 1");
-            $connected = true;
-            $winner = $cand;
-            break;
-        } catch (\Throwable $e) {
-            $err = $e->getMessage();
-            $lastError = "[Host: {$cH}:{$cP}, User: {$cU}]: {$err}";
+        $cDb = (!empty($cand["db"]) && $cand["db"] !== "sslmode=require") ? $cand["db"] : "postgres";
+        $cSSL = !empty($cand["ssl"]) ? $cand["ssl"] : "sslmode=require";
+
+        for ($attempt = 1; $attempt <= 2; $attempt++) {
+            try {
+                $dsn = "pgsql:host={$cH};port={$cP};dbname={$cDb};{$cSSL};connect_timeout=12";
+                $pdo = new PDO($dsn, $cU, $cPass);
+                $pdo->query("SELECT 1");
+                $connected = true;
+                $cand["db"] = $cDb;
+                $winner = $cand;
+                break 2;
+            } catch (\Throwable $e) {
+                $err = $e->getMessage();
+                $lastError = "[Host: {$cH}:{$cP}, User: {$cU}]: {$err}";
+                if ($attempt === 1) {
+                    usleep(500000); // 0.5s pause before retry
+                }
+            }
         }
     }
 
