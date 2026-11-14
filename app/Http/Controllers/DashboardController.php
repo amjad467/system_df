@@ -112,37 +112,53 @@ class DashboardController extends Controller
             $activeRole = $user->role;
         }
 
-        // 1. Daily Volume Counters for Each Step (مامەڵەی ئەمڕۆ بۆ ستێپەکان)
-        $todayDataEntryCount = Transaction::whereDate('created_at', today())->count();
-        $todayInspectedCount = Transaction::where('is_inspected', true)->whereDate('inspected_at', today())->count();
-        $todayAuditedCount   = Transaction::where('is_audited', true)->whereDate('audited_at', today())->count();
-        $todayPaidCount      = Transaction::where('is_paid', true)
-            ->where(function ($q) {
-                $q->whereDate('paid_at', today())
-                  ->orWhere(function ($sub) {
-                      $sub->whereNull('paid_at')->whereDate('transaction_date', today());
-                  });
-            })->count();
-        $todayBookletsCount  = Transaction::where('is_booklet_completed', true)->whereDate('booklet_completed_at', today())->count();
-        $todayArchivedCount  = Transaction::where('is_submitted', true)->whereDate('submitted_at', today())->count();
+        // 1 & 2. Cached Workflow Pipeline Counters (15s cache to eliminate 15 sequential network round-trips)
+        $pipelineData = \Illuminate\Support\Facades\Cache::remember('dashboard_pipeline_metrics_' . today()->toDateString(), 15, function () {
+            return [
+                'todayDataEntry' => Transaction::whereDate('created_at', today())->count(),
+                'todayInspected' => Transaction::where('is_inspected', true)->whereDate('inspected_at', today())->count(),
+                'todayAudited' => Transaction::where('is_audited', true)->whereDate('audited_at', today())->count(),
+                'todayPaid' => Transaction::where('is_paid', true)
+                    ->where(function ($q) {
+                        $q->whereDate('paid_at', today())
+                          ->orWhere(function ($sub) {
+                              $sub->whereNull('paid_at')->whereDate('transaction_date', today());
+                          });
+                    })->count(),
+                'todayBooklets' => Transaction::where('is_booklet_completed', true)->whereDate('booklet_completed_at', today())->count(),
+                'todayArchived' => Transaction::where('is_submitted', true)->whereDate('submitted_at', today())->count(),
+                'pendingInspection' => Transaction::where('is_inspected', false)->whereNull('cancelled_at')->count(),
+                'pendingAudit' => Transaction::where('is_inspected', true)->where('is_audited', false)->whereNull('cancelled_at')->count(),
+                'pendingPayment' => Transaction::where('is_audited', true)->where('is_paid', false)->whereNull('cancelled_at')->count(),
+                'pendingBooklet' => Transaction::where('is_paid', true)->where('is_booklet_completed', false)->whereNull('cancelled_at')->count(),
+                'pendingSubmit' => Transaction::where('is_paid', true)
+                    ->where(function ($q) {
+                        $q->where('is_booklet_completed', true)
+                          ->orWhereIn('transaction_type_id', [5, 6, 8]);
+                    })
+                    ->where('is_submitted', false)
+                    ->whereNull('cancelled_at')
+                    ->count(),
+                'completedBooklets' => Transaction::where('is_booklet_completed', true)->whereNull('cancelled_at')->count(),
+                'totalTransactions' => Transaction::count(),
+                'expiredBooklets' => Transaction::expiredBooklets()->count(),
+            ];
+        });
 
-        // 2. Pending Workflow Pipeline Counters
-        $pendingInspection = Transaction::where('is_inspected', false)->whereNull('cancelled_at')->count();
-        $pendingAudit      = Transaction::where('is_inspected', true)->where('is_audited', false)->whereNull('cancelled_at')->count();
-        $pendingPayment    = Transaction::where('is_audited', true)->where('is_paid', false)->whereNull('cancelled_at')->count();
-        $pendingBooklet    = Transaction::where('is_paid', true)->where('is_booklet_completed', false)->whereNull('cancelled_at')->count();
-        $pendingSubmit     = Transaction::where('is_paid', true)
-            ->where(function ($q) {
-                $q->where('is_booklet_completed', true)
-                  ->orWhereIn('transaction_type_id', [5, 6, 8]);
-            })
-            ->where('is_submitted', false)
-            ->whereNull('cancelled_at')
-            ->count();
-
-        $completedBooklets = Transaction::where('is_booklet_completed', true)->whereNull('cancelled_at')->count();
-        $totalTransactions = Transaction::count();
-        $expiredBookletsCount = Transaction::expiredBooklets()->count();
+        $todayDataEntryCount  = $pipelineData['todayDataEntry'];
+        $todayInspectedCount  = $pipelineData['todayInspected'];
+        $todayAuditedCount    = $pipelineData['todayAudited'];
+        $todayPaidCount       = $pipelineData['todayPaid'];
+        $todayBookletsCount   = $pipelineData['todayBooklets'];
+        $todayArchivedCount   = $pipelineData['todayArchived'];
+        $pendingInspection    = $pipelineData['pendingInspection'];
+        $pendingAudit         = $pipelineData['pendingAudit'];
+        $pendingPayment       = $pipelineData['pendingPayment'];
+        $pendingBooklet       = $pipelineData['pendingBooklet'];
+        $pendingSubmit        = $pipelineData['pendingSubmit'];
+        $completedBooklets    = $pipelineData['completedBooklets'];
+        $totalTransactions    = $pipelineData['totalTransactions'];
+        $expiredBookletsCount = $pipelineData['expiredBooklets'];
 
         $returnedTransactions = Transaction::where('is_returned', true)->latest()->get();
         $returnedCount = $returnedTransactions->count();

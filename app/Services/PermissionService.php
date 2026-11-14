@@ -136,7 +136,12 @@ class PermissionService
     }
 
     /**
-     * Checks if a user has a specific permission.
+     * In-memory cache for user permissions during a single request lifecycle.
+     */
+    protected static array $permissionsCache = [];
+
+    /**
+     * Checks if a user has a specific permission (ultra-fast with in-memory memoization).
      */
     public static function userHasPermission(User $user, string $permission): bool
     {
@@ -144,28 +149,36 @@ class PermissionService
             return true;
         }
 
-        // 1. Check if user has explicit custom permissions
-        if ($user->custom_permissions !== null) {
-            $userPerms = is_array($user->custom_permissions) 
-                ? $user->custom_permissions 
-                : json_decode($user->custom_permissions, true);
+        $cacheKey = $user->id . '_' . $user->role;
+        if (!isset(static::$permissionsCache[$cacheKey])) {
+            static::$permissionsCache[$cacheKey] = \Illuminate\Support\Facades\Cache::remember(
+                "user_perms_{$cacheKey}",
+                300,
+                function () use ($user) {
+                    // 1. Check custom permissions
+                    if ($user->custom_permissions !== null) {
+                        $userPerms = is_array($user->custom_permissions) 
+                            ? $user->custom_permissions 
+                            : json_decode($user->custom_permissions, true);
+                        if (is_array($userPerms)) {
+                            return $userPerms;
+                        }
+                    }
 
-            if (is_array($userPerms)) {
-                return in_array($permission, $userPerms) || in_array('*', $userPerms);
-            }
+                    // 2. Check role permissions from database
+                    $perms = RolePermission::where('role', $user->role)->pluck('permission_name')->toArray();
+                    if (!empty($perms)) {
+                        return $perms;
+                    }
+
+                    // 3. Fallback to code defaults
+                    return self::$roleDefaults[$user->role] ?? [];
+                }
+            );
         }
 
-        // 2. Check role permissions from database
-        $rolePermsCount = RolePermission::where('role', $user->role)->count();
-        if ($rolePermsCount > 0) {
-            return RolePermission::where('role', $user->role)
-                ->where('permission_name', $permission)
-                ->exists();
-        }
-
-        // 3. Fallback to code defaults if role has not been initialized in DB yet
-        $defaults = self::$roleDefaults[$user->role] ?? [];
-        return in_array($permission, $defaults) || in_array('*', $defaults);
+        $activePerms = static::$permissionsCache[$cacheKey];
+        return in_array($permission, $activePerms) || in_array('*', $activePerms);
     }
 
     /**

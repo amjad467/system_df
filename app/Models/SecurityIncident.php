@@ -38,7 +38,9 @@ class SecurityIncident extends Model
     public static function unresolvedCount(): int
     {
         try {
-            return static::where('is_resolved', false)->count();
+            return (int) \Illuminate\Support\Facades\Cache::remember('security_unresolved_count', 60, function () {
+                return static::where('is_resolved', false)->count();
+            });
         } catch (\Throwable $e) {
             return 0;
         }

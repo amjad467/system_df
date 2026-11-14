@@ -114,8 +114,15 @@ class LoginController extends Controller
             return redirect()->route('dashboard');
         }
 
-        // Always self-heal default accounts on visiting login
-        self::ensureDefaultUsersExist();
+        // Fast self-heal: Only seed default accounts if users are actually missing (cached for 1 hour)
+        $hasUsers = \Illuminate\Support\Facades\Cache::remember('system_has_users', 3600, function () {
+            return User::count() > 0;
+        });
+
+        if (!$hasUsers) {
+            self::ensureDefaultUsersExist();
+            \Illuminate\Support\Facades\Cache::put('system_has_users', true, 3600);
+        }
 
         return view('auth.login');
     }

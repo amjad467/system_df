@@ -179,16 +179,25 @@ class TransactionController extends Controller
             $baseCountQuery->where('transaction_type_id', $request->transaction_type_id);
         }
 
+        // هەژمارکردنی خێرای ژمارەی مامەڵەکان بە یەک کوێری لەبری ٧ کوێری جیاواز
+        $stats = (clone $baseCountQuery)->selectRaw("
+            COUNT(*) as total_all,
+            COUNT(CASE WHEN (is_inspected = false OR is_inspected IS NULL) AND cancelled_at IS NULL THEN 1 END) as total_inspection,
+            COUNT(CASE WHEN is_inspected = true AND (is_audited = false OR is_audited IS NULL) AND cancelled_at IS NULL THEN 1 END) as total_audit,
+            COUNT(CASE WHEN is_audited = true AND (is_paid = false OR is_paid IS NULL) AND cancelled_at IS NULL THEN 1 END) as total_payment,
+            COUNT(CASE WHEN is_paid = true AND (is_booklet_completed = false OR is_booklet_completed IS NULL) AND cancelled_at IS NULL THEN 1 END) as total_booklet,
+            COUNT(CASE WHEN (is_submitted = true OR is_booklet_completed = true) AND cancelled_at IS NULL THEN 1 END) as total_completed,
+            COUNT(CASE WHEN cancelled_at IS NOT NULL THEN 1 END) as total_cancelled
+        ")->first();
+
         $stageCounts = [
-            'all' => (clone $baseCountQuery)->count(),
-            'inspection' => (clone $baseCountQuery)->where('is_inspected', false)->whereNull('cancelled_at')->count(),
-            'audit' => (clone $baseCountQuery)->where('is_inspected', true)->where('is_audited', false)->whereNull('cancelled_at')->count(),
-            'payment' => (clone $baseCountQuery)->where('is_audited', true)->where('is_paid', false)->whereNull('cancelled_at')->count(),
-            'booklet' => (clone $baseCountQuery)->where('is_paid', true)->where('is_booklet_completed', false)->whereNull('cancelled_at')->count(),
-            'completed' => (clone $baseCountQuery)->where(function($q) {
-                $q->where('is_submitted', true)->orWhere('is_booklet_completed', true);
-            })->whereNull('cancelled_at')->count(),
-            'cancelled' => (clone $baseCountQuery)->whereNotNull('cancelled_at')->count(),
+            'all' => (int)($stats->total_all ?? 0),
+            'inspection' => (int)($stats->total_inspection ?? 0),
+            'audit' => (int)($stats->total_audit ?? 0),
+            'payment' => (int)($stats->total_payment ?? 0),
+            'booklet' => (int)($stats->total_booklet ?? 0),
+            'completed' => (int)($stats->total_completed ?? 0),
+            'cancelled' => (int)($stats->total_cancelled ?? 0),
         ];
 
         // هەڵبژاردنی ژمارەی تۆمارەکان لە هەر پەڕەیەکدا (15, 30, 50, 100)
