@@ -847,6 +847,23 @@ class TransactionController extends Controller
             return redirect()->back()->with('error', "هیچ مامەڵەیەک نەدۆزرایەوە بە گەڕانی: {$term}");
         }
 
+        // Check Role-specific workflow guards
+        if (auth()->check()) {
+            $user = auth()->user();
+
+            // 1. Booklet Desk Guard: Block Pledge (6), Cancellation (5), and Inspection (8)
+            if ($user->role === 'booklet' && in_array((int)$transaction->transaction_type_id, [5, 6, 8])) {
+                $typeName = $transaction->transactionType->name_kurdish ?? 'دیاری نەکراو';
+                return redirect()->route('dashboard')->with('error', "لێرە کاری دەفتەری نییە! ئەم مامەڵەیە جۆری [{$typeName}]ـە.");
+            }
+
+            // 2. Legal Officer Guard: Only Booklet Issue (1) is allowed in legal pledge desk
+            if ($user->isLegal() && (int)$transaction->transaction_type_id !== 1) {
+                $typeName = $transaction->transactionType->name_kurdish ?? 'دیاری نەکراو';
+                return redirect()->route('dashboard')->with('error', "کاری تۆ لێرە ئەنجام نادرێت! بەشی یاسایی تەنها تایبەتە بە مامەڵەی دەرهێنانی دەفتەر (بەڵێننامەی یاسایی). جۆری ئەم مامەڵەیە: [{$typeName}]ـە.");
+            }
+        }
+
         return redirect()->route('transactions.show', $transaction->id);
     }
 
@@ -861,6 +878,17 @@ class TransactionController extends Controller
             'inspected_by' => auth()->user()?->name ?? 'ئەندازیاری کەشف',
             'inspected_at' => now(),
         ]);
+
+        // Auto-inspect companion pledge or booklet to keep workflow in sync
+        $linked = $transaction->getLinkedPledgeOrParent();
+        if ($linked && !$linked->is_inspected) {
+            $linked->update([
+                'is_inspected' => true,
+                'inspected_by' => auth()->user()?->name ?? 'ئەندازیاری کەشف',
+                'inspected_at' => now(),
+            ]);
+            AuditLogger::log('ئەنجامدانی کەشف بۆ مامەڵەی بەستراو', Transaction::class, $linked->id, "کەشف پەسەندکرا بۆ مامەڵەی بەستراوی: {$linked->barcode}");
+        }
 
         AuditLogger::log('ئەنجامدانی کەشف و تەخمین', Transaction::class, $transaction->id, "تەخمین پەسەندکرا بۆ بارکۆد: {$transaction->barcode}");
 
@@ -925,6 +953,28 @@ class TransactionController extends Controller
             'return_reason' => null,
         ]);
 
+        $linked = $transaction->getLinkedPledgeOrParent();
+        $auditMsg = 'وردبینی مامەڵەکە بە سەرکەوتوویی ئەنجامدرا.';
+        if ($linked && !$linked->is_audited) {
+            $linked->update([
+                'is_inspected' => true,
+                'inspected_by' => $linked->inspected_by ?? (auth()->user()?->name ?? 'ئەندازیار'),
+                'inspected_at' => $linked->inspected_at ?? now(),
+                'is_audited' => true,
+                'audited_by' => auth()->user()?->name ?? 'وردبین',
+                'audited_at' => now(),
+                'is_returned' => false,
+                'return_reason' => null,
+            ]);
+            AuditLogger::log('وردبینی هاوبەشی بەڵێننامە و دەرهێنان', Transaction::class, $linked->id, "وردبینی هاوبەش ئەنجامدرا بۆ: {$linked->barcode}");
+            $auditMsg = 'وردبینی مامەڵەی سەرەکی و بەڵێننامەی بەستراوە بە یەک کردار بە سەرکەوتوویی پەسەندکرا.';
+        }
+
+        // Prompt official letter print for Booklet Issue (Type 1) and Cancellation (Type 5)
+        if (in_array((int)$transaction->transaction_type_id, [1, 5])) {
+            session()->flash('audit_completed_prompt_letter', true);
+        }
+
         AuditLogger::log('وردبینیکردنی مامەڵە', Transaction::class, $transaction->id, "وردبینی پەسەندکرا بۆ بارکۆد: {$transaction->barcode}");
 
         NotificationService::send(
@@ -935,7 +985,7 @@ class TransactionController extends Controller
             route('transactions.show', $transaction->id)
         );
 
-        return redirect()->route('transactions.show', $transaction->id)->with('success', 'وردبینی مامەڵەکە بە سەرکەوتوویی ئەنجامدرا.');
+        return redirect()->route('transactions.show', $transaction->id)->with('success', $auditMsg);
     }
 
     public function revertAudit(Transaction $transaction)
@@ -1000,7 +1050,33 @@ class TransactionController extends Controller
             'paid_at' => now(),
         ]);
 
-        AuditLogger::log('وەرگرتنی پارە و بڕینی وەسڵ', Transaction::class, $transaction->id, "وەسڵی ۳۷/أ: {$request->receipt_37a_number} - کۆی پارە: {$transaction->total_pay} د.ع");
+        AuditLogger::log('وەرگرتنی پارە و بڕینی وەسڵ', Transaction::class, $transaction->id, "وەسڵی ۳۷/أ: {$receiptNum} - کۆی پارە: {$transaction->total_pay} د.ع");
+
+        // Sequential/Dual payment for linked companion pledge if Booklet Issue
+        $linked = $transaction->getLinkedPledgeOrParent();
+        $linkedPaidInfo = '';
+        if ($linked && !$linked->is_paid && $request->filled('linked_receipt_37a_number')) {
+            $linkedReceiptNum = trim($request->linked_receipt_37a_number);
+            $blockedLinked = BlockedReceiptNumber::where('receipt_number', $linkedReceiptNum)->first();
+            $existingLinked = Transaction::where('receipt_37a_number', $linkedReceiptNum)->where('id', '!=', $linked->id)->first();
+
+            if (!$blockedLinked && !$existingLinked) {
+                $linked->update([
+                    'is_inspected' => true,
+                    'inspected_by' => $linked->inspected_by ?? (auth()->user()?->name ?? 'ئەندازیار'),
+                    'inspected_at' => $linked->inspected_at ?? now(),
+                    'is_audited' => true,
+                    'audited_by' => $linked->audited_by ?? (auth()->user()?->name ?? 'وردبین'),
+                    'audited_at' => $linked->audited_at ?? now(),
+                    'is_paid' => true,
+                    'receipt_37a_number' => $linkedReceiptNum,
+                    'paid_by' => auth()->user()?->name ?? 'وەسڵبڕ',
+                    'paid_at' => now(),
+                ]);
+                AuditLogger::log('وەرگرتنی پارە و بڕینی وەسڵ بۆ بەڵێننامەی بەستراو', Transaction::class, $linked->id, "وەسڵی ۳۷/أ: {$linkedReceiptNum} - کۆی پارە: {$linked->total_pay} د.ع");
+                $linkedPaidInfo = " و وەسڵی بەڵێننامە ({$linkedReceiptNum})";
+            }
+        }
 
         NotificationService::send(
             null,
@@ -1010,7 +1086,7 @@ class TransactionController extends Controller
             route('transactions.show', $transaction->id)
         );
 
-        return redirect()->back()->with('success', 'پارەدانی مامەڵەکە و وەسڵی ۳۷/أ بە سەرکەوتوویی تۆمارکرا.');
+        return redirect()->back()->with('success', "پارەدانی مامەڵەکە و وەسڵی ۳۷/أ ({$receiptNum}){$linkedPaidInfo} بە سەرکەوتوویی تۆمارکرا.");
     }
 
     public function completeBooklet(Request $request, Transaction $transaction)
@@ -1021,6 +1097,12 @@ class TransactionController extends Controller
 
         if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('transactions.complete_booklet')) {
             return redirect()->back()->with('error', 'تەنها کارمەندی بەشی دەفتەر (Booklet Section) دەتوانێت ژمارەی دەفتەر تۆمار بکات!');
+        }
+
+        // Guard: Block Pledge (6), Cancellation (5), and Inspection (8) from booklet desk
+        if (in_array((int)$transaction->transaction_type_id, [5, 6, 8])) {
+            $typeName = $transaction->transactionType->name_kurdish ?? 'دیاری نەکراو';
+            return redirect()->back()->with('error', "لێرە کاری دەفتەری نییە! ئەم مامەڵەیە جۆری [{$typeName}]ـە.");
         }
 
         if (!$transaction->requiresBooklet()) {
@@ -1096,8 +1178,16 @@ class TransactionController extends Controller
 
     public function submitArchive(Request $request, Transaction $transaction)
     {
-        if (!auth()->user()->hasPermission('transactions.submit')) {
-            return redirect()->back()->with('error', 'دەسەڵاتی پێویستت نییە بۆ سەبمیت و ئەرشیفکردنی مامەڵە بەپێی پێرمشنەکان!');
+        // 4. Submit restricted strictly to Archiver and Admin only
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'archiver') {
+            return redirect()->back()->with('error', 'سەبمیتکردنی کۆتایی مامەڵە تەنها لە دەسەڵاتی کارمەندی ئەرشیف و ئەدمیندایە!');
+        }
+
+        // 4. Transaction types allowed for archiving: Booklet issue, renewal, name change, booklet change, cancellation, name & booklet change
+        $allowedSubmitTypes = [1, 2, 3, 4, 5, 7];
+        if (!in_array((int)$transaction->transaction_type_id, $allowedSubmitTypes)) {
+            $typeName = $transaction->transactionType->name_kurdish ?? 'دیاری نەکراو';
+            return redirect()->back()->with('error', "ئەم جۆرە مامەڵەیە [{$typeName}] سەبمیتی کۆتایی ئەرشیفی نییە.");
         }
 
         if (!$transaction->is_paid) {
@@ -1114,17 +1204,17 @@ class TransactionController extends Controller
             'submitted_at' => now(),
         ];
 
-        // 1. If transaction is دەرهێنانی دەفتەر (Type 1): only enter NO_boxfile (بۆکسی دەرهێنان)
-        if ((int)$transaction->transaction_type_id === 1) {
+        // 5. Box file number validation: REQUIRED for all 6 main archive types (1, 2, 3, 4, 5, 7)
+        if (in_array((int)$transaction->transaction_type_id, [1, 2, 3, 4, 7])) {
             $request->validate([
                 'NO_boxfile' => 'required|numeric|min:1',
             ], [
-                'NO_boxfile.required' => 'تکایە ژمارەی بۆکسی دەرهێنان تۆمار بکە.',
+                'NO_boxfile.required' => 'داخڵکردنی ژمارەی بۆکس فایلی ئەرشیف داواکراوە (ئیجبارییە)!',
                 'NO_boxfile.numeric' => 'ژمارەی بۆکس دەبێت بە ژمارە بێت.',
             ]);
             $updateData['NO_boxfile'] = (int)$request->NO_boxfile;
         } elseif ((int)$transaction->transaction_type_id === 5) {
-            // 2. If transaction is پووچەڵکردنەوەی دەفتەر (Type 5): enter customs letter number, date, and cancellation box number
+            // Type 5: پووچەڵکردنەوەی دەفتەر -> نووسراوی گومرگ و بەروار و بۆکسی پووچەڵ
             $request->validate([
                 'no_nusraw_puchal' => 'required|string|max:100',
                 'date_nusraw_puchal' => 'required|date',
@@ -1139,16 +1229,25 @@ class TransactionController extends Controller
             $updateData['date_nusraw_puchal'] = $request->date_nusraw_puchal;
             $updateData['NO_boxfile_puchal'] = (int)$request->NO_boxfile_puchal;
         } else {
-            // For other transaction types (renewal, replacement, pledge, etc.)
+            // For pledge (6) or inspection (8): Box number is not required
             if ($request->filled('NO_boxfile')) {
                 $updateData['NO_boxfile'] = (int)$request->NO_boxfile;
-            }
-            if ($request->filled('NO_boxfile_puchal')) {
-                $updateData['NO_boxfile_puchal'] = (int)$request->NO_boxfile_puchal;
             }
         }
 
         $transaction->update($updateData);
+
+        // Auto-archive companion pledge if Booklet Issue was submitted
+        $linked = $transaction->getLinkedPledgeOrParent();
+        if ($linked && !$linked->is_submitted) {
+            $linked->update([
+                'is_submitted' => true,
+                'submitted_by' => auth()->user()?->name ?? 'کارمەند',
+                'submitted_at' => now(),
+                'NO_boxfile' => $updateData['NO_boxfile'] ?? null,
+            ]);
+            AuditLogger::log('ئەرشیفکردنی بەڵێننامەی بەستراو', Transaction::class, $linked->id, "بەڵێننامەی بەستراو ئەرشیفکرا لەگەڵ دەرهێنانی دەفتەر");
+        }
 
         AuditLogger::log('سەبمیتکردن و ئەرشیفکردنی مامەڵە (ستێپی کۆتایی)', Transaction::class, $transaction->id, "مامەڵەی بارکۆد {$transaction->barcode} لەلایەن " . (auth()->user()?->name ?? 'کارمەند') . " سەبمیت و ئەرشیف کرا");
 
@@ -1475,7 +1574,11 @@ class TransactionController extends Controller
         }
 
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director', 'parentTransaction', 'relatedTransactions']);
-        return view('transactions.print_data_entry', compact('transaction'));
+        $linkedPledge = $transaction->getLinkedPledgeOrParent();
+        if ($linkedPledge) {
+            $linkedPledge->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor']);
+        }
+        return view('transactions.print_data_entry', compact('transaction', 'linkedPledge'));
     }
 
     public function printBooklet(Transaction $transaction)
@@ -1816,12 +1919,13 @@ class TransactionController extends Controller
 
     public function printInspectionLetter(Transaction $transaction)
     {
-        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+        // 8. Inspection letter available in Cashier and Archiver stages
+        if ($transaction->is_submitted && !auth()->user()->isAdmin() && auth()->user()->role !== 'archiver') {
             return redirect()->route('transactions.show', $transaction->id)
-                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت نوسراوی پشکنین چاپ بکات.');
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها کارمەندی ئەرشیف و ئەدمین دەتوانن نوسراوی پشکنین چاپ بکەن.');
         }
 
-        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.inspection_letter')) {
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'archiver' && auth()->user()->role !== 'cashier' && !auth()->user()->hasPermission('prints.inspection_letter')) {
             return redirect()->back()->with('error', 'دەسەڵاتی چاپی نووسراوی پشکنینت نییە بەپێی پێرمشنەکان!');
         }
 

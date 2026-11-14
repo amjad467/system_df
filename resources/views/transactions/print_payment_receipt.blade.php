@@ -286,12 +286,10 @@
 <body class="min-h-screen flex flex-col">
 
     @php
-        // Helper to convert numbers to Kurdish Digits (ڕەنووسی کوردی)
+        // Helper to format numbers in clean Western / English digits (1234567890) as requested by user
         if (!function_exists('toKurdishDigits')) {
             function toKurdishDigits($number) {
-                $western = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-                $kurdish = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-                return str_replace($western, $kurdish, (string)$number);
+                return (string)$number;
             }
         }
 
@@ -690,7 +688,7 @@
 
                     <!-- 3. بەرواری پسوولە -->
                     <div id="f-rcpt-date" class="calibrated-field font-mono font-black" data-fid="f-rcpt-date" data-name-ku="بەرواری پسوولە" style="top: 25mm; left: 6mm; font-size: 13px;">
-                        {{ toKurdishDigits($transaction->paid_at ? $transaction->paid_at->format('Y / m / d') : date('Y / m / d')) }}
+                        {{ $transaction->paid_at ? $transaction->paid_at->format('d / m / Y') : date('d / m / Y') }}
                     </div>
 
                     <!-- 4. ناوی سیانی هاووڵاتی -->
@@ -775,19 +773,19 @@
                     <!-- 17. خەزنەدار / پارەوەربگر -->
                     <div id="f-sign-cashier" class="calibrated-field text-center font-black" data-fid="f-sign-cashier" data-name-ku="ئیمزای خەزنەدار و بەروار" style="top: 203mm; right: 6mm; min-width: 44mm; font-size: 13px;">
                         <div>{{ $transaction->paid_by ?? auth()->user()?->name ?? 'کارمەندی خەزنە' }}</div>
-                        <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ toKurdishDigits($transaction->paid_at ? $transaction->paid_at->format('Y/m/d') : date('Y/m/d')) }}</div>
+                        <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ $transaction->paid_at ? $transaction->paid_at->format('d-m-Y') : date('d-m-Y') }}</div>
                     </div>
 
                     <!-- 18. ووردبینی / وردبین -->
                     <div id="f-sign-auditor" class="calibrated-field text-center font-black" data-fid="f-sign-auditor" data-name-ku="ئیمزای وردبین و بەروار" style="top: 203mm; right: 58mm; min-width: 44mm; font-size: 13px;">
                         <div>{{ $transaction->audited_by ?? 'کارمەندی وردبین' }}</div>
-                        <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ $transaction->audited_at ? toKurdishDigits($transaction->audited_at->format('Y/m/d')) : toKurdishDigits(date('Y/m/d')) }}</div>
+                        <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ $transaction->audited_at ? $transaction->audited_at->format('d-m-Y') : date('d-m-Y') }}</div>
                     </div>
 
                     <!-- 19. لێپرسراو / خەملێنەر -->
                     <div id="f-sign-estimator" class="calibrated-field text-center font-black" data-fid="f-sign-estimator" data-name-ku="ئیمزای خەمڵێنەر و بەروار" style="top: 203mm; right: 110mm; min-width: 44mm; font-size: 13px;">
                         <div>{{ $transaction->inspected_by ?? 'ئەندازیاری کەشف' }}</div>
-                        <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ $transaction->inspected_at ? toKurdishDigits($transaction->inspected_at->format('Y/m/d')) : toKurdishDigits(date('Y/m/d')) }}</div>
+                        <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ $transaction->inspected_at ? $transaction->inspected_at->format('d-m-Y') : date('d-m-Y') }}</div>
                     </div>
 
                 </div>

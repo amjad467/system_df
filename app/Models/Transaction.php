@@ -50,6 +50,21 @@ class Transaction extends Model
         return $this->hasMany(Transaction::class, 'parent_transaction_id');
     }
 
+    /**
+     * Get the companion transaction (Booklet <-> Pledge)
+     */
+    public function getLinkedPledgeOrParent(): ?Transaction
+    {
+        if ((int)$this->transaction_type_id === 1) {
+            return $this->relatedTransactions->firstWhere('transaction_type_id', 6)
+                ?? $this->relatedTransactions()->where('transaction_type_id', 6)->first();
+        }
+        if ((int)$this->transaction_type_id === 6 && $this->parent_transaction_id) {
+            return $this->parentTransaction;
+        }
+        return null;
+    }
+
     public function returnedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'returned_by_user_id');

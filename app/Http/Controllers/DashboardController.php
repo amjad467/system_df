@@ -46,25 +46,25 @@ class DashboardController extends Controller
                 }
             }
 
+            $hasCreatedBy = \Illuminate\Support\Facades\Schema::hasColumn('transactions', 'created_by');
+
+            $filterByUser = function ($q) use ($user, $hasCreatedBy) {
+                $q->where(function ($sub) use ($user, $hasCreatedBy) {
+                    if ($hasCreatedBy) {
+                        $sub->where('created_by', $user->id);
+                    }
+                    $sub->orWhere('user_input', $user->clean_name)
+                        ->orWhere('user_input', $user->name);
+                });
+            };
+
             // Today's registered count by this clerk
             $todayMyEntriesCount = Transaction::whereDate('created_at', today())
-                ->when(!$user->isAdmin(), function ($q) use ($user) {
-                    $q->where(function ($sub) use ($user) {
-                        $sub->where('created_by', $user->id)
-                            ->orWhere('user_input', $user->clean_name)
-                            ->orWhere('user_input', $user->name);
-                    });
-                })->count();
+                ->when(!$user->isAdmin(), $filterByUser)->count();
 
             // Recent slips registered by this user today (or recent 15) - ZERO stats/income calculations!
             $recentMyTransactions = Transaction::with(['transactionType', 'trafficDirectorate', 'carMake', 'plateType'])
-                ->when(!$user->isAdmin(), function ($q) use ($user) {
-                    $q->where(function ($sub) use ($user) {
-                        $sub->where('created_by', $user->id)
-                            ->orWhere('user_input', $user->clean_name)
-                            ->orWhere('user_input', $user->name);
-                    });
-                })
+                ->when(!$user->isAdmin(), $filterByUser)
                 ->whereDate('created_at', today())
                 ->latest()
                 ->take(15)
@@ -72,13 +72,7 @@ class DashboardController extends Controller
 
             if ($recentMyTransactions->isEmpty()) {
                 $recentMyTransactions = Transaction::with(['transactionType', 'trafficDirectorate', 'carMake', 'plateType'])
-                    ->when(!$user->isAdmin(), function ($q) use ($user) {
-                        $q->where(function ($sub) use ($user) {
-                            $sub->where('created_by', $user->id)
-                                ->orWhere('user_input', $user->clean_name)
-                                ->orWhere('user_input', $user->name);
-                        });
-                    })
+                    ->when(!$user->isAdmin(), $filterByUser)
                     ->latest()
                     ->take(10)
                     ->get();
@@ -87,13 +81,7 @@ class DashboardController extends Controller
             // Returned transactions for this data entry clerk (if any need correction)
             $myReturnedTransactions = Transaction::with(['transactionType', 'carMake', 'plateType'])
                 ->where('is_returned', true)
-                ->when(!$user->isAdmin(), function ($q) use ($user) {
-                    $q->where(function ($sub) use ($user) {
-                        $sub->where('created_by', $user->id)
-                            ->orWhere('user_input', $user->clean_name)
-                            ->orWhere('user_input', $user->name);
-                    });
-                })
+                ->when(!$user->isAdmin(), $filterByUser)
                 ->latest()
                 ->get();
 

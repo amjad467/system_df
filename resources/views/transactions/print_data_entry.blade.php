@@ -1,3 +1,9 @@
+@php
+    $linkedPledge = $linkedPledge ?? $transaction->getLinkedPledgeOrParent();
+    if ($linkedPledge && !$linkedPledge->relationLoaded('transactionType')) {
+        $linkedPledge->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor']);
+    }
+@endphp
 <!DOCTYPE html>
 <html lang="ckb" dir="rtl">
 <head>
@@ -36,6 +42,15 @@
                 max-width: 100% !important;
                 padding: 14px !important;
                 margin: 0 auto !important;
+            }
+            .page-break {
+                display: block !important;
+                page-break-before: always !important;
+                break-before: page !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
             }
         }
 
@@ -287,6 +302,108 @@
 
     </div>
 
+    @if($linkedPledge)
+        <!-- PAGE BREAK FOR 2-PAGE DUAL PRINTING -->
+        <div class="page-break my-6"></div>
+
+        <!-- SECOND PAGE: LINKED PLEDGE (بەشی دووەم: فیشەی بەڵێننامەی بەستراو) -->
+        <div class="print-card bg-white border-2 border-black p-6 rounded-md shadow-xl max-w-4xl mx-auto space-y-4">
+            <!-- Header Section -->
+            <div class="border-b-2 border-black pb-3 flex items-center justify-between">
+                <div class="space-y-1">
+                    <h1 class="text-lg font-black text-black">حکومەتی هەرێمی کوردستان - عێراق</h1>
+                    <h2 class="text-sm font-bold text-gray-800">وەزارەتی دارایی و ئابووری / بەڕێوەبەرایەتی گشتی گومرگ</h2>
+                    <h3 class="text-base font-black text-black">بەڕێوەبەرایەتی گومرگی سلێمانی</h3>
+                </div>
+                
+                <div class="text-center space-y-1">
+                    <h2 class="text-xl font-black text-black bg-amber-200 border-2 border-black px-4 py-1 inline-block">
+                        فیشەی بەڵێننامەی یاسایی (پاشکۆ)
+                    </h2>
+                    <p class="text-xs font-bold text-gray-700 block">پاشکۆی بەستراو بە دەرهێنانی دەفتەر</p>
+                </div>
+
+                <div class="text-center space-y-1">
+                    <div class="border-2 border-black p-1 bg-white inline-block">
+                        <svg id="barcodeSvgPledge" class="mx-auto max-h-14"></svg>
+                    </div>
+                    <p class="text-[11px] font-mono font-bold text-gray-600">بەروار: {{ $linkedPledge->created_at ? $linkedPledge->created_at->format('Y-m-d H:i') : date('Y-m-d') }}</p>
+                </div>
+            </div>
+
+            <!-- Notice Bar -->
+            <div class="bg-amber-50 border-2 border-amber-600 p-2 rounded text-xs font-bold flex items-center justify-between text-amber-950">
+                <span>ئەم فیشەیە بەڵێننامەی یاساییە و بەستراوەتەوە بە مامەڵەی دەرهێنانی دەفتەر بە بارکۆدی: <strong class="font-mono text-sm">{{ $transaction->barcode }}</strong></span>
+                <span class="font-mono text-sm bg-white border border-amber-600 px-2 py-0.5 rounded font-black text-amber-900">بارکۆدی بەڵێننامە: {{ $linkedPledge->barcode }}</span>
+            </div>
+
+            <!-- Details Table -->
+            <table class="w-full border-collapse text-xs font-bold">
+                <tbody>
+                    <tr>
+                        <td class="black-cell-border gray-label-bg p-2 w-1/6">ناوی هاووڵاتی:</td>
+                        <td class="black-cell-border p-2 font-black text-sm w-2/6">
+                            {{ $linkedPledge->visitor_name }}
+                            @if($linkedPledge->visitor_name_eng)
+                                <div class="text-[11px] font-mono font-normal">{{ $linkedPledge->visitor_name_eng }}</div>
+                            @endif
+                        </td>
+                        <td class="black-cell-border gray-label-bg p-2 w-1/6">جۆری مامەڵە:</td>
+                        <td class="black-cell-border p-2 font-black text-sm w-2/6 text-amber-900">
+                            {{ $linkedPledge->transactionType->name_kurdish ?? 'بەڵێننامە' }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="black-cell-border gray-label-bg p-2">ژمارەی تابلۆ:</td>
+                        <td class="black-cell-border p-2 font-mono font-black text-sm">{{ $linkedPledge->plate_number }} ({{ $linkedPledge->plateType->name_kurdish ?? 'تایبەت' }})</td>
+                        <td class="black-cell-border gray-label-bg p-2">مارکە و مۆدێل:</td>
+                        <td class="black-cell-border p-2 font-bold">{{ $linkedPledge->carMake->name_kurdish ?? '' }} - {{ $linkedPledge->model_year }}</td>
+                    </tr>
+                    <tr>
+                        <td class="black-cell-border gray-label-bg p-2">ژمارەی شاسی:</td>
+                        <td class="black-cell-border p-2 font-mono font-black uppercase text-sm">{{ $linkedPledge->chassis_number }}</td>
+                        <td class="black-cell-border gray-label-bg p-2">ڕەنگی ئۆتۆمبێل:</td>
+                        <td class="black-cell-border p-2 font-bold">{{ $linkedPledge->carColor->name_kurdish ?? '' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="black-cell-border gray-label-bg p-2">رسوماتی بەڵێننامە:</td>
+                        <td class="black-cell-border p-2 font-mono font-black text-sm">{{ number_format($linkedPledge->total_pay) }} دیناری عێراقی</td>
+                        <td class="black-cell-border gray-label-bg p-2">کارمەندی داخڵکار:</td>
+                        <td class="black-cell-border p-2 font-bold">{{ $linkedPledge->user_input }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Stages Grid for Pledge -->
+            <div class="space-y-2 pt-2">
+                <h4 class="text-sm font-black border-b border-black pb-1">مۆر و ئیمزای بەشەکانی تایبەت بە بەڵێننامە</h4>
+                <div class="grid grid-cols-3 gap-3 text-xs">
+                    <div class="border-2 border-black p-3 space-y-2 rounded-sm bg-white">
+                        <span class="font-black text-sm block border-b border-black pb-1">١. ئەندازیاری تەخمین</span>
+                        <p>بڕیار: پەسەندکرا</p>
+                        <p class="pt-4 text-gray-500 text-[11px]">ئیمزا: ............................</p>
+                    </div>
+                    <div class="border-2 border-black p-3 space-y-2 rounded-sm bg-white">
+                        <span class="font-black text-sm block border-b border-black pb-1">٢. وردبین</span>
+                        <p>بڕی پارە: {{ number_format($linkedPledge->total_pay) }} د.ع</p>
+                        <p class="pt-4 text-gray-500 text-[11px]">ئیمزا: ............................</p>
+                    </div>
+                    <div class="border-2 border-black p-3 space-y-2 rounded-sm bg-white">
+                        <span class="font-black text-sm block border-b border-black pb-1">٣. وەسڵبڕ و خەزنە</span>
+                        <p>ژمارەی وەسڵ: {{ $linkedPledge->receipt_37a_number ?? '............................' }}</p>
+                        <p class="pt-4 text-gray-500 text-[11px]">ئیمزا: ............................</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Notice -->
+            <div class="pt-4 border-t border-black flex items-center justify-between text-[11px] font-bold text-gray-600">
+                <span>پاشکۆی فەرمی بەڵێننامەی یاسایی - بەڕێوەبەرایەتی گومرگی سلێمانی</span>
+                <span class="font-mono">کاتی چاپ: {{ date('Y-m-d H:i:s') }}</span>
+            </div>
+        </div>
+    @endif
+
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             JsBarcode("#barcodeSvg", "{{ $transaction->barcode }}", {
@@ -300,6 +417,20 @@
                 font: "Vazirmatn",
                 textMargin: 2
             });
+
+            @if($linkedPledge)
+            JsBarcode("#barcodeSvgPledge", "{{ $linkedPledge->barcode }}", {
+                format: "CODE128",
+                lineColor: "#000",
+                width: 2,
+                height: 42,
+                displayValue: true,
+                fontSize: 13,
+                fontOptions: "bold",
+                font: "Vazirmatn",
+                textMargin: 2
+            });
+            @endif
         });
     </script>
 </body>
