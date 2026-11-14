@@ -182,13 +182,14 @@ fi
 
 export SESSION_DRIVER=file
 export CACHE_STORE=file
+export PHP_CLI_SERVER_WORKERS=4
 
-# 5. Clear caches
+# 5. Clear stale caches before migration
 php artisan config:clear 2>/dev/null || true
 php artisan route:clear 2>/dev/null || true
 php artisan view:clear 2>/dev/null || true
 
-# 6. Run migrations (creates tables on Supabase if new)
+# 6. Run migrations (creates tables and performance indexes on Supabase)
 echo "Running database migrations..."
 php artisan migrate --force || true
 
@@ -196,6 +197,12 @@ php artisan migrate --force || true
 echo "Running database seeders..."
 php artisan db:seed --force || true
 
-# 8. Start web server
-echo "Starting application server on port ${PORT:-8080}..."
+# 8. Compile and cache configurations, routes, and views for production ultra-fast performance
+echo "Compiling production caches..."
+php artisan config:cache 2>/dev/null || true
+php artisan route:cache 2>/dev/null || true
+php artisan view:cache 2>/dev/null || true
+
+# 9. Start web server with multi-worker concurrency
+echo "Starting multi-worker application server on port ${PORT:-8080} (Workers: ${PHP_CLI_SERVER_WORKERS})..."
 exec php artisan serve --host 0.0.0.0 --port "${PORT:-8080}"

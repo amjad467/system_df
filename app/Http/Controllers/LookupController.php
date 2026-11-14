@@ -11,6 +11,7 @@ use App\Models\CarMake;
 use App\Models\CarColor;
 use App\Models\TransactionType;
 use App\Services\AuditLogger;
+use Illuminate\Support\Facades\Cache;
 
 class LookupController extends Controller
 {
@@ -25,6 +26,7 @@ class LookupController extends Controller
         ]);
 
         $item = TrafficDirectorate::create($validated);
+        Cache::forget('all_traffic_directorates');
         AuditLogger::log('زیادکردنی بەڕێوەبەرایەتی نوێ', TrafficDirectorate::class, $item->id, $item->name_kurdish);
 
         return response()->json(['success' => true, 'item' => $item]);
@@ -39,6 +41,7 @@ class LookupController extends Controller
         ]);
 
         $directorate->update($validated);
+        Cache::forget('all_traffic_directorates');
         AuditLogger::log('دەستکاریکردنی ناوی بەڕێوەبەرایەتی', TrafficDirectorate::class, $directorate->id, $directorate->name_kurdish);
 
         return response()->json(['success' => true, 'item' => $directorate]);
@@ -54,6 +57,7 @@ class LookupController extends Controller
         ]);
 
         $item = Director::create($validated);
+        Cache::forget('all_directors');
         AuditLogger::log('زیادکردنی بەڕێوەبەری نوێ', Director::class, $item->id, $item->name);
 
         return response()->json(['success' => true, 'item' => $item]);
@@ -68,6 +72,7 @@ class LookupController extends Controller
         ]);
 
         $director->update($validated);
+        Cache::forget('all_directors');
         AuditLogger::log('دەستکاریکردنی ناوی بەڕێوەبەر', Director::class, $director->id, $director->name);
 
         return response()->json(['success' => true, 'item' => $director]);
@@ -84,6 +89,7 @@ class LookupController extends Controller
         ]);
 
         $item = PlateType::create($validated);
+        Cache::forget('all_plate_types');
         AuditLogger::log('زیادکردنی جۆری تابلۆی نوێ', PlateType::class, $item->id, $item->name_kurdish);
 
         return response()->json(['success' => true, 'item' => $item]);
@@ -98,6 +104,7 @@ class LookupController extends Controller
         ]);
 
         $plateType->update($validated);
+        Cache::forget('all_plate_types');
         AuditLogger::log('دەستکاریکردنی ناوی جۆری تابلۆ', PlateType::class, $plateType->id, $plateType->name_kurdish);
 
         return response()->json(['success' => true, 'item' => $plateType]);
@@ -115,6 +122,7 @@ class LookupController extends Controller
         ]);
 
         $item = CarMake::create($validated);
+        Cache::forget('all_car_makes');
         AuditLogger::log('زیادکردنی مارکەی ئۆتۆمبێلی نوێ', CarMake::class, $item->id, "{$item->name_kurdish} - {$item->name_english}");
 
         return response()->json(['success' => true, 'item' => $item]);
@@ -131,6 +139,7 @@ class LookupController extends Controller
         ]);
 
         $carMake->update($validated);
+        Cache::forget('all_car_makes');
         AuditLogger::log('دەستکاریکردنی ناوی مارکەی ئۆتۆمبێل', CarMake::class, $carMake->id, "{$carMake->name_kurdish} - {$carMake->name_english}");
 
         return response()->json(['success' => true, 'item' => $carMake]);
@@ -148,6 +157,7 @@ class LookupController extends Controller
         ]);
 
         $item = CarColor::create($validated);
+        Cache::forget('all_car_colors');
         AuditLogger::log('زیادکردنی ڕەنگی نوێ', CarColor::class, $item->id, "{$item->name_kurdish} - {$item->name_english}");
 
         return response()->json(['success' => true, 'item' => $item]);
@@ -164,6 +174,7 @@ class LookupController extends Controller
         ]);
 
         $carColor->update($validated);
+        Cache::forget('all_car_colors');
         AuditLogger::log('دەستکاریکردنی ناوی ڕەنگی ئۆتۆمبێل', CarColor::class, $carColor->id, "{$carColor->name_kurdish} - {$carColor->name_english}");
 
         return response()->json(['success' => true, 'item' => $carColor]);
@@ -180,6 +191,7 @@ class LookupController extends Controller
         ]);
 
         $item = TransactionType::create($validated);
+        Cache::forget('all_transaction_types');
         AuditLogger::log('زیادکردنی جۆری مامەڵەی نوێ', TransactionType::class, $item->id, $item->name_kurdish);
 
         return response()->json(['success' => true, 'item' => $item]);
@@ -194,6 +206,7 @@ class LookupController extends Controller
         ]);
 
         $transactionType->update($validated);
+        Cache::forget('all_transaction_types');
         AuditLogger::log('دەستکاریکردنی ناوی جۆری مامەڵە', TransactionType::class, $transactionType->id, $transactionType->name_kurdish);
 
         return response()->json(['success' => true, 'item' => $transactionType]);
@@ -209,6 +222,7 @@ class LookupController extends Controller
         ]);
 
         $item = \App\Models\PassportIssuePlace::create($validated);
+        Cache::forget('all_passport_issue_places');
         AuditLogger::log('زیادکردنی شوێنی دەرچوونی پاسپۆرت', \App\Models\PassportIssuePlace::class, $item->id, $item->name);
 
         return response()->json(['success' => true, 'item' => $item]);
@@ -223,6 +237,7 @@ class LookupController extends Controller
         ]);
 
         $passportIssuePlace->update($validated);
+        Cache::forget('all_passport_issue_places');
         AuditLogger::log('دەستکاریکردنی شوێنی دەرچوونی پاسپۆرت', \App\Models\PassportIssuePlace::class, $passportIssuePlace->id, $passportIssuePlace->name);
 
         return response()->json(['success' => true, 'item' => $passportIssuePlace]);
@@ -232,6 +247,7 @@ class LookupController extends Controller
     {
         $name = $passportIssuePlace->name;
         $passportIssuePlace->delete();
+        Cache::forget('all_passport_issue_places');
         AuditLogger::log('سڕینەوەی شوێنی دەرچوونی پاسپۆرت', \App\Models\PassportIssuePlace::class, $passportIssuePlace->id, $name);
 
         return response()->json(['success' => true]);

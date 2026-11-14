@@ -29,8 +29,11 @@ class TransactionController extends Controller
         }
 
         // Self-heal: If database is empty on hosted service, automatically restore all 84 baseline records
-        if (Transaction::count() === 0) {
-            \App\Services\DataRestoreService::restoreAll();
+        if (!\Illuminate\Support\Facades\Cache::get('db_seeded_confirmed', false)) {
+            if (Transaction::count() === 0) {
+                \App\Services\DataRestoreService::restoreAll();
+            }
+            \Illuminate\Support\Facades\Cache::forever('db_seeded_confirmed', true);
         }
 
         $today = now()->toDateString();
@@ -304,15 +307,16 @@ class TransactionController extends Controller
             return redirect()->route('dashboard')->with('error', 'دەسەڵاتی تۆمارکردنی مامەڵەی نوێت نییە بەپێی پێرمشنەکان!');
         }
 
-        $directorates = TrafficDirectorate::all();
-        $directors = Director::all();
-        $plateTypes = PlateType::all();
-        $carMakes = CarMake::all();
-        $carColors = CarColor::all();
-        $transactionTypes = TransactionType::all();
+        $directorates = \Illuminate\Support\Facades\Cache::remember('all_traffic_directorates', 3600, fn() => TrafficDirectorate::all());
+        $directors = \Illuminate\Support\Facades\Cache::remember('all_directors', 3600, fn() => Director::all());
+        $plateTypes = \Illuminate\Support\Facades\Cache::remember('all_plate_types', 3600, fn() => PlateType::all());
+        $carMakes = \Illuminate\Support\Facades\Cache::remember('all_car_makes', 3600, fn() => CarMake::all());
+        $carColors = \Illuminate\Support\Facades\Cache::remember('all_car_colors', 3600, fn() => CarColor::all());
+        $transactionTypes = \Illuminate\Support\Facades\Cache::remember('all_transaction_types', 3600, fn() => TransactionType::all());
+        $passportIssuePlaces = \Illuminate\Support\Facades\Cache::remember('all_passport_issue_places', 3600, fn() => \App\Models\PassportIssuePlace::orderBy('name')->get());
 
-        $defaultDirectorateId = TrafficDirectorate::where('name_kurdish', 'like', '%سلێمانی%')->first()?->id ?? $directorates->first()?->id;
-        $defaultDirectorId = Director::first()?->id ?? 1;
+        $defaultDirectorateId = $directorates->first(fn($d) => str_contains($d->name_kurdish ?? '', 'سلێمانی'))?->id ?? $directorates->first()?->id;
+        $defaultDirectorId = $directors->first()?->id ?? 1;
 
         $fromTransaction = null;
         if ($request->filled('from_transaction')) {
@@ -320,8 +324,6 @@ class TransactionController extends Controller
         }
 
         $targetTypeId = $request->get('target_type');
-
-        $passportIssuePlaces = \App\Models\PassportIssuePlace::orderBy('name')->get();
 
         return view('transactions.create', compact(
             'directorates',
@@ -619,13 +621,13 @@ class TransactionController extends Controller
                 ->with('error', "دەستکاریکردنی ئەم مامەڵەیە قوفڵ بووە چونکە قۆناغی '{$stageName}'ی بۆ ئەنجامدراوە! تەنها ئەدمین دەتوانێت قۆناغەکە ڕێکبخاتەوە (Reset) تا ڕێگە بە دەستکاری بدات.");
         }
 
-        $directorates = TrafficDirectorate::all();
-        $directors = Director::all();
-        $plateTypes = PlateType::all();
-        $carMakes = CarMake::all();
-        $carColors = CarColor::all();
-        $transactionTypes = TransactionType::all();
-        $passportIssuePlaces = \App\Models\PassportIssuePlace::orderBy('name')->get();
+        $directorates = \Illuminate\Support\Facades\Cache::remember('all_traffic_directorates', 3600, fn() => TrafficDirectorate::all());
+        $directors = \Illuminate\Support\Facades\Cache::remember('all_directors', 3600, fn() => Director::all());
+        $plateTypes = \Illuminate\Support\Facades\Cache::remember('all_plate_types', 3600, fn() => PlateType::all());
+        $carMakes = \Illuminate\Support\Facades\Cache::remember('all_car_makes', 3600, fn() => CarMake::all());
+        $carColors = \Illuminate\Support\Facades\Cache::remember('all_car_colors', 3600, fn() => CarColor::all());
+        $transactionTypes = \Illuminate\Support\Facades\Cache::remember('all_transaction_types', 3600, fn() => TransactionType::all());
+        $passportIssuePlaces = \Illuminate\Support\Facades\Cache::remember('all_passport_issue_places', 3600, fn() => \App\Models\PassportIssuePlace::orderBy('name')->get());
 
         return view('transactions.edit', compact(
             'transaction',
@@ -785,7 +787,15 @@ class TransactionController extends Controller
 
     public function show(Transaction $transaction)
     {
-        $transaction->load(['transactionType', 'trafficDirectorate', 'director', 'plateType', 'carMake', 'carColor']);
+        $transaction->load([
+            'transactionType',
+            'trafficDirectorate',
+            'director',
+            'plateType',
+            'carMake',
+            'carColor',
+            'relatedTransactions.transactionType'
+        ]);
         return view('transactions.show', compact('transaction'));
     }
 
