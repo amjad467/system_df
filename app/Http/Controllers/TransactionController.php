@@ -1086,6 +1086,8 @@ class TransactionController extends Controller
             route('transactions.show', $transaction->id)
         );
 
+        session()->flash('payment_completed_prompt_receipt', true);
+
         return redirect()->back()->with('success', "پارەدانی مامەڵەکە و وەسڵی ۳۷/أ ({$receiptNum}){$linkedPaidInfo} بە سەرکەوتوویی تۆمارکرا.");
     }
 
@@ -1157,7 +1159,7 @@ class TransactionController extends Controller
         return redirect()->back()->with('success', "ژمارەی دەفتەر ({$bookletNum}) بە سەرکەوتوویی تۆمارکرا و چاپی دەفتەر ئەکتیڤ بوو.");
     }
 
-    public function printPaymentReceipt(Transaction $transaction)
+    public function printPaymentReceipt(Request $request, Transaction $transaction)
     {
         if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
             return redirect()->route('transactions.show', $transaction->id)
@@ -1172,8 +1174,16 @@ class TransactionController extends Controller
             return redirect()->back()->with('error', 'پسوولەی پارەدان شایەنی چاپکردن نییە چونکە مامەڵەکە پارەدانی بۆ ئەنجام نەدراوە.');
         }
 
-        $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
-        return view('transactions.print_payment_receipt', compact('transaction'));
+        $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director', 'parentTransaction', 'relatedTransactions']);
+
+        $linkedPledge = $transaction->getLinkedPledgeOrParent();
+        if ($linkedPledge && $linkedPledge->is_paid) {
+            $linkedPledge->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
+        } else {
+            $linkedPledge = null;
+        }
+
+        return view('transactions.print_payment_receipt', compact('transaction', 'linkedPledge'));
     }
 
     public function submitArchive(Request $request, Transaction $transaction)

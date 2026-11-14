@@ -224,7 +224,8 @@
 
             html, body {
                 width: 160mm !important;
-                height: 235mm !important;
+                min-height: 235mm !important;
+                height: auto !important;
                 margin: 0mm !important;
                 padding: 0mm !important;
                 background: #ffffff !important;
@@ -250,10 +251,21 @@
                 height: 235mm !important;
                 display: block !important;
                 page-break-after: always !important;
+                break-after: page !important;
                 page-break-inside: avoid !important;
+                break-inside: avoid !important;
                 border-radius: 0 !important;
                 top: 0 !important;
                 left: 0 !important;
+            }
+
+            .sheet-container:last-of-type {
+                page-break-after: auto !important;
+                break-after: auto !important;
+            }
+
+            .no-print-sheet {
+                display: none !important;
             }
 
             .sheet-bg-template {
@@ -371,6 +383,22 @@
                 <p class="text-[10px] text-slate-400">هاووڵاتی: <strong class="text-slate-200">{{ $transaction->visitor_name }}</strong> • تابلۆ: <strong class="text-amber-300 font-mono">{{ $transaction->plate_number }}</strong></p>
             </div>
         </div>
+
+        @if($linkedPledge)
+            <!-- Multi-receipt selector tabs (چاپی هەردوو پسوولە یان یەکێکیان) -->
+            <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-700/80 shadow-inner">
+                <button type="button" onclick="setReceiptPrintMode('both')" id="btnModeBoth" class="px-3 py-1.5 text-xs font-black rounded-lg transition bg-indigo-600 text-white shadow-md flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span>هەردوو پسوولە (۲ پەڕە)</span>
+                </button>
+                <button type="button" onclick="setReceiptPrintMode('main')" id="btnModeMain" class="px-2.5 py-1.5 text-xs font-bold rounded-lg transition text-slate-300 hover:text-white flex items-center gap-1">
+                    <span>{{ $transaction->transactionType->name_kurdish ?? 'دەرهێنان' }} ({{ $transaction->receipt_37a_number }})</span>
+                </button>
+                <button type="button" onclick="setReceiptPrintMode('pledge')" id="btnModePledge" class="px-2.5 py-1.5 text-xs font-bold rounded-lg transition text-slate-300 hover:text-white flex items-center gap-1">
+                    <span>بەڵێننامە ({{ $linkedPledge->receipt_37a_number }})</span>
+                </button>
+            </div>
+        @endif
 
         <!-- Right: Studio Actions & Print -->
         <div class="flex items-center gap-2">
@@ -627,6 +655,16 @@
         <!-- ===================================================================== -->
         <main id="canvasWorkspace" class="flex-1 bg-slate-950 p-6 overflow-auto flex flex-col items-center justify-start">
             
+            @if($linkedPledge)
+                <div id="badgeSheetMain" class="no-print w-full max-w-[160mm] mb-2 flex items-center justify-between text-xs text-emerald-200 bg-emerald-950/70 border border-emerald-600/50 px-3.5 py-1.5 rounded-xl shadow">
+                    <span class="font-bold flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
+                        پەڕەی ١: پسوولەی ۳۷/أ بۆ {{ $transaction->transactionType->name_kurdish ?? 'دەرهێنانی دەفتەر' }}
+                    </span>
+                    <span class="font-mono text-emerald-300 font-bold">ژمارەی وەسڵ: {{ toKurdishDigits($transaction->receipt_37a_number ?? $transaction->barcode) }}</span>
+                </div>
+            @endif
+
             <section id="receiptSheet" class="sheet-container">
                 
                 <!-- BACKGROUND TEMPLATE FRAME (Visual receipt layout) -->
@@ -792,6 +830,186 @@
 
             </section>
 
+            @if($linkedPledge)
+                @php
+                    $pledgeRasm = ($linkedPledge->pay_amount_years ?? 0) + ($linkedPledge->pay_inspection ?? 0);
+                    $pledgeHasFine = ($linkedPledge->pay_fine > 0);
+                @endphp
+
+                <!-- SCREEN BADGE FOR SHEET 2 -->
+                <div id="badgeSheetPledge" class="no-print w-full max-w-[160mm] mt-8 mb-2 flex items-center justify-between text-xs text-amber-200 bg-amber-950/70 border border-amber-600/50 px-3.5 py-1.5 rounded-xl shadow">
+                    <span class="font-bold flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block animate-pulse"></span>
+                        پەڕەی ۲: پسوولەی ۳۷/أ بۆ بەڵێننامەی یاسایی (پاشکۆ)
+                    </span>
+                    <span class="font-mono text-amber-300 font-bold">ژمارەی وەسڵ: {{ toKurdishDigits($linkedPledge->receipt_37a_number ?? $linkedPledge->barcode) }}</span>
+                </div>
+
+                <section id="receiptSheetPledge" class="sheet-container receipt-sheet-pledge">
+                    
+                    <!-- BACKGROUND TEMPLATE FRAME (Visual receipt layout) -->
+                    <div class="sheet-bg-template border-2 border-black p-4 text-black text-xs font-bold pointer-events-none select-none">
+                        <div class="flex justify-between items-start border-b border-black pb-2">
+                            <div class="space-y-0.5 text-right text-[11px]">
+                                <p class="font-black text-xs">حکومەتی هەرێمی کوردستان</p>
+                                <p>وەزارەتی دارایی و ئابووری</p>
+                                <p>بەڕێوەبەرایەتی گشتی گومرگ</p>
+                                <p>بەڕێوەبەرایەتی گومرگی سلێمانی</p>
+                            </div>
+                            <div class="text-center space-y-1">
+                                <h2 class="text-xs font-black border border-black px-2 py-0.5 bg-gray-100">پسوولەی پارە وەرگرتن / ژمێرکاری ۱۳۷ تایبەت بە گومرگەکان</h2>
+                                <p class="text-[10px] text-gray-700 font-bold">(بەڵێننامەی یاسایی)</p>
+                            </div>
+                            <div class="space-y-0.5 text-left font-mono text-[10px]">
+                                <p>ژمارە : </p>
+                                <p>ڕێکەوت : ۲۰۲ / / </p>
+                                <p class="text-[9px] text-gray-500">وێنەی پارەدەر</p>
+                            </div>
+                        </div>
+
+                        <!-- Table Lines Structure -->
+                        <div class="mt-3 border border-black rounded">
+                            <div class="flex border-b border-black bg-gray-100 font-black text-center py-1 text-xs">
+                                <div class="w-[68%] border-l border-black">وورده‌كاری</div>
+                                <div class="w-[32%]">بڕی پارە</div>
+                            </div>
+                            <div class="flex h-[130mm]">
+                                <div class="w-[68%] border-l border-black p-2"></div>
+                                <div class="w-[32%] p-2"></div>
+                            </div>
+                            <div class="border-t border-black p-1.5 flex justify-between font-black text-xs">
+                                <span>تەنها:</span>
+                            </div>
+                        </div>
+
+                        <!-- Signatures Footer -->
+                        <div class="flex justify-between text-center mt-5 pt-2 border-t border-black font-extrabold text-[11px]">
+                            <div class="w-1/3">خەزنەدار</div>
+                            <div class="w-1/3">ووردبینی</div>
+                            <div class="w-1/3">لێپرسراو</div>
+                        </div>
+                    </div>
+
+                    <div class="sheet-ruler-grid"></div>
+
+                    <!-- CALIBRATED PRINTABLE DATA CONTENT LAYER FOR PLEDGE -->
+                    <div class="printable-content-layer">
+
+                        <!-- 1. بارکۆد -->
+                        <div id="f-rcpt-barcode-pledge" class="calibrated-field" data-fid="f-rcpt-barcode" data-name-ku="بارکۆدی پسوولە" style="top: 8mm; right: 6mm;">
+                            <svg id="paymentBarcodeSvgPledge" style="max-height: 11mm;"></svg>
+                        </div>
+
+                        <!-- 2. ژمارەی پسوولە -->
+                        <div id="f-rcpt-number-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-number" data-name-ku="ژمارەی پسوولە" style="top: 16mm; left: 6mm; font-size: 16px;">
+                            {{ toKurdishDigits($linkedPledge->receipt_37a_number ?? $linkedPledge->barcode) }}
+                        </div>
+
+                        <!-- 3. بەرواری پسوولە -->
+                        <div id="f-rcpt-date-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-date" data-name-ku="بەرواری پسوولە" style="top: 25mm; left: 6mm; font-size: 13px;">
+                            {{ $linkedPledge->paid_at ? $linkedPledge->paid_at->format('d / m / Y') : date('d / m / Y') }}
+                        </div>
+
+                        <!-- 4. ناوی سیانی هاووڵاتی -->
+                        <div id="f-rcpt-name-pledge" class="calibrated-field font-black" data-fid="f-rcpt-name" data-name-ku="ناوی سیانی هاووڵاتی" style="top: 44mm; right: 39mm; font-size: 15px;">
+                            {{ $linkedPledge->visitor_name }}
+                        </div>
+
+                        <!-- 5. بڕی پارەی ڕەسم -->
+                        <div id="f-rcpt-rasm-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-rasm" data-name-ku="بڕی پارەی ڕەسم" style="top: 66mm; right: 14mm; font-size: 15px;">
+                            {{ toKurdishDigits(number_format($pledgeRasm)) }}
+                        </div>
+
+                        <!-- 6. وشەی (ڕەسم:) -->
+                        <div id="f-lbl-rasm-pledge" class="calibrated-field font-black" data-fid="f-lbl-rasm" data-name-ku="وشەی (ڕەسم:)" style="top: 66mm; right: 44mm; font-size: 13.5px;">
+                            ڕەسم:
+                        </div>
+
+                        <!-- 7. بڕی پارەی سزا (ئەگەر هەبێت) -->
+                        @if($pledgeHasFine)
+                            <div id="f-rcpt-fine-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-fine" data-name-ku="بڕی پارەی سزا" style="top: 75mm; right: 14mm; font-size: 15px;">
+                                {{ toKurdishDigits(number_format($linkedPledge->pay_fine)) }}
+                            </div>
+                            <div id="f-lbl-fine-pledge" class="calibrated-field font-black" data-fid="f-lbl-fine" data-name-ku="وشەی (سزا:)" style="top: 75mm; right: 44mm; font-size: 13.5px;">
+                                سزا:
+                            </div>
+                        @endif
+
+                        <!-- 8. بڕی پارەی پوول -->
+                        <div id="f-rcpt-stamp-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-stamp" data-name-ku="بڕی پارەی پوول" style="top: {{ $pledgeHasFine ? '84mm' : '75mm' }}; right: 14mm; font-size: 15px;">
+                            {{ toKurdishDigits(number_format($linkedPledge->pay_stamp)) }}
+                        </div>
+
+                        <!-- 9. وشەی (پوول:) -->
+                        <div id="f-lbl-stamp-pledge" class="calibrated-field font-black" data-fid="f-lbl-stamp" data-name-ku="وشەی (پوول:)" style="top: {{ $pledgeHasFine ? '84mm' : '75mm' }}; right: 44mm; font-size: 13.5px;">
+                            پوول:
+                        </div>
+
+                        <!-- 10. بڕی پارەی فۆڕم -->
+                        <div id="f-rcpt-form-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-form" data-name-ku="بڕی پارەی فۆڕم" style="top: {{ $pledgeHasFine ? '93mm' : '84mm' }}; right: 14mm; font-size: 15px;">
+                            {{ toKurdishDigits(number_format($linkedPledge->pay_form)) }}
+                        </div>
+
+                        <!-- 11. وشەی (فۆڕم:) -->
+                        <div id="f-lbl-form-pledge" class="calibrated-field font-black" data-fid="f-lbl-form" data-name-ku="وشەی (فۆڕم:)" style="top: {{ $pledgeHasFine ? '93mm' : '84mm' }}; right: 44mm; font-size: 13.5px;">
+                            فۆڕم:
+                        </div>
+
+                        <!-- 12. ووردەکاری: جۆری مامەڵە -->
+                        <div id="f-dtl-txtype-pledge" class="calibrated-field font-black" data-fid="f-dtl-txtype" data-name-ku="ووردەکاری: جۆری مامەڵە" style="top: 66mm; right: 63mm; font-size: 13.5px;">
+                            جۆری مامەڵە: <span>{{ $linkedPledge->transactionType->name_kurdish ?? 'بەڵێننامە' }}</span>
+                            <span class="mr-1 text-xs font-bold">(پاشکۆی دەفتەر: {{ toKurdishDigits($transaction->barcode) }})</span>
+                        </div>
+
+                        <!-- 13. ووردەکاری: جۆری ئۆتۆمبێل -->
+                        <div id="f-dtl-carmake-pledge" class="calibrated-field font-bold" data-fid="f-dtl-carmake" data-name-ku="ووردەکاری: جۆری ئۆتۆمبێل" style="top: 75mm; right: 63mm; font-size: 13.5px;">
+                            جۆری ئۆتۆمبێل: <span>{{ $linkedPledge->carMake->name_kurdish ?? '-' }}</span>
+                        </div>
+
+                        <!-- 14. ووردەکاری: ژمارەی تابلۆ -->
+                        <div id="f-dtl-plate-pledge" class="calibrated-field font-black" data-fid="f-dtl-plate" data-name-ku="ووردەکاری: ژمارەی تابلۆ" style="top: 84mm; right: 63mm; font-size: 13.5px;">
+                            ژمارە و تابلۆ: <span class="font-mono text-sm">{{ toKurdishDigits($linkedPledge->plate_number) }}</span>
+                            @if($linkedPledge->plateType)
+                                <span class="text-xs font-bold">({{ $linkedPledge->plateType->name_kurdish }})</span>
+                            @endif
+                        </div>
+
+                        <!-- 15. ووردەکاری: ژمارەی شاسی -->
+                        @if($linkedPledge->chassis_number)
+                            <div id="f-dtl-chassis-pledge" class="calibrated-field font-bold font-mono" data-fid="f-dtl-chassis" data-name-ku="ووردەکاری: ژمارەی شاسی" style="top: 93mm; right: 63mm; font-size: 12px;">
+                                ژمارەی شاسی: <span>{{ $linkedPledge->chassis_number }}</span>
+                            </div>
+                        @endif
+
+                        <!-- 16. کۆی گشتی پارە (بە ژمارە و بە وشەی کوردی) -->
+                        <div id="f-rcpt-total-pledge" class="calibrated-field font-black" data-fid="f-rcpt-total" data-name-ku="کۆی گشتی پارە (ژمارە و وشە)" style="top: 179mm; right: 20mm; font-size: 14px;">
+                            <strong class="font-mono text-base ml-2">{{ toKurdishDigits(number_format($linkedPledge->total_pay)) }}</strong>
+                            ({{ numberToKurdishWords($linkedPledge->total_pay) }} دیناری عێراقی)
+                        </div>
+
+                        <!-- 17. خەزنەدار / پارەوەربگر -->
+                        <div id="f-sign-cashier-pledge" class="calibrated-field text-center font-black" data-fid="f-sign-cashier" data-name-ku="ئیمزای خەزنەدار و بەروار" style="top: 203mm; right: 6mm; min-width: 44mm; font-size: 13px;">
+                            <div>{{ $linkedPledge->paid_by ?? auth()->user()?->name ?? 'کارمەندی خەزنە' }}</div>
+                            <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ $linkedPledge->paid_at ? $linkedPledge->paid_at->format('d-m-Y') : date('d-m-Y') }}</div>
+                        </div>
+
+                        <!-- 18. ووردبینی / وردبین -->
+                        <div id="f-sign-auditor-pledge" class="calibrated-field text-center font-black" data-fid="f-sign-auditor" data-name-ku="ئیمزای وردبین و بەروار" style="top: 203mm; right: 58mm; min-width: 44mm; font-size: 13px;">
+                            <div>{{ $linkedPledge->audited_by ?? 'کارمەندی وردبین' }}</div>
+                            <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ $linkedPledge->audited_at ? $linkedPledge->audited_at->format('d-m-Y') : date('d-m-Y') }}</div>
+                        </div>
+
+                        <!-- 19. لێپرسراو / خەملێنەر -->
+                        <div id="f-sign-estimator-pledge" class="calibrated-field text-center font-black" data-fid="f-sign-estimator" data-name-ku="ئیمزای خەمڵێنەر و بەروار" style="top: 203mm; right: 110mm; min-width: 44mm; font-size: 13px;">
+                            <div>{{ $linkedPledge->inspected_by ?? 'ئەندازیاری کەشف' }}</div>
+                            <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ $linkedPledge->inspected_at ? $linkedPledge->inspected_at->format('d-m-Y') : date('d-m-Y') }}</div>
+                        </div>
+
+                    </div>
+
+                </section>
+            @endif
+
         </main>
 
         <!-- ===================================================================== -->
@@ -889,6 +1107,50 @@
             buildFieldsExplorerList();
             initDragAndDrop();
             initBarcode();
+
+            if (initialPrintMode && initialPrintMode !== 'both') {
+                setReceiptPrintMode(initialPrintMode);
+            }
+        }
+
+        const initialPrintMode = '{{ request("mode", "both") }}';
+
+        function setReceiptPrintMode(mode) {
+            const sheetMain = document.getElementById('receiptSheet');
+            const sheetPledge = document.getElementById('receiptSheetPledge');
+            const badgeMain = document.getElementById('badgeSheetMain');
+            const badgePledge = document.getElementById('badgeSheetPledge');
+            const btnBoth = document.getElementById('btnModeBoth');
+            const btnMain = document.getElementById('btnModeMain');
+            const btnPledge = document.getElementById('btnModePledge');
+
+            if (!sheetPledge) return;
+
+            if (mode === 'both') {
+                sheetMain.classList.remove('hidden', 'no-print-sheet');
+                sheetPledge.classList.remove('hidden', 'no-print-sheet');
+                if (badgeMain) badgeMain.classList.remove('hidden');
+                if (badgePledge) badgePledge.classList.remove('hidden');
+                if (btnBoth) btnBoth.className = 'px-3 py-1.5 text-xs font-black rounded-lg transition bg-indigo-600 text-white shadow-md flex items-center gap-1.5';
+                if (btnMain) btnMain.className = 'px-2.5 py-1.5 text-xs font-bold rounded-lg transition text-slate-300 hover:text-white flex items-center gap-1';
+                if (btnPledge) btnPledge.className = 'px-2.5 py-1.5 text-xs font-bold rounded-lg transition text-slate-300 hover:text-white flex items-center gap-1';
+            } else if (mode === 'main') {
+                sheetMain.classList.remove('hidden', 'no-print-sheet');
+                sheetPledge.classList.add('hidden', 'no-print-sheet');
+                if (badgeMain) badgeMain.classList.remove('hidden');
+                if (badgePledge) badgePledge.classList.add('hidden');
+                if (btnBoth) btnBoth.className = 'px-3 py-1.5 text-xs font-bold rounded-lg transition text-slate-300 hover:text-white flex items-center gap-1.5';
+                if (btnMain) btnMain.className = 'px-2.5 py-1.5 text-xs font-black rounded-lg transition bg-emerald-600 text-white shadow-md flex items-center gap-1';
+                if (btnPledge) btnPledge.className = 'px-2.5 py-1.5 text-xs font-bold rounded-lg transition text-slate-300 hover:text-white flex items-center gap-1';
+            } else if (mode === 'pledge') {
+                sheetMain.classList.add('hidden', 'no-print-sheet');
+                sheetPledge.classList.remove('hidden', 'no-print-sheet');
+                if (badgeMain) badgeMain.classList.add('hidden');
+                if (badgePledge) badgePledge.classList.remove('hidden');
+                if (btnBoth) btnBoth.className = 'px-3 py-1.5 text-xs font-bold rounded-lg transition text-slate-300 hover:text-white flex items-center gap-1.5';
+                if (btnMain) btnMain.className = 'px-2.5 py-1.5 text-xs font-bold rounded-lg transition text-slate-300 hover:text-white flex items-center gap-1';
+                if (btnPledge) btnPledge.className = 'px-2.5 py-1.5 text-xs font-black rounded-lg transition bg-amber-600 text-white shadow-md flex items-center gap-1';
+            }
         }
 
         function initBarcode() {
@@ -904,6 +1166,20 @@
                     font: "Vazirmatn",
                     textMargin: 1
                 });
+
+                @if($linkedPledge)
+                JsBarcode("#paymentBarcodeSvgPledge", "{{ $linkedPledge->barcode }}", {
+                    format: "CODE128",
+                    lineColor: "#000",
+                    width: 1.5,
+                    height: 28,
+                    displayValue: true,
+                    fontSize: 10,
+                    fontOptions: "bold",
+                    font: "Vazirmatn",
+                    textMargin: 1
+                });
+                @endif
             } catch(e) {}
         }
 
