@@ -83,7 +83,14 @@
             <button type="button" onclick="adjustZoom_{{ $docId }}(2)" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-black text-sm flex items-center justify-center shadow active:scale-95" title="گەورەکردنەوە">
                 +
             </button>
+            <div class="flex items-center gap-1 mr-1 text-[10px] font-mono">
+                <button type="button" onclick="setStudioZoom_{{ $docId }}(100)" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition">100%</button>
+                <button type="button" onclick="setStudioZoom_{{ $docId }}(95)" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition">95%</button>
+                <button type="button" onclick="setStudioZoom_{{ $docId }}(90)" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition">90%</button>
+            </div>
         </div>
+
+        {{ $slot ?? '' }}
 
         <!-- Action Buttons: Save, Reset, Print, Close -->
         <div class="flex items-center gap-2">
@@ -182,6 +189,11 @@
 
     window['adjustZoom_' + '{{ $docId }}'] = function(delta) {
         currentZoom = Math.max(50, Math.min(200, currentZoom + delta));
+        applyTransforms();
+    };
+
+    window['setStudioZoom_' + '{{ $docId }}'] = function(zoom) {
+        currentZoom = Math.max(50, Math.min(200, zoom));
         applyTransforms();
     };
 
