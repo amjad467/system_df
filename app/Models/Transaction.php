@@ -171,6 +171,14 @@ class Transaction extends Model
         return $this->transactionType && str_contains($this->transactionType->name_kurdish, 'پشکنین');
     }
 
+    public function isBookletIssue(): bool
+    {
+        if ((int)$this->transaction_type_id === 1) {
+            return true;
+        }
+        return $this->transactionType && str_contains($this->transactionType->name_kurdish, 'دەرهێنان');
+    }
+
     /**
      * Get human readable Kurdish description of current stage and status.
      */

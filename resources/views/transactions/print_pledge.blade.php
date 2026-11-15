@@ -43,6 +43,18 @@
         .print-card {
             min-height: 285mm;
         }
+
+        .pledge-watermark {
+            opacity: 0.16 !important;
+        }
+
+        @media print {
+            .pledge-watermark {
+                opacity: 0.18 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
     </style>
 </head>
 <body class="p-4">
@@ -81,9 +93,9 @@
     <!-- MAIN REPORT PRINT CARD (Exact match to official template) -->
     <div id="pledgePrintArea" class="print-card bg-white border-2 border-black p-8 rounded-none shadow-xl max-w-4xl mx-auto space-y-4 text-black mt-3 relative flex flex-col justify-between">
 
-        <!-- Subtle Background Watermark of Kurdistan Emblem -->
-        <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.07] z-0">
-            <img src="{{ asset('images/krg_logo.png') }}" class="w-96 h-96 object-contain" alt="KRG Watermark">
+        <!-- Background Watermark of Kurdistan Emblem (تۆختر و ڕوونتر) -->
+        <div class="absolute inset-0 flex items-center justify-center pointer-events-none pledge-watermark z-0">
+            <img src="{{ asset('images/krg_logo.png') }}" class="w-[420px] h-[420px] object-contain" alt="KRG Watermark">
         </div>
 
         <div class="relative z-10 space-y-4">
@@ -198,35 +210,28 @@
                 </p>
             </div>
 
-            <!-- Signatures & Barcode Grid -->
-            <div class="pt-8 pb-2 px-2 flex items-end justify-between">
-                
-                <!-- Right: Legal Officer / Organizer (دەستە ڕاست: ڕێکخەر) -->
-                <div class="text-center font-black space-y-1 min-w-[170px]">
-                    <p class="text-lg">ڕێکخەر</p>
-                    <p class="text-sm font-black">{{ $legalOfficerName }}</p>
+            <!-- Legal Officer Signature Block (دەستە ڕاست - بەڕێوەبەر لابراوە) -->
+            <div class="pt-8 pb-3 px-2 flex items-end justify-between">
+                <div class="text-right font-black space-y-1 min-w-[220px]">
+                    <p class="text-base font-extrabold text-gray-800">یاساناس / ڕێکخەر:</p>
+                    <p class="text-lg font-black text-black">{{ $legalOfficerName }}</p>
+                    <p class="text-xs font-bold text-gray-600">هۆبەی یاسایی بەڕێوەبەرایەتی گومرگ</p>
                     <p class="pt-1">
                         <span dir="ltr" class="inline-block font-mono text-sm font-bold">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y/m') : date('Y/m') }}/ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
                     </p>
                 </div>
 
-                <!-- Center: Clean Official Barcode (ناوەڕاست: بارکۆدی فەرمی) -->
-                <div class="text-center space-y-1">
-                    <svg id="pledgeBarcodeSvg" class="max-h-12"></svg>
-                    <div class="font-mono text-xs font-bold text-center">
-                        * {{ $transaction->barcode }} *
-                    </div>
+                <div class="text-center font-bold text-xs text-gray-400 pb-2">
+                    <p>واژۆ و مۆری یاساناس</p>
                 </div>
+            </div>
 
-                <!-- Left: Director Block (دەستە چەپ: بەڕێوەبەر) -->
-                <div class="text-center font-black space-y-1 min-w-[170px]">
-                    <p class="text-lg">{{ $directorName }}</p>
-                    <p class="text-sm font-black">بەڕێوەبەری گومرگی سلێمانی</p>
-                    <p class="pt-1">
-                        <span dir="ltr" class="inline-block font-mono text-sm font-bold">{{ $txDate ? \Carbon\Carbon::parse($txDate)->format('Y/m') : date('Y/m') }}/ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>
-                    </p>
+            <!-- Lower Barcode Section (بارکۆدەکە هێنراوەتە خوارتر) -->
+            <div class="pt-6 pb-2 text-center space-y-1">
+                <svg id="pledgeBarcodeSvg" class="max-h-12 mx-auto"></svg>
+                <div class="font-mono text-xs font-bold text-center tracking-widest">
+                    * {{ $transaction->barcode }} *
                 </div>
-
             </div>
         </div>
 

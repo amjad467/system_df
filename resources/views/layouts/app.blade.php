@@ -281,18 +281,28 @@
                     <span class="app-live-clock text-xs font-mono font-black text-emerald-400 tracking-wider">{{ now()->format('H:i:s') }}</span>
                 </div>
 
-                <!-- Fast Barcode Scanner Form (Desktop / Tablet - Visible when not on dashboard) -->
+                <!-- Fast Barcode Scanner Form (Desktop / Tablet - دیزاینی زۆر دیار و پرۆفشناڵ) -->
                 @if(!request()->routeIs('dashboard'))
                 <form action="{{ route('transactions.scan') }}" method="POST" class="hidden md:flex items-center relative shrink-0">
                     @csrf
-                    <div class="relative flex items-center">
+                    <div class="relative flex items-center group">
+                        <!-- Glowing Pulse Barcode Icon -->
+                        <div class="absolute right-3 pointer-events-none text-sky-400 flex items-center gap-1.5 z-10">
+                            <i class="fa-solid fa-barcode text-base group-focus-within:text-sky-300 transition-colors"></i>
+                        </div>
+
                         <input type="text" name="barcode" id="globalDesktopBarcodeInput" placeholder="سکانی بارکۆد... (F2)" 
-                               class="w-36 lg:w-44 focus:w-56 bg-slate-100 dark:bg-slate-900/90 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 rounded-xl border border-slate-300 dark:border-slate-700 pr-8 pl-3 py-1.5 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all font-mono font-bold"
+                               class="w-48 sm:w-56 lg:w-64 xl:w-72 h-10 bg-slate-950/95 text-sm text-white placeholder-slate-400 rounded-2xl border-2 border-sky-500/50 hover:border-sky-400 focus:border-sky-400 pr-9 pl-14 py-1.5 focus:outline-none focus:ring-4 focus:ring-sky-500/20 transition-all font-mono font-black shadow-lg shadow-sky-500/10 tracking-wider"
                                autocomplete="off"
                                title="تێکست بۆکسی لێدانی بارکۆد (یاخود کلیلی F2 داگرە)">
-                        <button type="submit" class="absolute right-2 text-slate-400 hover:text-sky-500 transition" title="گەڕان بەپێی بارکۆد">
-                            <i class="fa-solid fa-barcode text-xs"></i>
-                        </button>
+
+                        <!-- Left Shortcut Badge & Submit Arrow -->
+                        <div class="absolute left-2 flex items-center gap-1 z-10">
+                            <kbd class="hidden sm:inline-block px-1.5 py-0.5 rounded-md bg-sky-950 text-sky-300 border border-sky-500/40 font-mono text-[10px] font-black shadow-sm pointer-events-none">F2</kbd>
+                            <button type="submit" class="w-6 h-6 flex items-center justify-center rounded-lg bg-sky-600 hover:bg-sky-500 text-white transition text-[11px] shadow active:scale-95" title="گەڕان بەپێی بارکۆد">
+                                <i class="fa-solid fa-arrow-left"></i>
+                            </button>
+                        </div>
                     </div>
                 </form>
                 @endif

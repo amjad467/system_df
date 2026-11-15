@@ -305,16 +305,30 @@
                         @endif
 
                         @if(!$transaction->is_cancelled)
-                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" 
-                               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-amber-300 hover:bg-slate-800 hover:text-white transition">
-                                <i class="fa-solid fa-file-circle-exclamation text-amber-400 w-4 text-center"></i>
-                                <span>نیشانەی ڕەفتارنەکردن</span>
-                            </a>
-                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" 
-                               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-rose-300 hover:bg-slate-800 hover:text-white transition">
-                                <i class="fa-solid fa-file-circle-xmark text-rose-400 w-4 text-center"></i>
-                                <span>نووسراوی پووچەڵکردنەوە</span>
-                            </a>
+                            @if($transaction->isCancellation())
+                                <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" 
+                                   class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-rose-300 hover:bg-slate-800 hover:text-white transition">
+                                    <i class="fa-solid fa-file-circle-xmark text-rose-400 w-4 text-center"></i>
+                                    <span>نووسراوی پووچەڵکردنەوە</span>
+                                </a>
+                            @elseif($transaction->isBookletIssue())
+                                <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" 
+                                   class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-amber-300 hover:bg-slate-800 hover:text-white transition">
+                                    <i class="fa-solid fa-file-circle-exclamation text-amber-400 w-4 text-center"></i>
+                                    <span>نیشانەی ڕەفتارنەکردن</span>
+                                </a>
+                            @else
+                                <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" 
+                                   class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-amber-300 hover:bg-slate-800 hover:text-white transition">
+                                    <i class="fa-solid fa-file-circle-exclamation text-amber-400 w-4 text-center"></i>
+                                    <span>نیشانەی ڕەفتارنەکردن</span>
+                                </a>
+                                <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" 
+                                   class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-rose-300 hover:bg-slate-800 hover:text-white transition">
+                                    <i class="fa-solid fa-file-circle-xmark text-rose-400 w-4 text-center"></i>
+                                    <span>نووسراوی پووچەڵکردنەوە</span>
+                                </a>
+                            @endif
                         @endif
                     </div>
                 </div>
@@ -976,20 +990,14 @@
                                 <i class="fa-solid fa-clipboard-check ml-1.5"></i> ستێپی ٣: پەسەندکردنی وردبینی
                             </button>
 
-                            <!-- چاپی دوو نوسراوە ئیدارییەکە لە قۆناغی وردبینی (نیشانەی ڕەفتارنەکردن & نووسراوی پووچەڵکردنەوە) -->
+                            <!-- چاپی نوسراوی ئیداری لە قۆناغی وردبینی (تەنها بۆ ئەو جۆرەی کە پەیوەندیدارە) -->
                             @if($transaction->isCancellation())
                                 <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوەی دەفتەر لە قۆناغی وردبینی">
                                     <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نووسراوی پووچەڵکردنەوە
                                 </a>
-                                <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-600/40 text-xs font-bold rounded-xl transition flex items-center" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن">
-                                    <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نیشانەی ڕەفتارنەکردن
-                                </a>
-                            @else
+                            @elseif($transaction->isBookletIssue())
                                 <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن لە قۆناغی وردبینی">
                                     <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نیشانەی ڕەفتارنەکردن
-                                </a>
-                                <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-600/40 text-xs font-bold rounded-xl transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوەی دەفتەر">
-                                    <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نووسراوی پووچەڵکردنەوە
                                 </a>
                             @endif
 
@@ -1005,20 +1013,14 @@
 
                     <!-- If Audited, but before Payment: Auditor/Admin can Revert Audit or Return to Previous Step -->
                     @if($transaction->is_audited && !$transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->hasPermission('transactions.audit')))
-                        <!-- دوو نوسراوە ئیدارییەکە پاش پەسەندکردنی وردبینی (نیشانەی ڕەفتارنەکردن & نووسراوی پووچەڵکردنەوە) -->
+                        <!-- نوسراوی ئیداری پاش پەسەندکردنی وردبینی (تەنها بۆ ئەو جۆرەی کە پەیوەندیدارە) -->
                         @if($transaction->isCancellation())
                             <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوە">
                                 <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نووسراوی پووچەڵکردنەوە
                             </a>
-                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-600/40 text-xs font-bold rounded-xl transition flex items-center" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن">
-                                <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نیشانەی ڕەفتارنەکردن
-                            </a>
-                        @else
+                        @elseif($transaction->isBookletIssue())
                             <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن">
                                 <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نیشانەی ڕەفتارنەکردن
-                            </a>
-                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-600/40 text-xs font-bold rounded-xl transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوە">
-                                <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نووسراوی پووچەڵکردنەوە
                             </a>
                         @endif
 
@@ -2129,15 +2131,9 @@
                             <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نووسراوی پووچەڵکردنەوە">
                                 <i class="fa-solid fa-file-circle-xmark"></i> نووسراوی پووچەڵکردنەوە
                             </a>
-                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-600/40 text-xs font-bold rounded-xl transition flex items-center gap-1" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن">
-                                <i class="fa-solid fa-file-circle-exclamation"></i> نیشانەی ڕەفتارنەکردن
-                            </a>
-                        @else
+                        @elseif($transaction->isBookletIssue())
                             <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن">
                                 <i class="fa-solid fa-file-circle-exclamation"></i> نیشانەی ڕەفتارنەکردن
-                            </a>
-                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-rose-300 border border-rose-600/40 text-xs font-bold rounded-xl transition flex items-center gap-1" title="چاپی نووسراوی پووچەڵکردنەوە">
-                                <i class="fa-solid fa-file-circle-xmark"></i> نووسراوی پووچەڵکردنەوە
                             </a>
                         @endif
                     @endif
