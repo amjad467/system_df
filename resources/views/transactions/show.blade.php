@@ -115,6 +115,7 @@
     showSubmitModal: false,
     showAuditPromptModal: {{ session('audit_completed_prompt_letter') ? 'true' : 'false' }},
     showPaymentPromptModal: {{ session('payment_completed_prompt_receipt') ? 'true' : 'false' }},
+    showInspectionPromptModal: {{ session('inspection_completed_prompt_print') ? 'true' : 'false' }},
     mainReceipt: '',
     linkedReceipt: '',
     hasLinked: {{ ($linkedPledge && !$linkedPledge->is_paid) ? 'true' : 'false' }},
@@ -165,106 +166,127 @@
 
         <!-- Action Suite Toolbar -->
         <div class="flex items-center flex-nowrap sm:flex-wrap gap-1.5 justify-end">
-            <!-- 1. Dedicated Primary Print Action (Contextual) -->
+            <!-- 1. Dedicated Primary Contextual Actions -->
+            @if($transaction->is_inspected && (!$transaction->is_audited || auth()->user()->isAdmin()))
+                <a href="{{ route('transactions.print_receipt', ['transaction' => $transaction->id, 'mode' => 'both']) }}" target="_blank" 
+                   class="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-black rounded-xl shadow-lg shadow-teal-600/30 transition flex items-center gap-1.5 shrink-0" 
+                   title="چاپی پسولەی کەشف و خەمڵاندن">
+                    <i class="fa-solid fa-file-waveform text-xs"></i>
+                    <span>{{ $linkedPledge ? 'چاپی هەردوو کەشف (۲ پەڕە)' : 'چاپی کەشف و تەخمین' }}</span>
+                </a>
+            @endif
+
             @if($transaction->requiresBooklet() && (auth()->user()->isAdmin() || auth()->user()->role === 'booklet') && $transaction->is_paid && !empty($transaction->booklet_number) && (!$transaction->is_submitted || auth()->user()->isAdmin()))
                 <a href="{{ route('transactions.print_booklet', $transaction->id) }}" target="_blank" 
-                   class="px-3 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5 shrink-0" 
+                   class="px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5 shrink-0" 
                    title="چاپی دەفتەری گەشتیاری">
                     <i class="fa-solid fa-passport text-xs"></i>
                     <span>چاپی دەفتەر</span>
                 </a>
             @elseif(!$transaction->is_cancelled && $transaction->is_paid && (!$transaction->is_submitted || auth()->user()->isAdmin()) && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier'))
                 <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" 
-                   class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center gap-1.5 shrink-0" 
+                   class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center gap-1.5 shrink-0" 
                    title="چاپی وەسڵی فەرمی پارەدان">
                     <i class="fa-solid fa-receipt text-xs"></i>
                     <span>{{ ($linkedPledge && $linkedPledge->is_paid) ? 'چاپی هەردوو ۳۷/أ (۲ پەڕە)' : 'چاپی ۳۷/أ' }}</span>
                 </a>
             @elseif((!$transaction->is_submitted || auth()->user()->isAdmin()) && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
                 <a href="{{ route('transactions.print_data_entry', $transaction->id) }}" target="_blank" 
-                   class="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/30 transition flex items-center gap-1.5 shrink-0" 
+                   class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/30 transition flex items-center gap-1.5 shrink-0" 
                    title="چاپی فیشەی داتائەنتەری">
                     <i class="fa-solid fa-print text-xs"></i>
                     <span>چاپی فیشە</span>
                 </a>
             @endif
 
-            <!-- 2. Master Prints Dropdown -->
+            <!-- 2. Master Prints Dropdown (Never Closes Unexpectedly & Complete Options) -->
             <div class="relative" x-data="{ openPrintsMenu: false }">
-                <button type="button" @click="openPrintsMenu = !openPrintsMenu" 
-                        class="px-3 py-2 bg-slate-800 hover:bg-slate-755 text-indigo-300 hover:text-white border border-indigo-500/40 hover:border-indigo-500/70 text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 shrink-0">
+                <button type="button" @click.stop="openPrintsMenu = !openPrintsMenu" 
+                        class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-indigo-300 hover:text-white border border-indigo-500/40 hover:border-indigo-500/70 text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 shrink-0">
                     <i class="fa-solid fa-print text-indigo-400 text-xs"></i>
                     <span>چاپەکان</span>
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openPrintsMenu ? 'rotate-180' : ''"></i>
                 </button>
 
-                <div x-show="openPrintsMenu" @click.away="openPrintsMenu = false" x-cloak 
+                <div x-show="openPrintsMenu" x-on:click.outside="openPrintsMenu = false" x-cloak 
                      x-transition:enter="transition ease-out duration-150"
                      x-transition:enter-start="opacity-0 scale-95"
                      x-transition:enter-end="opacity-100 scale-100"
-                     class="absolute left-0 mt-2 w-72 sm:w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 space-y-2 text-xs text-right">
+                     class="absolute left-0 top-full mt-2 w-72 sm:w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2.5 z-[100] space-y-2 text-xs text-right ring-1 ring-white/10">
                     
-                    <!-- قۆناغی سەرەتایی و پشکنین -->
+                    <!-- قۆناغی سەرەتایی، کەشف و یاسایی -->
                     <div class="space-y-1">
                         <span class="text-[10px] font-bold text-slate-400 px-2 block">فیشە، کەشف و یاسایی:</span>
-                        @if((!$transaction->is_submitted || auth()->user()->isAdmin()) && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
-                            <a href="{{ route('transactions.print_data_entry', $transaction->id) }}" target="_blank" 
-                               class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-slate-200 hover:bg-slate-800 hover:text-white transition">
-                                <i class="fa-solid fa-file-invoice text-sky-400 w-4 text-center"></i>
-                                <span>فیشەی داتائەنتەری (بەدواداچوون)</span>
-                            </a>
-                        @endif
+                        <a href="{{ route('transactions.print_data_entry', $transaction->id) }}" target="_blank" 
+                           class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-200 hover:bg-slate-800 hover:text-white transition">
+                            <i class="fa-solid fa-file-invoice text-sky-400 w-4 text-center"></i>
+                            <span>فیشەی داتائەنتەری (بەدواداچوون)</span>
+                        </a>
 
-                        @if((!$transaction->is_submitted || auth()->user()->isAdmin()) && (auth()->user()->isAdmin() || auth()->user()->role === 'inspector'))
-                            @if($transaction->is_inspected && (!$transaction->is_audited || auth()->user()->isAdmin()))
-                                <a href="{{ route('transactions.print_receipt', $transaction->id) }}" target="_blank" 
-                                   class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-slate-200 hover:bg-slate-800 hover:text-white transition">
+                        @if($transaction->is_inspected)
+                            @if($linkedPledge)
+                                <a href="{{ route('transactions.print_receipt', ['transaction' => $transaction->id, 'mode' => 'both']) }}" target="_blank" 
+                                   class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-teal-300 font-bold hover:bg-slate-800 hover:text-white transition">
                                     <i class="fa-solid fa-file-waveform text-teal-400 w-4 text-center"></i>
-                                    <span>پسولەی کەشف و خەمڵاندن</span>
+                                    <span>چاپی هەردوو کەشف (دەرهێنان + بەڵێننامە - ۲ پەڕە)</span>
+                                </a>
+                                <a href="{{ route('transactions.print_receipt', ['transaction' => $transaction->id, 'mode' => 'main']) }}" target="_blank" 
+                                   class="flex items-center gap-2.5 px-2.5 py-1 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition text-[11px] pr-6">
+                                    <i class="fa-solid fa-angle-left text-slate-500"></i>
+                                    <span>تەنها کەشفی دەرهێنان (۱ پەڕە)</span>
+                                </a>
+                                <a href="{{ route('transactions.print_receipt', ['transaction' => $transaction->id, 'mode' => 'pledge']) }}" target="_blank" 
+                                   class="flex items-center gap-2.5 px-2.5 py-1 rounded-xl text-amber-300 hover:bg-slate-800 hover:text-white transition text-[11px] pr-6">
+                                    <i class="fa-solid fa-angle-left text-amber-500"></i>
+                                    <span>تەنها کەشفی بەڵێننامە (۱ پەڕە)</span>
+                                </a>
+                            @else
+                                <a href="{{ route('transactions.print_receipt', $transaction->id) }}" target="_blank" 
+                                   class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-teal-300 hover:bg-slate-800 hover:text-white transition">
+                                    <i class="fa-solid fa-file-waveform text-teal-400 w-4 text-center"></i>
+                                    <span>پسولەی کەشف و خەمڵاندن (A4 Landscape)</span>
                                 </a>
                             @endif
                         @endif
 
-                        @if(!$transaction->is_cancelled && (auth()->user()->isAdmin() || auth()->user()->isLegal()))
+                        @if(!$transaction->is_cancelled && ($typeId === 1 || $typeId === 6 || $linkedPledge))
                             <a href="{{ route('transactions.print_pledge', $transaction->id) }}" target="_blank" 
-                               class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-slate-200 hover:bg-slate-800 hover:text-white transition">
+                               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-amber-300 hover:bg-slate-800 hover:text-white transition">
                                 <i class="fa-solid fa-file-contract text-amber-400 w-4 text-center"></i>
                                 <span>چاپی بەڵێننامەی یاسایی</span>
                             </a>
                         @endif
                     </div>
 
-                    <!-- قۆناغی دارایی و پشکنین (خاڵی ۸: بەردەستبوونی نووسراوی پشکنین لە پارەدان و ئەرشیف) -->
-                    @if(!$transaction->is_cancelled && $transaction->is_paid && (!$transaction->is_submitted || auth()->user()->isAdmin() || auth()->user()->role === 'archiver') && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier' || auth()->user()->role === 'archiver'))
+                    <!-- قۆناغی دارایی و وەسڵ -->
+                    @if(!$transaction->is_cancelled && $transaction->is_paid)
                         <div class="space-y-1 pt-1.5 border-t border-slate-800">
-                            <span class="text-[10px] font-bold text-slate-400 px-2 block">دارایی و پشکنین:</span>
-                            @if(auth()->user()->isAdmin() || auth()->user()->role === 'cashier')
-                                @if($linkedPledge && $linkedPledge->is_paid)
-                                    <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" 
-                                       class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-emerald-300 font-bold hover:bg-slate-800 hover:text-white transition">
-                                        <i class="fa-solid fa-receipt text-emerald-400 w-4 text-center"></i>
-                                        <span>چاپی هەردوو پسوولەی ۳۷/أ (۲ پەڕە)</span>
-                                    </a>
-                                    <a href="{{ route('transactions.print_payment_receipt', [$transaction->id, 'mode' => 'main']) }}" target="_blank" 
-                                       class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition text-[11px] pr-6">
-                                        <i class="fa-solid fa-angle-left text-slate-500"></i>
-                                        <span>تەنها وەسڵی دەرهێنان ({{ $transaction->receipt_37a_number }})</span>
-                                    </a>
-                                    <a href="{{ route('transactions.print_payment_receipt', [$transaction->id, 'mode' => 'pledge']) }}" target="_blank" 
-                                       class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-amber-300 hover:bg-slate-800 hover:text-white transition text-[11px] pr-6">
-                                        <i class="fa-solid fa-angle-left text-amber-500"></i>
-                                        <span>تەنها وەسڵی بەڵێننامە ({{ $linkedPledge->receipt_37a_number }})</span>
-                                    </a>
-                                @else
-                                    <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" 
-                                       class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-emerald-300 hover:bg-slate-800 hover:text-white transition">
-                                        <i class="fa-solid fa-receipt text-emerald-400 w-4 text-center"></i>
-                                        <span>پسوولەی پارەدان (۳۷/أ)</span>
-                                    </a>
-                                @endif
+                            <span class="text-[10px] font-bold text-slate-400 px-2 block">دارایی و وەسڵ:</span>
+                            @if($linkedPledge && $linkedPledge->is_paid)
+                                <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" 
+                                   class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-emerald-300 font-bold hover:bg-slate-800 hover:text-white transition">
+                                    <i class="fa-solid fa-receipt text-emerald-400 w-4 text-center"></i>
+                                    <span>چاپی هەردوو پسوولەی ۳۷/أ (۲ پەڕە)</span>
+                                </a>
+                                <a href="{{ route('transactions.print_payment_receipt', [$transaction->id, 'mode' => 'main']) }}" target="_blank" 
+                                   class="flex items-center gap-2.5 px-2.5 py-1 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition text-[11px] pr-6">
+                                    <i class="fa-solid fa-angle-left text-slate-500"></i>
+                                    <span>تەنها وەسڵی دەرهێنان ({{ $transaction->receipt_37a_number }})</span>
+                                </a>
+                                <a href="{{ route('transactions.print_payment_receipt', [$transaction->id, 'mode' => 'pledge']) }}" target="_blank" 
+                                   class="flex items-center gap-2.5 px-2.5 py-1 rounded-xl text-amber-300 hover:bg-slate-800 hover:text-white transition text-[11px] pr-6">
+                                    <i class="fa-solid fa-angle-left text-amber-500"></i>
+                                    <span>تەنها وەسڵی بەڵێننامە ({{ $linkedPledge->receipt_37a_number }})</span>
+                                </a>
+                            @else
+                                <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" 
+                                   class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-emerald-300 hover:bg-slate-800 hover:text-white transition">
+                                    <i class="fa-solid fa-receipt text-emerald-400 w-4 text-center"></i>
+                                    <span>پسوولەی پارەدان (۳۷/أ)</span>
+                                </a>
                             @endif
                             <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" 
-                               class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sky-300 hover:bg-slate-800 hover:text-white transition">
+                               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-sky-300 hover:bg-slate-800 hover:text-white transition">
                                 <i class="fa-solid fa-file-circle-check text-sky-400 w-4 text-center"></i>
                                 <span>نووسراوی پشکنین</span>
                             </a>
@@ -274,22 +296,22 @@
                     <!-- دەفتەر و نوسراوە فەرمییەکان -->
                     <div class="space-y-1 pt-1.5 border-t border-slate-800">
                         <span class="text-[10px] font-bold text-slate-400 px-2 block">دەفتەر و نوسراوە فەرمییەکان:</span>
-                        @if($transaction->requiresBooklet() && (auth()->user()->isAdmin() || auth()->user()->role === 'booklet') && $transaction->is_paid && !empty($transaction->booklet_number))
+                        @if($transaction->booklet_number)
                             <a href="{{ route('transactions.print_booklet', $transaction->id) }}" target="_blank" 
-                               class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-indigo-300 font-bold hover:bg-indigo-600 hover:text-white transition">
+                               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-indigo-300 font-bold hover:bg-indigo-600 hover:text-white transition">
                                 <i class="fa-solid fa-passport text-indigo-400 w-4 text-center"></i>
                                 <span>چاپی دەفتەر ({{ $transaction->booklet_number }})</span>
                             </a>
                         @endif
 
-                        @if(!$transaction->is_cancelled && (!$transaction->is_submitted || auth()->user()->isAdmin()) && (auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->role === 'booklet' || auth()->user()->hasPermission('transactions.audit')) && ($transaction->is_inspected || $transaction->is_audited || $transaction->is_paid))
+                        @if(!$transaction->is_cancelled)
                             <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" 
-                               class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-amber-300 hover:bg-slate-800 hover:text-white transition">
+                               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-amber-300 hover:bg-slate-800 hover:text-white transition">
                                 <i class="fa-solid fa-file-circle-exclamation text-amber-400 w-4 text-center"></i>
                                 <span>نیشانەی ڕەفتارنەکردن</span>
                             </a>
                             <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" 
-                               class="flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-rose-300 hover:bg-slate-800 hover:text-white transition">
+                               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-rose-300 hover:bg-slate-800 hover:text-white transition">
                                 <i class="fa-solid fa-file-circle-xmark text-rose-400 w-4 text-center"></i>
                                 <span>نووسراوی پووچەڵکردنەوە</span>
                             </a>
@@ -707,56 +729,6 @@
         </div>
     @endif
 
-    <!-- Lock Warning Banner for Data Entry -->
-    @if(!$transaction->canBeEditedByDataEntry() && !$transaction->is_cancelled)
-        <div class="bg-slate-800/90 border border-amber-500/40 rounded-2xl p-4 shadow-xl flex items-center justify-between">
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                    <i class="fa-solid fa-lock text-lg"></i>
-                </div>
-                <div class="text-xs">
-                    <h4 class="font-bold text-slate-100">دەستکاریکردنی ئەم مامەڵەیە قوفڵ کراوە!</h4>
-                    <p class="text-slate-400">
-                        چونکە قۆناغی 
-                        <strong class="text-amber-300 font-bold">
-                            @if($transaction->is_submitted) سەبمیت و ئەرشیف (Step 6)
-                            @elseif($transaction->is_booklet_completed) چاپکردنی دەفتەر (Step 5)
-                            @elseif($transaction->is_paid) وەسڵ و پارەدان (Step 4)
-                            @elseif($transaction->is_audited) وردبینی (Step 3)
-                            @else کەشف و تەخمین (Step 2)
-                            @endif
-                        </strong>
-                        ی بۆ ئەنجامدراوە. تەنها ئەدمین دەتوانێت قۆناغەکەی ڕێکبخاتەوە (Reset) تا ڕێگە بە دەستکاری بدات.
-                    </p>
-                </div>
-            </div>
-            <span class="px-3 py-1 bg-amber-500/20 text-amber-300 font-bold rounded-lg border border-amber-500/30">
-                لە قۆناغی: 
-                @if($transaction->is_submitted) سەبمیت کراو
-                @elseif($transaction->is_booklet_completed) دەفتەری تەواوکراو
-                @elseif($transaction->is_paid) پارەدراو
-                @elseif($transaction->is_audited) وردبینی‌کراو
-                @else کەشف‌کراو
-                @endif
-            </span>
-        </div>
-    @endif
-
-    <!-- Specific Warning Box for Auditor if Estimation is Not Done Yet -->
-    @if(!$transaction->is_inspected && !$transaction->is_cancelled)
-        <div class="bg-amber-950/80 border-2 border-amber-500/80 rounded-2xl p-4 shadow-2xl flex items-start space-x-3 space-x-reverse">
-            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-2xl mt-0.5"></i>
-            <div class="space-y-1">
-                <h4 class="text-sm font-extrabold text-amber-200">
-                    کاری تەخمین ئەنجام بدە دواتر وەرە وردبینی
-                </h4>
-                <p class="text-xs text-amber-300 leading-relaxed font-bold">
-                    ئەم مامەڵەیە تائێستا کەشف و تەخمینی بۆ نەکراوە! کارمەندی وردبین ناتوانێت ستێپی تەخمین تێپەڕێنێت بۆ بەشی وردبینی تا کاتێک کارمەندی تەخمین کەشفەکە پەسەند نەکات.
-                </p>
-            </div>
-        </div>
-    @endif
-
     <!-- Workflow Progress Stepper Pipeline -->
     @php
         $requiresBooklet = $transaction->requiresBooklet();
@@ -788,24 +760,23 @@
     @endphp
 
     <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 backdrop-blur-sm">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3.5">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
             <div class="flex items-center gap-2.5">
                 <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white text-sm shadow">
                     <i class="fa-solid fa-diagram-project"></i>
                 </div>
                 <div>
                     <h3 class="text-sm font-black text-white flex items-center gap-2 flex-wrap">
-                        <span>قۆناغ و ستێپەکانی کارکردنی مامەڵە (Workflow Stepper)</span>
+                        <span>قۆناغەکانی کارکردنی مامەڵە</span>
                         <span class="text-xs font-black px-2.5 py-0.5 rounded-lg border {{ $typeTheme['pill'] ?? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30' }} inline-flex items-center gap-1">
                             <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-folder-open text-indigo-400' }} text-[10px]"></i>
                             <span>{{ $typeName }}</span>
                         </span>
                     </h3>
-                    <p class="text-[11px] text-slate-400">بەدواداچوونی ڕاستەوخۆ بۆ هەنگاوەکانی تەواوبوونی مامەڵە.</p>
                 </div>
             </div>
 
-            <!-- دۆخی قۆناغی ئێستا بە ڕوونی -->
+            <!-- دۆخی قۆناغی ئێستا بە پوختی -->
             <div>
                 @if($isCancelled)
                     <span class="px-3 py-1.5 rounded-xl text-xs font-black bg-rose-500/15 text-rose-300 border border-rose-500/30 flex items-center gap-1.5">
@@ -1552,6 +1523,70 @@
 
             <div class="flex justify-end pt-2 border-t border-slate-700/60">
                 <button type="button" @click="showPaymentPromptModal = false" class="px-5 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition">
+                    داخستن
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Prompt Inspection Print after Estimation Approval -->
+    <div x-show="showInspectionPromptModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-teal-500/50 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                <h3 class="text-base font-black text-white flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center">
+                        <i class="fa-solid fa-file-waveform"></i>
+                    </span>
+                    <span>چاپی پسوولەی کەشف و خەمڵاندن (تەخمین)</span>
+                </h3>
+                <button type="button" @click="showInspectionPromptModal = false" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-3 bg-teal-950/40 border border-teal-500/30 rounded-xl text-teal-200 text-xs font-bold leading-relaxed">
+                کەشف و تەخمین بە سەرکەوتوویی پەسەندکرا. دەتوانیت ڕاستەوخۆ پسوولەی کەشف چاپ بکەیت:
+            </div>
+
+            <div class="space-y-2 pt-1">
+                @if($linkedPledge)
+                    <a href="{{ route('transactions.print_receipt', ['transaction' => $transaction->id, 'mode' => 'both']) }}" target="_blank"
+                       @click="showInspectionPromptModal = false"
+                       class="w-full px-4 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i class="fa-solid fa-print text-base"></i>
+                            <span>چاپی هەردوو پەڕەی کەشف (۲ پەڕەی جیا - دەرهێنان + بەڵێننامە)</span>
+                        </span>
+                        <span class="px-2 py-0.5 rounded bg-black/30 text-[11px] font-mono">۲ پەڕە</span>
+                    </a>
+
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <a href="{{ route('transactions.print_receipt', ['transaction' => $transaction->id, 'mode' => 'main']) }}" target="_blank"
+                           @click="showInspectionPromptModal = false"
+                           class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold rounded-xl border border-slate-700 transition text-center">
+                            تەنها کەشفی {{ $typeName }}
+                        </a>
+                        <a href="{{ route('transactions.print_receipt', ['transaction' => $transaction->id, 'mode' => 'pledge']) }}" target="_blank"
+                           @click="showInspectionPromptModal = false"
+                           class="px-3 py-2 bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 text-[11px] font-bold rounded-xl border border-amber-600/40 transition text-center">
+                            تەنها کەشفی بەڵێننامە
+                        </a>
+                    </div>
+                @else
+                    <a href="{{ route('transactions.print_receipt', ['transaction' => $transaction->id, 'mode' => 'both']) }}" target="_blank"
+                       @click="showInspectionPromptModal = false"
+                       class="w-full px-4 py-3 bg-teal-600 hover:bg-teal-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i class="fa-solid fa-print text-base"></i>
+                            <span>چاپی پسوولەی کەشف و تەخمین</span>
+                        </span>
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </a>
+                @endif
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-700/60">
+                <button type="button" @click="showInspectionPromptModal = false" class="px-5 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition">
                     داخستن
                 </button>
             </div>

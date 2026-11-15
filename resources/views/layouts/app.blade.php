@@ -877,6 +877,8 @@
                                 $userHelp = 'تێپەڕەوشە (Password) ی داتابەیسەکە هەڵەیە! تکایە لە Supabase تێپەڕەوشەی نوێ ڕێکبخەرەوە.';
                             } elseif (str_contains($errText, 'no tenant identifier') || str_contains($errText, 'tenant not found')) {
                                 $userHelp = 'پێویستە ناوی بەکارهێنەر postgres.sdlduahwpqjzdkfslthg بێت.';
+                            } elseif (str_contains($errText, 'sslmode=require')) {
+                                $userHelp = 'هەڵەی ناوی داتابەیس (sslmode) بە خۆکاری چارەسەر کرا و ناوی postgres بەکاردێت.';
                             } elseif (str_contains($errText, 'timeout')) {
                                 $userHelp = 'پۆرتەکە کاتی بەسەرچوو (Timeout)؛ پۆرت 6543 تاقی دەکرێتەوە.';
                             }

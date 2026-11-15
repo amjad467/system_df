@@ -900,7 +900,9 @@ class TransactionController extends Controller
             route('transactions.show', $transaction->id)
         );
 
-        return redirect()->back()->with('success', 'کەشف و تەخمین بە سەرکەوتوویی پەسەندکرا. قۆناغی دەستکاریکردن قوفڵ بوو.');
+        session()->flash('inspection_completed_prompt_print', true);
+
+        return redirect()->back()->with('success', 'کەشف و تەخمین بە سەرکەوتوویی پەسەندکرا.');
     }
 
     public function revertInspection(Transaction $transaction)
@@ -1544,7 +1546,7 @@ class TransactionController extends Controller
         return redirect()->back()->with('success', 'مامەڵەکە بە سەرکەوتوویی پووچەڵکرایەوە.');
     }
 
-    public function printReceipt(Transaction $transaction)
+    public function printReceipt(Request $request, Transaction $transaction)
     {
         if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
             return redirect()->route('transactions.show', $transaction->id)
@@ -1568,8 +1570,15 @@ class TransactionController extends Controller
             return redirect()->back()->with('error', 'وردبینی بۆ ئەم مامەڵەیە ئەنجامدراوە. فەرمانبەری تەخمین ناتوانێت دوای وردبینی پسولەی کەشف چاپ بکات.');
         }
 
+        $mode = $request->query('mode', 'both'); // 'both', 'main', 'pledge'
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor']);
-        return view('transactions.print_receipt', compact('transaction'));
+
+        $linkedPledge = $transaction->getLinkedPledgeOrParent();
+        if ($linkedPledge) {
+            $linkedPledge->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor']);
+        }
+
+        return view('transactions.print_receipt', compact('transaction', 'linkedPledge', 'mode'));
     }
 
     public function printDataEntry(Transaction $transaction)

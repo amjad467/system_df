@@ -18,8 +18,8 @@ touch /var/www/database/database.sqlite
 # 3. Ensure full permissions
 chmod -R 777 /var/www/database /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
 
-# 4. Check database connectivity (Auto-detect Supabase pooler or use ultra-fast local SQLite)
-PAUSE_SUPABASE=${PAUSE_SUPABASE:-true}
+# 4. Check database connectivity (Auto-detect Supabase pooler or fallback to SQLite)
+PAUSE_SUPABASE=${PAUSE_SUPABASE:-false}
 
 if [ "$PAUSE_SUPABASE" = "true" ] || [ "$PAUSE_SUPABASE" = "1" ] || [ "$USE_SQLITE" = "true" ]; then
     echo "=== SUPABASE IS TEMPORARILY PAUSED PER USER REQUEST (RUNNING ULTRA-FAST LOCAL SQLITE) ==="
@@ -66,14 +66,25 @@ else
             $pass = urldecode($m[2]);
             $host = $m[3];
             $port = !empty($m[4]) ? (int)$m[4] : 5432;
-            $db   = !empty($m[5]) ? explode("?", $m[5])[0] : "postgres";
+            $rawDb = !empty($m[5]) ? explode("?", $m[5])[0] : "";
+            $db   = (!empty($rawDb) && !str_contains($rawDb, "sslmode")) ? $rawDb : "postgres";
         } elseif ($p = parse_url($dbUrl)) {
             $host = $p["host"] ?? $host;
             $port = $p["port"] ?? $port;
             $user = isset($p["user"]) ? urldecode($p["user"]) : $user;
             $pass = isset($p["pass"]) ? urldecode($p["pass"]) : $pass;
-            $db   = isset($p["path"]) ? ltrim(explode("?", $p["path"])[0], "/") : $db;
+            $rawDb = isset($p["path"]) ? ltrim(explode("?", $p["path"])[0], "/") : "";
+            $db   = (!empty($rawDb) && !str_contains($rawDb, "sslmode")) ? $rawDb : "postgres";
         }
+    }
+
+    if (empty($db) || str_contains($db, "sslmode")) {
+        $db = "postgres";
+    }
+
+    // Auto-fix truncated Supabase project ref if present
+    if (str_starts_with($user, "postgres.sdlduahwpqjzdkfsl") && $user !== "postgres.sdlduahwpqjzdkfslthg") {
+        $user = "postgres.sdlduahwpqjzdkfslthg";
     }
 
     // Detect Supabase project reference if available
@@ -129,8 +140,8 @@ else
         $cU = $cand["user"];
         $cP = $cand["port"];
         $cPass = $cand["pass"];
-        $cDb = (!empty($cand["db"]) && $cand["db"] !== "sslmode=require") ? $cand["db"] : "postgres";
-        $cSSL = !empty($cand["ssl"]) ? $cand["ssl"] : "sslmode=require";
+        $cDb = (!empty($cand["db"]) && !str_contains($cand["db"], "sslmode")) ? $cand["db"] : "postgres";
+        $cSSL = "sslmode=require";
 
         for ($attempt = 1; $attempt <= 2; $attempt++) {
             try {
