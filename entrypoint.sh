@@ -18,10 +18,38 @@ touch /var/www/database/database.sqlite
 # 3. Ensure full permissions
 chmod -R 777 /var/www/database /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
 
-# 4. Check database connectivity (Auto-detect Supabase pooler & fallback to SQLite if PostgreSQL fails)
-rm -f /tmp/pg_env.sh
+# 4. Check database connectivity (Auto-detect Supabase pooler or use ultra-fast local SQLite)
+PAUSE_SUPABASE=${PAUSE_SUPABASE:-true}
 
-DB_CHECK_RESULT=$(php -r '
+if [ "$PAUSE_SUPABASE" = "true" ] || [ "$PAUSE_SUPABASE" = "1" ] || [ "$USE_SQLITE" = "true" ]; then
+    echo "=== SUPABASE IS TEMPORARILY PAUSED PER USER REQUEST (RUNNING ULTRA-FAST LOCAL SQLITE) ==="
+    export DB_CONNECTION=sqlite
+    export DB_DATABASE=/var/www/database/database.sqlite
+    unset DATABASE_URL
+    unset DB_URL
+    unset DB_HOST
+    unset DB_PORT
+    unset DB_USERNAME
+    unset DB_PASSWORD
+    if [ -f /var/www/.env ]; then
+        sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' /var/www/.env 2>/dev/null || true
+        sed -i 's/^DATABASE_URL=/#DATABASE_URL=/' /var/www/.env 2>/dev/null || true
+        sed -i 's/^DB_URL=/#DB_URL=/' /var/www/.env 2>/dev/null || true
+        sed -i 's/^DB_HOST=/#DB_HOST=/' /var/www/.env 2>/dev/null || true
+    fi
+    mkdir -p /var/www/storage/app 2>/dev/null || true
+    cat <<EOF > /var/www/storage/app/db_status.json
+{
+    "status": "LOCAL_SQLITE_PAUSED",
+    "mode": "FAST_LOCAL_SQLITE",
+    "message": "Supabase بە کاتی ڕاگیراوە لەسەر داوای بەکارهێنەر بۆ خێرایی باڵا",
+    "time": "$(date +"%Y-%m-%d %H:%M:%S")"
+}
+EOF
+else
+    rm -f /tmp/pg_env.sh
+
+    DB_CHECK_RESULT=$(php -r '
     $conn = getenv("DB_CONNECTION");
     $dbUrl = getenv("DATABASE_URL") ?: getenv("DB_URL");
     $host = getenv("DB_HOST");
@@ -180,11 +208,12 @@ else
     unset DB_PORT
     unset DB_USERNAME
     unset DB_PASSWORD
-    if [ -f /var/www/.env ]; then
-        sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' /var/www/.env 2>/dev/null || true
-        sed -i 's/^DATABASE_URL=/#DATABASE_URL=/' /var/www/.env 2>/dev/null || true
-        sed -i 's/^DB_URL=/#DB_URL=/' /var/www/.env 2>/dev/null || true
-        sed -i 's/^DB_HOST=/#DB_HOST=/' /var/www/.env 2>/dev/null || true
+        if [ -f /var/www/.env ]; then
+            sed -i 's/^DB_CONNECTION=.*/DB_CONNECTION=sqlite/' /var/www/.env 2>/dev/null || true
+            sed -i 's/^DATABASE_URL=/#DATABASE_URL=/' /var/www/.env 2>/dev/null || true
+            sed -i 's/^DB_URL=/#DB_URL=/' /var/www/.env 2>/dev/null || true
+            sed -i 's/^DB_HOST=/#DB_HOST=/' /var/www/.env 2>/dev/null || true
+        fi
     fi
 fi
 

@@ -859,6 +859,11 @@
                         <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
                         <span>🟢 کلاود: Supabase PostgreSQL (هەمیشەیی)</span>
                     </div>
+                @elseif($dbStatus && ($dbStatus['status'] ?? '') === 'LOCAL_SQLITE_PAUSED')
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-950/90 border border-sky-500/60 text-sky-300 text-[10px] font-mono font-bold shadow-2xl backdrop-blur-md" title="سیستەم لەسەر داتابەیسی لۆکاڵی زۆر خێرا (SQLite) کار دەکات. پەیوەندی بە Supabase بە کاتی ڕاگیراوە بۆ خێرایی باڵا.">
+                        <span class="w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse"></span>
+                        <span>⚡ دۆخی زۆر خێرا: داتابەیسی لۆکاڵ (Supabase ڕاگیراوە)</span>
+                    </div>
                 @else
                     <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-950/95 border border-amber-500/60 text-amber-300 text-[10px] font-mono font-bold shadow-2xl backdrop-blur-md" title="سیستەم ئێستا لەسەر SQLite ی کاتی کار دەکات. تکایە DATABASE_URL ی ڕێندەر پڕبکەرەوە بە ناونیشانی Pooler ی Supabase بۆ ئەوەی داتاکانت بپارێزرێن.">
                         <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
