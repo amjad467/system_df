@@ -70,4 +70,24 @@ class NotificationService
             }
         })->where('is_read', false)->update(['is_read' => true]);
     }
+
+    /**
+     * Mark return / error notifications as read when transaction is fixed or reinspected
+     */
+    public static function clearReturnNotificationsForTransaction(int $transactionId, ?int $linkedId = null): void
+    {
+        $ids = array_filter([$transactionId, $linkedId]);
+        Notification::where(function ($q) use ($ids) {
+            foreach ($ids as $id) {
+                $q->orWhere('link', 'like', "%/transactions/{$id}%");
+            }
+        })->where('is_read', false)
+          ->where(function ($q) {
+              $q->where('title', 'like', '%گەڕێنراوەتەوە%')
+                ->orWhere('title', 'like', '%هەڵوەشاندنەوە%')
+                ->orWhere('title', 'like', '%هەڵە%');
+          })->update(['is_read' => true]);
+
+        \Illuminate\Support\Facades\Cache::flush();
+    }
 }

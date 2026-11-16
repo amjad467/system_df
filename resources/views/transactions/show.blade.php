@@ -1442,23 +1442,13 @@
 
             <div class="space-y-2.5">
                 @if((int)$transaction->transaction_type_id === 1)
-                    <!-- دەرهێنانی دەفتەر: نووسراوی پشکنین و نووسراوی ڕێگەپێدان -->
-                    <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank"
-                       @click="showAuditPromptModal = false"
-                       class="w-full px-4 py-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-between">
-                        <span class="flex items-center gap-2">
-                            <i class="fa-solid fa-file-circle-check text-base"></i>
-                            <span>چاپی نووسراوی پشکنین (فەحسی ئۆتۆمبێل)</span>
-                        </span>
-                        <i class="fa-solid fa-arrow-left"></i>
-                    </a>
-
+                    <!-- دەرهێنانی دەفتەر: تەنها نووسراوی ئاگادارکردنەوە / نیشانەی ڕەفتارنەکردن (ڕێگەپێدان) -->
                     <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank"
                        @click="showAuditPromptModal = false"
                        class="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-between">
                         <span class="flex items-center gap-2">
                             <i class="fa-solid fa-file-shield text-base"></i>
-                            <span>چاپی نووسراوی ئاگادارکردنەوە (ڕێگەپێدان)</span>
+                            <span>چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن (ڕێگەپێدان)</span>
                         </span>
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>

@@ -99,6 +99,9 @@
             line-height: 1.25;
             white-space: nowrap;
             user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            touch-action: none;
             padding: 1.5px 5px;
             border-radius: 4px;
             cursor: grab;
@@ -1329,10 +1332,6 @@
             selectedField = field;
             field.classList.add('selected-field');
 
-            if (leftSidebarCollapsed) {
-                toggleLeftSidebar(true);
-            }
-
             document.getElementById('noFieldSelectedNotice')?.classList.add('hidden');
             document.getElementById('fieldInspectorControls')?.classList.remove('hidden');
 
@@ -1356,10 +1355,14 @@
             document.getElementById('inspFontSizeDisplay').textContent = `${currentFs}px`;
             document.getElementById('inspFontSizeSlider').value = currentFs;
 
+            const listEl = document.getElementById('calibratedFieldsList');
             document.querySelectorAll('.field-list-item').forEach(item => {
                 if (item.getAttribute('data-fid') === fid) {
                     item.classList.add('bg-indigo-600/30', 'border-indigo-500', 'text-white');
-                    item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    if (listEl) {
+                        const itemTop = item.offsetTop - listEl.offsetTop;
+                        listEl.scrollTop = Math.max(0, itemTop - 40);
+                    }
                 } else {
                     item.classList.remove('bg-indigo-600/30', 'border-indigo-500', 'text-white');
                 }
@@ -1447,17 +1450,22 @@
         function dpadNudge(dx, dy) {
             if (!selectedField) return;
             const top = parseFloat(selectedField.style.top) || 0;
-            selectedField.style.top = `${(top + (dy * nudgeStep)).toFixed(1)}mm`;
+            const newTop = (top + (dy * nudgeStep)).toFixed(1);
+            selectedField.style.top = `${newTop}mm`;
+            document.getElementById('inspFieldTopInput').value = newTop;
 
             if (selectedField.style.left) {
                 const left = parseFloat(selectedField.style.left) || 0;
-                selectedField.style.left = `${(left + (dx * nudgeStep)).toFixed(1)}mm`;
+                const newLeft = (left + (dx * nudgeStep)).toFixed(1);
+                selectedField.style.left = `${newLeft}mm`;
+                document.getElementById('inspFieldHorizInput').value = newLeft;
             } else {
                 const right = parseFloat(selectedField.style.right) || 0;
-                selectedField.style.right = `${(right - (dx * nudgeStep)).toFixed(1)}mm`;
+                const newRight = (right - (dx * nudgeStep)).toFixed(1);
+                selectedField.style.right = `${newRight}mm`;
+                document.getElementById('inspFieldHorizInput').value = newRight;
             }
 
-            selectField(selectedField);
             recordFieldPosition(selectedField);
             updateFieldListItemBadge(selectedField);
         }
@@ -1585,21 +1593,32 @@
                 });
 
                 field.addEventListener('mousedown', (e) => {
-                    isDragging = true;
+                    e.preventDefault();
+                    e.stopPropagation();
                     selectField(field);
+
                     startX = e.clientX;
                     startY = e.clientY;
                     origTop = parseFloat(field.style.top) || 0;
                     origLeft = field.style.left ? parseFloat(field.style.left) : null;
                     origRight = field.style.right ? parseFloat(field.style.right) : null;
-
-                    if (tooltip) tooltip.style.display = 'block';
+                    let hasExceededThreshold = false;
 
                     function onMouseMove(moveEvent) {
-                        if (!isDragging) return;
+                        moveEvent.preventDefault();
+                        const rawDx = moveEvent.clientX - startX;
+                        const rawDy = moveEvent.clientY - startY;
+
+                        if (!hasExceededThreshold) {
+                            if (Math.hypot(rawDx, rawDy) < 3) return;
+                            hasExceededThreshold = true;
+                            isDragging = true;
+                            if (tooltip) tooltip.style.display = 'block';
+                        }
+
                         // 1mm = ~3.7795px at 96 DPI
-                        const dx = (moveEvent.clientX - startX) / 3.7795;
-                        const dy = (moveEvent.clientY - startY) / 3.7795;
+                        const dx = rawDx / 3.7795;
+                        const dy = rawDy / 3.7795;
 
                         const newTop = (origTop + dy).toFixed(1);
                         field.style.top = `${newTop}mm`;
@@ -1625,19 +1644,21 @@
                         }
                     }
 
-                    function onMouseUp() {
+                    function onMouseUp(upEvent) {
+                        upEvent.preventDefault();
+                        window.removeEventListener('mousemove', onMouseMove);
+                        window.removeEventListener('mouseup', onMouseUp);
+
                         if (isDragging) {
                             isDragging = false;
                             if (tooltip) tooltip.style.display = 'none';
                             recordFieldPosition(field);
                             updateFieldListItemBadge(field);
-                            window.removeEventListener('mousemove', onMouseMove);
-                            window.removeEventListener('mouseup', onMouseUp);
                         }
                     }
 
-                    window.addEventListener('mousemove', onMouseMove);
-                    window.addEventListener('mouseup', onMouseUp);
+                    window.addEventListener('mousemove', onMouseMove, { passive: false });
+                    window.addEventListener('mouseup', onMouseUp, { passive: false });
                 });
             });
 

@@ -789,6 +789,9 @@ class TransactionController extends Controller
 
         AuditLogger::log('دەستکاریکردنی زانیاری مامەڵە', Transaction::class, $transaction->id, "بارکۆد: {$transaction->barcode}");
 
+        // Clear return notifications when fixed (خاڵی ۲)
+        NotificationService::clearReturnNotificationsForTransaction($transaction->id, $linkedPledge?->id);
+
         session()->flash('data_entry_completed_prompt_print', true);
 
         $successMsg = 'زانیاری مامەڵەکە بە سەرکەوتوویی دەستکاری کرا و ڕاستکرایەوە.';
@@ -819,6 +822,23 @@ class TransactionController extends Controller
             'audited_by' => null,
             'audited_at' => null,
         ]);
+
+        // Auto-return companion pledge or booklet so both move together
+        $linked = $transaction->getLinkedPledgeOrParent();
+        if ($linked) {
+            $linked->update([
+                'is_returned' => true,
+                'return_reason' => $validated['return_reason'],
+                'returned_by_user_id' => auth()->id(),
+                'is_inspected' => false,
+                'inspected_by' => null,
+                'inspected_at' => null,
+                'is_audited' => false,
+                'audited_by' => null,
+                'audited_at' => null,
+            ]);
+            AuditLogger::log('گەڕاندنەوەی مامەڵەی بەستراو', Transaction::class, $linked->id, "هۆکار: {$validated['return_reason']}");
+        }
 
         AuditLogger::log('گەڕاندنەوەی مامەڵە بۆ چاککردنەوە', Transaction::class, $transaction->id, "هۆکار: {$validated['return_reason']}");
 
@@ -927,18 +947,25 @@ class TransactionController extends Controller
             'is_inspected' => true,
             'inspected_by' => auth()->user()?->name ?? 'ئەندازیاری کەشف',
             'inspected_at' => now(),
+            'is_returned' => false,
+            'return_reason' => null,
         ]);
 
         // Auto-inspect companion pledge or booklet to keep workflow in sync
         $linked = $transaction->getLinkedPledgeOrParent();
-        if ($linked && !$linked->is_inspected) {
+        if ($linked) {
             $linked->update([
                 'is_inspected' => true,
                 'inspected_by' => auth()->user()?->name ?? 'ئەندازیاری کەشف',
                 'inspected_at' => now(),
+                'is_returned' => false,
+                'return_reason' => null,
             ]);
             AuditLogger::log('ئەنجامدانی کەشف بۆ مامەڵەی بەستراو', Transaction::class, $linked->id, "کەشف پەسەندکرا بۆ مامەڵەی بەستراوی: {$linked->barcode}");
         }
+
+        // Clear any return/error notifications in data entry desk
+        NotificationService::clearReturnNotificationsForTransaction($transaction->id, $linked?->id);
 
         AuditLogger::log('ئەنجامدانی کەشف و تەخمین', Transaction::class, $transaction->id, "تەخمین پەسەندکرا بۆ بارکۆد: {$transaction->barcode}");
 
@@ -974,9 +1001,23 @@ class TransactionController extends Controller
             'returned_by_user_id' => auth()->id(),
         ]);
 
+        // Auto-revert companion pledge or booklet so both move together (خاڵی ۱)
+        $linked = $transaction->getLinkedPledgeOrParent();
+        if ($linked) {
+            $linked->update([
+                'is_inspected' => false,
+                'inspected_by' => null,
+                'inspected_at' => null,
+                'is_returned' => true,
+                'return_reason' => 'هەڵوەشاندنەوەی تەخمین لەلایەن ئەندازیار بۆ چاککردنەوە لە داتائەنتەری',
+                'returned_by_user_id' => auth()->id(),
+            ]);
+            AuditLogger::log('هەڵوەشاندنەوەی قۆناغی تەخمین بۆ مامەڵەی بەستراو', Transaction::class, $linked->id, "تەخمین هەڵوەشێنرایەوە بۆ بارکۆدی بەستراو: {$linked->barcode}");
+        }
+
         AuditLogger::log('هەڵوەشاندنەوەی قۆناغی تەخمین', Transaction::class, $transaction->id, "تەخمین هەڵوەشێنرایەوە بۆ بارکۆد: {$transaction->barcode}");
 
-        return redirect()->route('transactions.show', $transaction->id)->with('warning', 'قۆناغی کەشف و تەخمین هەڵوەشێنرایەوە و گەڕێنرایەوە بۆ داتائەنتەری بۆ چاککردنەوەی هەڵە.');
+        return redirect()->route('transactions.show', $transaction->id)->with('warning', 'قۆناغی کەشف و تەخمین بۆ دەرهێنانی دەفتەر و بەڵێننامەی بەستراو هەڵوەشێنرایەوە و گەڕێنرایەوە بۆ داتائەنتەری.');
     }
 
     public function audit(Request $request, Transaction $transaction)
@@ -1056,9 +1097,20 @@ class TransactionController extends Controller
             'audited_at' => null,
         ]);
 
+        // Auto-revert companion pledge or booklet audit status
+        $linked = $transaction->getLinkedPledgeOrParent();
+        if ($linked && $linked->is_audited) {
+            $linked->update([
+                'is_audited' => false,
+                'audited_by' => null,
+                'audited_at' => null,
+            ]);
+            AuditLogger::log('هەڵوەشاندنەوەی وردبینی بەڵێننامەی بەستراو', Transaction::class, $linked->id, "وردبینی هەڵوەشێنرایەوە بۆ بارکۆدی: {$linked->barcode}");
+        }
+
         AuditLogger::log('هەڵوەشاندنەوەی پەسەندکردنی وردبینی', Transaction::class, $transaction->id, "وردبینی هەڵوەشێنرایەوە بۆ بارکۆد: {$transaction->barcode}");
 
-        return redirect()->route('transactions.show', $transaction->id)->with('warning', 'قۆناغی وردبینی بە سەرکەوتوویی هەڵوەشێنرایەوە. ئێستا دەتوانیت سەرلەنوێ وردبینی بکەیتەوە یان بیگەڕێنیتەوە بۆ تەخمین/داتائەنتەری.');
+        return redirect()->route('transactions.show', $transaction->id)->with('warning', 'قۆناغی وردبینی بۆ دەرهێنانی دەفتەر و بەڵێننامەی بەستراو هەڵوەشێنرایەوە.');
     }
 
     public function pay(Request $request, Transaction $transaction)
@@ -1552,6 +1604,67 @@ class TransactionController extends Controller
 
             $newValues = ['all_reset' => true, 'is_submitted' => false];
             $msg = "سەرجەم قۆناغەکانی مامەڵە گەڕێنرانەوە بۆ سەرەتا (داتائەنتەری) و سەرلەنوێ کرانەوە.";
+        }
+
+        // Auto-sync revertStep for companion pledge or booklet (خاڵی ۳ - هەر جوڵەیەک پێکەوە بێت)
+        $linked = $transaction->getLinkedPledgeOrParent();
+        if ($linked) {
+            if ($step === 'payment') {
+                $linked->update([
+                    'is_paid' => false,
+                    'receipt_37a_number' => null,
+                    'paid_by' => null,
+                    'paid_at' => null,
+                    'is_audited' => false,
+                    'audited_by' => null,
+                    'audited_at' => null,
+                    'is_submitted' => false,
+                    'submitted_by' => null,
+                    'submitted_at' => null,
+                ]);
+            } elseif ($step === 'audit') {
+                $linked->update([
+                    'is_audited' => false,
+                    'audited_by' => null,
+                    'audited_at' => null,
+                    'is_submitted' => false,
+                    'submitted_by' => null,
+                    'submitted_at' => null,
+                ]);
+            } elseif ($step === 'inspection') {
+                $linked->update([
+                    'is_inspected' => false,
+                    'inspected_by' => null,
+                    'inspected_at' => null,
+                    'is_submitted' => false,
+                    'submitted_by' => null,
+                    'submitted_at' => null,
+                ]);
+            } elseif ($step === 'archive') {
+                $linked->update([
+                    'is_submitted' => false,
+                    'submitted_by' => null,
+                    'submitted_at' => null,
+                ]);
+            } elseif ($step === 'all') {
+                $linked->update([
+                    'is_inspected' => false,
+                    'inspected_by' => null,
+                    'inspected_at' => null,
+                    'is_audited' => false,
+                    'audited_by' => null,
+                    'audited_at' => null,
+                    'is_paid' => false,
+                    'receipt_37a_number' => null,
+                    'paid_by' => null,
+                    'paid_at' => null,
+                    'is_submitted' => false,
+                    'submitted_by' => null,
+                    'submitted_at' => null,
+                    'is_returned' => false,
+                ]);
+            }
+            AuditLogger::log('ڕێکخستنەوەی قۆناغی بەڵێننامەی بەستراو', Transaction::class, $linked->id, "قۆناغی [{$step}] ڕێکخرایەوە لەگەڵ دەرهێنانی دەفتەر");
         }
 
         AuditLogger::log('ڕێکخستنەوەی قۆناغ (Step Reversion)', Transaction::class, $transaction->id, "ڕێکخستنەوەی قۆناغی [{$step}] لەلایەن ئەدمین - هۆکار: {$reason}", $oldValues, $newValues);
