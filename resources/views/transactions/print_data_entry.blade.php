@@ -1,8 +1,12 @@
 @php
+    $mode = $mode ?? request()->query('mode', 'both');
     $linkedPledge = $linkedPledge ?? $transaction->getLinkedPledgeOrParent();
     if ($linkedPledge && !$linkedPledge->relationLoaded('transactionType')) {
         $linkedPledge->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor']);
     }
+    $hasLinked = !empty($linkedPledge);
+    $showMain = ($mode === 'both' || $mode === 'main');
+    $showPledge = ($hasLinked && ($mode === 'both' || $mode === 'pledge'));
 @endphp
 <!DOCTYPE html>
 <html lang="ckb" dir="rtl">
@@ -67,12 +71,8 @@
 </head>
 <body class="p-4">
 
-    @php
-        $linkedPledge = $transaction->relatedTransactions->first() ?? ($transaction->parentTransaction && $transaction->parentTransaction->transaction_type_id == 4 ? $transaction->parentTransaction : null);
-    @endphp
-
     <!-- Top Action Bar (Hide in Print) -->
-    <div class="no-print mb-4 max-w-4xl mx-auto flex items-center justify-between bg-slate-900 text-white p-3.5 rounded-2xl shadow-xl">
+    <div class="no-print mb-4 max-w-4xl mx-auto flex items-center justify-between bg-slate-900 text-white p-3.5 rounded-2xl shadow-xl flex-wrap gap-3">
         <div class="flex items-center space-x-3 space-x-reverse text-sm font-bold">
             <span class="bg-blue-500/20 text-blue-300 px-3.5 py-1 rounded-xl border border-blue-500/40 flex items-center">
                 <svg class="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
@@ -80,24 +80,38 @@
             </span>
             <span class="text-slate-300">بارکۆد: <strong class="font-mono text-amber-300 text-base">{{ $transaction->barcode }}</strong></span>
         </div>
-        <div class="flex items-center space-x-3 space-x-reverse">
-            @if($linkedPledge)
-                <a href="{{ route('transactions.print_pledge', $linkedPledge->id) }}" target="_blank" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-sm rounded-xl shadow-lg transition flex items-center">
-                    <svg class="w-4 h-4 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 000-4H9a2 2 0 000 4zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    چاپکردنی فیشەی بەڵێننامەی بەستراوە ({{ $linkedPledge->barcode }})
+
+        @if($hasLinked)
+            <!-- Mode Switcher Tabs (هەردوو پەڕە، دەرهێنان، بەڵێننامە) -->
+            <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center gap-1 text-xs font-bold">
+                <a href="{{ route('transactions.print_data_entry', ['transaction' => $transaction->id, 'mode' => 'both']) }}" 
+                   class="px-3 py-1.5 rounded-lg transition {{ $mode === 'both' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white' }}">
+                    هەردوو پەڕە (۲)
                 </a>
-            @endif
-            <button onclick="window.print()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm rounded-xl shadow-lg transition flex items-center">
+                <a href="{{ route('transactions.print_data_entry', ['transaction' => $transaction->id, 'mode' => 'main']) }}" 
+                   class="px-3 py-1.5 rounded-lg transition {{ $mode === 'main' ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-white' }}">
+                    تەنها دەرهێنان
+                </a>
+                <a href="{{ route('transactions.print_data_entry', ['transaction' => $transaction->id, 'mode' => 'pledge']) }}" 
+                   class="px-3 py-1.5 rounded-lg transition {{ $mode === 'pledge' ? 'bg-amber-600 text-white shadow' : 'text-slate-400 hover:text-white' }}">
+                    تەنها بەڵێننامە
+                </a>
+            </div>
+        @endif
+
+        <div class="flex items-center space-x-3 space-x-reverse">
+            <button onclick="window.print()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm rounded-xl shadow-lg transition flex items-center">
                 <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 000-4H9a2 2 0 000 4zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                چاپکردنی فیشە (Print Routing Slip)
+                چاپکردنی فیشە (Print)
             </button>
-            <button onclick="window.close()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm rounded-xl transition">
+            <button onclick="window.close()" class="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 font-bold text-sm rounded-xl transition">
                 داخستن
             </button>
         </div>
     </div>
 
-    <!-- MAIN FORM PORTRAIT ROUTING CARD -->
+    @if($showMain)
+    <!-- MAIN FORM PORTRAIT ROUTING CARD (Sheet 1) -->
     <div class="print-card bg-white border-2 border-black p-6 rounded-md shadow-xl max-w-4xl mx-auto space-y-4">
 
         <!-- Header Section -->
@@ -301,10 +315,13 @@
         </div>
 
     </div>
+    @endif
 
-    @if($linkedPledge)
-        <!-- PAGE BREAK FOR 2-PAGE DUAL PRINTING -->
-        <div class="page-break my-6"></div>
+    @if($showPledge)
+        @if($showMain)
+            <!-- PAGE BREAK FOR 2-PAGE DUAL PRINTING -->
+            <div class="page-break my-6"></div>
+        @endif
 
         <!-- SECOND PAGE: LINKED PLEDGE (بەشی دووەم: فیشەی بەڵێننامەی بەستراو) -->
         <div class="print-card bg-white border-2 border-black p-6 rounded-md shadow-xl max-w-4xl mx-auto space-y-4">
@@ -406,30 +423,36 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            JsBarcode("#barcodeSvg", "{{ $transaction->barcode }}", {
-                format: "CODE128",
-                lineColor: "#000",
-                width: 2,
-                height: 42,
-                displayValue: true,
-                fontSize: 13,
-                fontOptions: "bold",
-                font: "Vazirmatn",
-                textMargin: 2
-            });
+            @if($showMain)
+            if (document.querySelector("#barcodeSvg")) {
+                JsBarcode("#barcodeSvg", "{{ $transaction->barcode }}", {
+                    format: "CODE128",
+                    lineColor: "#000",
+                    width: 2,
+                    height: 42,
+                    displayValue: true,
+                    fontSize: 13,
+                    fontOptions: "bold",
+                    font: "Vazirmatn",
+                    textMargin: 2
+                });
+            }
+            @endif
 
-            @if($linkedPledge)
-            JsBarcode("#barcodeSvgPledge", "{{ $linkedPledge->barcode }}", {
-                format: "CODE128",
-                lineColor: "#000",
-                width: 2,
-                height: 42,
-                displayValue: true,
-                fontSize: 13,
-                fontOptions: "bold",
-                font: "Vazirmatn",
-                textMargin: 2
-            });
+            @if($showPledge)
+            if (document.querySelector("#barcodeSvgPledge")) {
+                JsBarcode("#barcodeSvgPledge", "{{ $linkedPledge->barcode }}", {
+                    format: "CODE128",
+                    lineColor: "#000",
+                    width: 2,
+                    height: 42,
+                    displayValue: true,
+                    fontSize: 13,
+                    fontOptions: "bold",
+                    font: "Vazirmatn",
+                    textMargin: 2
+                });
+            }
             @endif
         });
     </script>

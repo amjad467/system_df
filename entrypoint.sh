@@ -141,12 +141,17 @@ else
         $cP = $cand["port"];
         $cPass = $cand["pass"];
         $cDb = (!empty($cand["db"]) && !str_contains($cand["db"], "sslmode")) ? $cand["db"] : "postgres";
-        $cSSL = "sslmode=require";
+        if (str_contains($cH, "supabase")) {
+            $cDb = "postgres";
+        }
 
         for ($attempt = 1; $attempt <= 2; $attempt++) {
             try {
-                $dsn = "pgsql:host={$cH};port={$cP};dbname={$cDb};{$cSSL};connect_timeout=12";
-                $pdo = new PDO($dsn, $cU, $cPass);
+                $dsn = "pgsql:host={$cH};port={$cP};dbname={$cDb};sslmode=require";
+                $pdo = new PDO($dsn, $cU, $cPass, [
+                    PDO::ATTR_TIMEOUT => 8,
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                ]);
                 $pdo->query("SELECT 1");
                 $connected = true;
                 $cand["db"] = $cDb;
@@ -167,7 +172,10 @@ else
         $wU = $winner["user"];
         $wPass = $winner["pass"];
         $wP = $winner["port"];
-        $wDb = $winner["db"];
+        $wDb = (!empty($winner["db"]) && !str_contains($winner["db"], "sslmode")) ? $winner["db"] : "postgres";
+        if (str_contains($wH, "supabase")) {
+            $wDb = "postgres";
+        }
         $encodedPass = urlencode($wPass);
 
         $envContent = "export DB_CONNECTION=pgsql\n"

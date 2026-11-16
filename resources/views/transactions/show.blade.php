@@ -116,6 +116,7 @@
     showAuditPromptModal: {{ session('audit_completed_prompt_letter') ? 'true' : 'false' }},
     showPaymentPromptModal: {{ session('payment_completed_prompt_receipt') ? 'true' : 'false' }},
     showInspectionPromptModal: {{ session('inspection_completed_prompt_print') ? 'true' : 'false' }},
+    showDataEntryPromptModal: {{ session('data_entry_completed_prompt_print') ? 'true' : 'false' }},
     mainReceipt: '',
     linkedReceipt: '',
     hasLinked: {{ ($linkedPledge && !$linkedPledge->is_paid) ? 'true' : 'false' }},
@@ -190,12 +191,12 @@
                     <i class="fa-solid fa-receipt text-xs"></i>
                     <span>{{ ($linkedPledge && $linkedPledge->is_paid) ? 'چاپی هەردوو ۳۷/أ (۲ پەڕە)' : 'چاپی ۳۷/أ' }}</span>
                 </a>
-            @elseif((!$transaction->is_submitted || auth()->user()->isAdmin()) && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry'))
-                <a href="{{ route('transactions.print_data_entry', $transaction->id) }}" target="_blank" 
+            @elseif((!$transaction->is_submitted || auth()->user()->isAdmin()) && (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry' || auth()->user()->role === 'inspector'))
+                <a href="{{ route('transactions.print_data_entry', ['transaction' => $transaction->id, 'mode' => 'both']) }}" target="_blank" 
                    class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-600/30 transition flex items-center gap-1.5 shrink-0" 
-                   title="چاپی فیشەی داتائەنتەری">
+                   title="{{ $linkedPledge ? 'چاپی هەردوو فیشەی دەرهێنان و بەڵێننامە' : 'چاپی فیشەی داتائەنتەری' }}">
                     <i class="fa-solid fa-print text-xs"></i>
-                    <span>چاپی فیشە</span>
+                    <span>{{ $linkedPledge ? 'چاپی هەردوو فیشە (۲ پەڕە)' : 'چاپی فیشە' }}</span>
                 </a>
             @endif
 
@@ -217,11 +218,29 @@
                     <!-- قۆناغی سەرەتایی، کەشف و یاسایی -->
                     <div class="space-y-1">
                         <span class="text-[10px] font-bold text-slate-400 px-2 block">فیشە، کەشف و یاسایی:</span>
-                        <a href="{{ route('transactions.print_data_entry', $transaction->id) }}" target="_blank" 
-                           class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-200 hover:bg-slate-800 hover:text-white transition">
-                            <i class="fa-solid fa-file-invoice text-sky-400 w-4 text-center"></i>
-                            <span>فیشەی داتائەنتەری (بەدواداچوون)</span>
-                        </a>
+                        @if($linkedPledge)
+                            <a href="{{ route('transactions.print_data_entry', ['transaction' => $transaction->id, 'mode' => 'both']) }}" target="_blank" 
+                               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-sky-300 font-bold hover:bg-slate-800 hover:text-white transition">
+                                <i class="fa-solid fa-file-invoice text-sky-400 w-4 text-center"></i>
+                                <span>چاپی هەردوو فیشە (دەرهێنان + بەڵێننامە - ۲ پەڕە)</span>
+                            </a>
+                            <a href="{{ route('transactions.print_data_entry', ['transaction' => $transaction->id, 'mode' => 'main']) }}" target="_blank" 
+                               class="flex items-center gap-2.5 px-2.5 py-1 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition text-[11px] pr-6">
+                                <i class="fa-solid fa-angle-left text-slate-500"></i>
+                                <span>تەنها فیشەی دەرهێنان (۱ پەڕە)</span>
+                            </a>
+                            <a href="{{ route('transactions.print_data_entry', ['transaction' => $transaction->id, 'mode' => 'pledge']) }}" target="_blank" 
+                               class="flex items-center gap-2.5 px-2.5 py-1 rounded-xl text-amber-300 hover:bg-slate-800 hover:text-white transition text-[11px] pr-6">
+                                <i class="fa-solid fa-angle-left text-amber-500"></i>
+                                <span>تەنها فیشەی بەڵێننامە (۱ پەڕە)</span>
+                            </a>
+                        @else
+                            <a href="{{ route('transactions.print_data_entry', ['transaction' => $transaction->id, 'mode' => 'both']) }}" target="_blank" 
+                               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-slate-200 hover:bg-slate-800 hover:text-white transition">
+                                <i class="fa-solid fa-file-invoice text-sky-400 w-4 text-center"></i>
+                                <span>فیشەی داتائەنتەری (بەدواداچوون)</span>
+                            </a>
+                        @endif
 
                         @if($transaction->is_inspected)
                             @if($linkedPledge)
@@ -334,8 +353,13 @@
                 </div>
             </div>
 
-            <!-- 3. Edit Action Button -->
-            @if((auth()->user()->isAdmin() || auth()->user()->role === 'data_entry') && $transaction->canBeEditedByDataEntry() && !$transaction->is_cancelled)
+            <!-- 3. Edit Action Button (Admin, Data Entry, and Inspector) -->
+            @php
+                $canUserEditThis = (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry' || auth()->user()->role === 'inspector')
+                    && !$transaction->is_cancelled
+                    && (auth()->user()->isAdmin() || $transaction->canBeEditedByDataEntry() || (auth()->user()->role === 'inspector' && !$transaction->is_audited && !$transaction->is_paid && !$transaction->is_submitted));
+            @endphp
+            @if($canUserEditThis)
                 <a href="{{ route('transactions.edit', $transaction->id) }}" 
                    class="px-3 py-2 bg-amber-600/90 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 shrink-0" 
                    title="دەستکاریکردن یان ڕاستکردنەوە">
@@ -1525,6 +1549,72 @@
 
             <div class="flex justify-end pt-2 border-t border-slate-700/60">
                 <button type="button" @click="showPaymentPromptModal = false" class="px-5 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition">
+                    داخستن
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Prompt Data Entry Print after Save or Update (خاڵی ۲) -->
+    <div x-show="showDataEntryPromptModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-blue-500/50 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                <h3 class="text-base font-black text-white flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
+                        <i class="fa-solid fa-file-invoice"></i>
+                    </span>
+                    <span>چاپی فیشەی داتائەنتەری و بەدواداچوون</span>
+                </h3>
+                <button type="button" @click="showDataEntryPromptModal = false" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-3 bg-blue-950/40 border border-blue-500/30 rounded-xl text-blue-200 text-xs font-bold leading-relaxed">
+                زانیاری مامەڵەکە بە سەرکەوتوویی تۆمارکرا / ڕاستکرایەوە. دەتوانیت ڕاستەوخۆ فیشەکان چاپ بکەیت:
+            </div>
+
+            <div class="space-y-2 pt-1">
+                @if($linkedPledge)
+                    <a href="{{ route('transactions.print_data_entry', ['transaction' => $transaction->id, 'mode' => 'both']) }}" target="_blank"
+                       @click="showDataEntryPromptModal = false"
+                       class="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i class="fa-solid fa-print text-base"></i>
+                            <span>چاپی هەردوو فیشە (۲ پەڕەی جیا - دەرهێنان + بەڵێننامە)</span>
+                        </span>
+                        <span class="px-2 py-0.5 rounded bg-black/30 text-[11px] font-mono">۲ پەڕە</span>
+                    </a>
+
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <a href="{{ route('transactions.print_data_entry', ['transaction' => $transaction->id, 'mode' => 'main']) }}" target="_blank"
+                           @click="showDataEntryPromptModal = false"
+                           class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold rounded-xl border border-slate-700 transition text-center flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-file-lines text-sky-400"></i>
+                            <span>تەنها فیشەی دەرهێنان</span>
+                        </a>
+                        <a href="{{ route('transactions.print_data_entry', ['transaction' => $transaction->id, 'mode' => 'pledge']) }}" target="_blank"
+                           @click="showDataEntryPromptModal = false"
+                           class="px-3 py-2 bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 text-[11px] font-bold rounded-xl border border-amber-600/40 transition text-center flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-file-contract text-amber-400"></i>
+                            <span>تەنها فیشەی بەڵێننامە</span>
+                        </a>
+                    </div>
+                @else
+                    <a href="{{ route('transactions.print_data_entry', ['transaction' => $transaction->id, 'mode' => 'both']) }}" target="_blank"
+                       @click="showDataEntryPromptModal = false"
+                       class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i class="fa-solid fa-print text-base"></i>
+                            <span>چاپی فیشەی داتائەنتەری</span>
+                        </span>
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </a>
+                @endif
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-700/60">
+                <button type="button" @click="showDataEntryPromptModal = false" class="px-5 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition">
                     داخستن
                 </button>
             </div>

@@ -100,10 +100,20 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => env('DB_URL') ?: env('DATABASE_URL'),
+            'url' => (function() {
+                $u = env('DB_URL') ?: env('DATABASE_URL');
+                if ($u) {
+                    $u = preg_replace('#:(\d+)/sslmode=require#i', ':$1/postgres?sslmode=require', $u);
+                    $u = preg_replace('#:(\d+)\?sslmode=require#i', ':$1/postgres?sslmode=require', $u);
+                }
+                return $u;
+            })(),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '5432'),
-            'database' => env('DB_DATABASE', 'laravel'),
+            'database' => (function() {
+                $db = env('DB_DATABASE', 'postgres');
+                return (empty($db) || $db === 'sslmode=require' || str_contains($db, 'sslmode')) ? 'postgres' : $db;
+            })(),
             'username' => env('DB_USERNAME', 'root'),
             'password' => env('DB_PASSWORD', ''),
             'charset' => env('DB_CHARSET', 'utf8'),

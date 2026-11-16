@@ -591,6 +591,8 @@ class TransactionController extends Controller
             $msg .= " | بەڵێننامەی بەستراوەی ئۆتۆماتیکیش دروستکرا بە بارکۆدی: {$transaction->created_pledge_barcode}";
         }
 
+        session()->flash('data_entry_completed_prompt_print', true);
+
         return redirect()->route('transactions.show', $transaction->id)->with('success', $msg);
     }
 
@@ -609,13 +611,16 @@ class TransactionController extends Controller
                 ->with('error', 'تەنها فەرمانبەری داتائەنتەری، ئەندازیاری تەخمین، یان ئەدمین دەتوانێت دەستکاری زانیاری مامەڵە بکات.');
         }
 
-        // Non-admin can only edit if canBeEditedByDataEntry
-        if (!auth()->user()->isAdmin() && !$transaction->canBeEditedByDataEntry()) {
-            $stageName = 'کەشف و تەخمین';
+        // Non-admin can edit if canBeEditedByDataEntry, or Inspector before audit/payment
+        $canEdit = auth()->user()->isAdmin()
+            || $transaction->canBeEditedByDataEntry()
+            || (auth()->user()->role === 'inspector' && !$transaction->is_audited && !$transaction->is_paid && !$transaction->is_cancelled && !$transaction->is_submitted);
+
+        if (!$canEdit) {
+            $stageName = 'وردبینی';
             if ($transaction->is_submitted) $stageName = 'سەبمیت و ئەرشیف';
             elseif ($transaction->is_booklet_completed) $stageName = 'چاپکردنی دەفتەر';
             elseif ($transaction->is_paid) $stageName = 'وەسڵ و پارەدان';
-            elseif ($transaction->is_audited) $stageName = 'وردبینی';
 
             return redirect()->route('transactions.show', $transaction->id)
                 ->with('error', "دەستکاریکردنی ئەم مامەڵەیە قوفڵ بووە چونکە قۆناغی '{$stageName}'ی بۆ ئەنجامدراوە! تەنها ئەدمین دەتوانێت قۆناغەکە ڕێکبخاتەوە (Reset) تا ڕێگە بە دەستکاری بدات.");
@@ -643,7 +648,11 @@ class TransactionController extends Controller
 
     public function update(Request $request, Transaction $transaction)
     {
-        if (!auth()->user()->isAdmin() && !$transaction->canBeEditedByDataEntry()) {
+        $canEdit = auth()->user()->isAdmin()
+            || $transaction->canBeEditedByDataEntry()
+            || (auth()->user()->role === 'inspector' && !$transaction->is_audited && !$transaction->is_paid && !$transaction->is_cancelled && !$transaction->is_submitted);
+
+        if (!$canEdit) {
             return redirect()->route('transactions.show', $transaction->id)
                 ->with('error', 'دەستکاریکردنی ئەم مامەڵەیە قوفڵ کراوە.');
         }
@@ -744,10 +753,51 @@ class TransactionController extends Controller
             'is_audited' => false,
         ]));
 
-        AuditLogger::log('دەستکاریکردنی زانیاری مامەڵە (دوای گەڕاندنەوە)', Transaction::class, $transaction->id, "بارکۆد: {$transaction->barcode}");
+        // Auto-sync shared citizen and vehicle details with companion pledge/booklet (خاڵی ۱)
+        $linkedPledge = $transaction->getLinkedPledgeOrParent();
+        if ($linkedPledge) {
+            $sharedFields = [
+                'traffic_directorate_id' => $transaction->traffic_directorate_id,
+                'director_id'            => $transaction->director_id,
+                'plate_type_id'          => $transaction->plate_type_id,
+                'car_make_id'            => $transaction->car_make_id,
+                'car_color_id'           => $transaction->car_color_id,
+                'visitor_name'           => $transaction->visitor_name,
+                'visitor_name_eng'       => $transaction->visitor_name_eng,
+                'second_driver_name'     => $transaction->second_driver_name,
+                'second_driver_name_eng' => $transaction->second_driver_name_eng,
+                'phone_number'           => $transaction->phone_number,
+                'passport_number'        => $transaction->passport_number,
+                'address'                => $transaction->address,
+                'passport_issue_date'    => $transaction->passport_issue_date,
+                'passport_issue_place'   => $transaction->passport_issue_place,
+                'plate_number'           => $transaction->plate_number,
+                'model_year'             => $transaction->model_year,
+                'chassis_number'         => $transaction->chassis_number,
+                'piston_count'           => $transaction->piston_count,
+                'salana_number'          => $transaction->salana_number,
+                'user_edit_input'        => auth()->user()?->name ?? 'کارمەند',
+                'user_edit_date'         => now(),
+                'is_returned'            => false,
+                'return_reason'          => null,
+                'is_inspected'           => false,
+                'is_audited'             => false,
+            ];
+            $linkedPledge->update($sharedFields);
+            AuditLogger::log('هاوکاتکردنی ئۆتۆماتیکی زانیاری بەڵێننامەی بەستراو', Transaction::class, $linkedPledge->id, "هاوکاتکرا لەگەڵ دەرهێنانی دەفتەر بە بارکۆدی: {$transaction->barcode}", null, $sharedFields);
+        }
+
+        AuditLogger::log('دەستکاریکردنی زانیاری مامەڵە', Transaction::class, $transaction->id, "بارکۆد: {$transaction->barcode}");
+
+        session()->flash('data_entry_completed_prompt_print', true);
+
+        $successMsg = 'زانیاری مامەڵەکە بە سەرکەوتوویی دەستکاری کرا و ڕاستکرایەوە.';
+        if ($linkedPledge) {
+            $successMsg .= ' (هەروەها زانیارییەکانی بەڵێننامەی بەستراویش بە خۆکاری هاوکات و نوێکرانەوە).';
+        }
 
         return redirect()->route('transactions.show', $transaction->id)
-            ->with('success', 'زانیاری مامەڵەکە بە سەرکەوتوویی دەستکاری کرا و ڕاستکرایەوە.');
+            ->with('success', $successMsg);
     }
 
     public function returnTransaction(Request $request, Transaction $transaction)
@@ -1581,7 +1631,7 @@ class TransactionController extends Controller
         return view('transactions.print_receipt', compact('transaction', 'linkedPledge', 'mode'));
     }
 
-    public function printDataEntry(Transaction $transaction)
+    public function printDataEntry(Request $request, Transaction $transaction)
     {
         if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
             return redirect()->route('transactions.show', $transaction->id)
@@ -1592,12 +1642,14 @@ class TransactionController extends Controller
             return redirect()->back()->with('error', 'دەسەڵاتی چاپی فیشەی داتائەنتەریت نییە بەپێی پێرمشنەکان!');
         }
 
+        $mode = $request->query('mode', 'both'); // 'both', 'main', 'pledge'
+
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director', 'parentTransaction', 'relatedTransactions']);
         $linkedPledge = $transaction->getLinkedPledgeOrParent();
         if ($linkedPledge) {
             $linkedPledge->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor']);
         }
-        return view('transactions.print_data_entry', compact('transaction', 'linkedPledge'));
+        return view('transactions.print_data_entry', compact('transaction', 'linkedPledge', 'mode'));
     }
 
     public function printBooklet(Transaction $transaction)
