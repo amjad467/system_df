@@ -42,7 +42,8 @@ touch /var/www/database/database.sqlite
 chmod -R 777 /var/www/database /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
 
 # 4. Check database connectivity (Auto-detect Supabase pooler or fallback to SQLite)
-PAUSE_SUPABASE=${PAUSE_SUPABASE:-false}
+# Default to ultra-fast zero-latency local SQLite unless explicitly requested
+PAUSE_SUPABASE=${PAUSE_SUPABASE:-true}
 
 if [ "$PAUSE_SUPABASE" = "true" ] || [ "$PAUSE_SUPABASE" = "1" ] || [ "$USE_SQLITE" = "true" ]; then
     echo "=== SUPABASE IS TEMPORARILY PAUSED PER USER REQUEST (RUNNING ULTRA-FAST LOCAL SQLITE) ==="

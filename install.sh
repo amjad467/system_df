@@ -58,6 +58,9 @@ docker run -d \
     -e APP_KEY="base64:586aDB1KnEVJNt42BiyywkWqifUVU9tP4sbUvYdasfs=" \
     -e APP_ENV=production \
     -e APP_DEBUG=false \
+    -e PAUSE_SUPABASE=true \
+    -e USE_SQLITE=true \
+    -e DB_CONNECTION=sqlite \
     -v tourist_db:/var/www/database \
     -v tourist_storage:/var/www/storage \
     tourist-car-system:latest
