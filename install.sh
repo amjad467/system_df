@@ -11,12 +11,9 @@ echo "Updating packages..."
 apt-get update -y
 apt-get install -y curl git ufw
 
-# 2. Configure firewall (UFW) to allow SSH and HTTP
+# 2. Disable UFW to prevent Docker port forwarding conflicts
 echo "Configuring firewall..."
-ufw allow 22/tcp || true
-ufw allow 80/tcp || true
-ufw allow 443/tcp || true
-ufw --force enable || true
+ufw disable || true
 
 # 3. Install Docker if not already installed
 if ! command -v docker &> /dev/null; then
