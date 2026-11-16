@@ -3,8 +3,31 @@ set -e
 
 echo "=== Tourist Car System Booting ==="
 
-# 1. Ensure database and storage directories exist
-mkdir -p /var/www/database /var/www/storage/app
+# 0. Ensure .env and APP_KEY are present
+if [ ! -f /var/www/.env ]; then
+    if [ -f /var/www/.env.example ]; then
+        cp /var/www/.env.example /var/www/.env
+    else
+        touch /var/www/.env
+    fi
+fi
+
+if ! grep -q "^APP_KEY=base64:" /var/www/.env 2>/dev/null; then
+    sed -i 's/^APP_KEY=.*/APP_KEY=base64:586aDB1KnEVJNt42BiyywkWqifUVU9tP4sbUvYdasfs=/' /var/www/.env 2>/dev/null || true
+    if ! grep -q "^APP_KEY=base64:" /var/www/.env 2>/dev/null; then
+        echo "APP_KEY=base64:586aDB1KnEVJNt42BiyywkWqifUVU9tP4sbUvYdasfs=" >> /var/www/.env
+    fi
+fi
+export APP_KEY="base64:586aDB1KnEVJNt42BiyywkWqifUVU9tP4sbUvYdasfs="
+
+# 1. Ensure all database, cache, session, and storage directories exist
+mkdir -p /var/www/database \
+         /var/www/storage/app/public \
+         /var/www/storage/framework/cache/data \
+         /var/www/storage/framework/sessions \
+         /var/www/storage/framework/views \
+         /var/www/storage/logs \
+         /var/www/bootstrap/cache
 
 # 2. If database.sqlite is empty or corrupted, seed it from database_seed.sqlite
 if [ ! -s /var/www/database/database.sqlite ] || [ $(wc -c < /var/www/database/database.sqlite 2>/dev/null || echo 0) -lt 100000 ]; then
@@ -15,7 +38,7 @@ if [ ! -s /var/www/database/database.sqlite ] || [ $(wc -c < /var/www/database/d
 fi
 touch /var/www/database/database.sqlite
 
-# 3. Ensure full permissions
+# 3. Ensure full permissions across storage, cache, and database
 chmod -R 777 /var/www/database /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
 
 # 4. Check database connectivity (Auto-detect Supabase pooler or fallback to SQLite)

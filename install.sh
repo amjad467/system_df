@@ -55,9 +55,25 @@ docker run -d \
     --name tourist-app \
     --restart always \
     -p 80:8080 \
+    -e APP_KEY="base64:586aDB1KnEVJNt42BiyywkWqifUVU9tP4sbUvYdasfs=" \
+    -e APP_ENV=production \
+    -e APP_DEBUG=false \
     -v tourist_db:/var/www/database \
     -v tourist_storage:/var/www/storage \
     tourist-car-system:latest
+
+# 8. Ensure storage directories and permissions inside the container volume
+docker exec tourist-app mkdir -p /var/www/storage/framework/cache/data \
+                                /var/www/storage/framework/sessions \
+                                /var/www/storage/framework/views \
+                                /var/www/storage/logs \
+                                /var/www/storage/app/public \
+                                /var/www/bootstrap/cache
+docker exec tourist-app chmod -R 777 /var/www/storage /var/www/bootstrap/cache /var/www/database
+docker exec tourist-app php artisan storage:link || true
+docker exec tourist-app php artisan view:clear || true
+docker exec tourist-app php artisan route:clear || true
+docker exec tourist-app php artisan config:clear || true
 
 echo "=========================================="
 echo " SUCCESS! The system is now LIVE!"
