@@ -42,10 +42,10 @@ class DatabaseSeeder extends Seeder
 
         // 4. Plate Types
         $plateTypes = [
-            ['name_kurdish' => 'تایبەت (خصوصي)', 'name_english' => 'Private'],
-            ['name_kurdish' => 'بار (حمل)', 'name_english' => 'Cargo/Truck'],
-            ['name_kurdish' => 'کرێ (أجرة)', 'name_english' => 'Taxi/Commercial'],
-            ['name_kurdish' => 'پاسی نەفەر (حافلة)', 'name_english' => 'Passenger Bus'],
+            ['name_kurdish' => 'تایبەت', 'name_english' => 'Private'],
+            ['name_kurdish' => 'بار', 'name_english' => 'Cargo/Truck'],
+            ['name_kurdish' => 'کرێ', 'name_english' => 'Taxi/Commercial'],
+            ['name_kurdish' => 'پاسی نەفەر', 'name_english' => 'Passenger Bus'],
         ];
         foreach ($plateTypes as $pt) {
             DB::table('plate_types')->updateOrInsert(['name_kurdish' => $pt['name_kurdish']], $pt);

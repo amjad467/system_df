@@ -77,13 +77,16 @@
                     </button>
                 </div>
 
-                <div class="overflow-x-auto touch-scroll">
+                <!-- Sticky Header Permissions Table Container -->
+                <div class="overflow-x-auto overflow-y-auto max-h-[72vh] touch-scroll rounded-b-2xl border-t border-slate-800 relative shadow-inner">
                     <table class="w-full text-right text-xs text-slate-300 border-collapse min-w-[900px]">
-                        <thead>
+                        <thead class="sticky top-0 z-30 bg-slate-950 shadow-md">
                             <tr class="bg-slate-950 text-slate-400 text-[11px] font-black uppercase tracking-wider border-b border-slate-800">
-                                <th class="py-3 px-4 w-72 sticky right-0 bg-slate-950 z-20">کار و فەرمانەکان (Permissions)</th>
+                                <th class="py-3 px-4 w-72 sticky top-0 right-0 bg-slate-950 z-40 border-b border-slate-800 shadow-sm">
+                                    کار و فەرمانەکان (Permissions)
+                                </th>
                                 @foreach($roles as $roleKey => $roleLabel)
-                                    <th class="py-3 px-3 text-center border-r border-slate-800/60 min-w-[110px]">
+                                    <th class="py-3 px-3 text-center border-r border-slate-800/60 min-w-[110px] sticky top-0 bg-slate-950 z-30 border-b border-slate-800 shadow-sm">
                                         <div class="font-bold text-white text-[11px]">{{ $roleLabel }}</div>
                                         <div class="font-mono text-[9px] text-sky-400 mt-0.5">{{ $roleKey }}</div>
                                         <div class="flex items-center justify-center gap-1 mt-1.5">
@@ -98,8 +101,8 @@
                         <tbody class="divide-y divide-slate-800/60">
                             @foreach($categories as $catKey => $category)
                                 <!-- Category Section Header -->
-                                <tr class="bg-slate-950/80 border-t-2 border-slate-800">
-                                    <td colspan="{{ count($roles) + 1 }}" class="py-2 px-4 text-xs font-black text-sky-300 uppercase tracking-wide">
+                                <tr class="bg-slate-950/90 border-t-2 border-slate-800">
+                                    <td colspan="{{ count($roles) + 1 }}" class="py-2.5 px-4 text-xs font-black text-sky-300 uppercase tracking-wide bg-slate-950">
                                         <i class="{{ $category['icon'] }} ml-1.5"></i>
                                         {{ $category['label'] }}
                                     </td>

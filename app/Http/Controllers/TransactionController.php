@@ -344,18 +344,31 @@ class TransactionController extends Controller
     {
         $chassis = trim($request->get('chassis_number', ''));
         if (!empty($chassis) && strlen($chassis) >= 3) {
-            $chassisClean = str_replace(' ', '', $chassis);
+            $chassisClean = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $chassis));
             $record = Transaction::with(['transactionType', 'plateType', 'carMake', 'carColor', 'trafficDirectorate'])
                 ->where(function($q) use ($chassis, $chassisClean) {
-                    $q->where('chassis_number', $chassis)
-                      ->orWhereRaw("REPLACE(chassis_number, ' ', '') = ?", [$chassisClean]);
+                    $q->whereRaw("UPPER(REPLACE(REPLACE(chassis_number, ' ', ''), '-', '')) = ?", [$chassisClean])
+                      ->orWhere('chassis_number', $chassis);
+                    if (strlen($chassisClean) >= 5) {
+                        $q->orWhere('chassis_number', 'like', "%{$chassisClean}%");
+                    }
                 })
                 ->latest('id')
                 ->first();
 
+            $formatted = null;
+            if ($record) {
+                $formatted = $record->toArray();
+                $formatted['car_make_kurdish'] = $record->carMake?->name_kurdish ?? '';
+                $formatted['car_make_english'] = $record->carMake?->name_english ?? '';
+                $formatted['car_color_kurdish'] = $record->carColor?->name_kurdish ?? '';
+                $formatted['car_color_english'] = $record->carColor?->name_english ?? '';
+                $formatted['clean_plate_type'] = $record->plateType?->clean_kurdish_name ?? '';
+            }
+
             return response()->json([
                 'found' => (bool)$record,
-                'record' => $record,
+                'record' => $formatted,
             ]);
         }
 

@@ -26,10 +26,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
-    <!-- Theme Init Script: Consistent Executive Dark Palette -->
+    <!-- Theme Init Script: Consistent Executive Dark/Light Palette -->
     <script>
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('color-theme', 'dark');
+        (function() {
+            const savedTheme = localStorage.getItem('color-theme');
+            if (savedTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+            } else {
+                document.documentElement.classList.add('dark');
+            }
+        })();
     </script>
 
     <!-- Tailwind CSS CDN -->
@@ -118,6 +124,16 @@
     mobileMenuOpen: false,
     showMobileBarcodeModal: false,
     isDark: document.documentElement.classList.contains('dark'),
+    toggleTheme() {
+        this.isDark = !this.isDark;
+        if (this.isDark) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('color-theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('color-theme', 'light');
+        }
+    },
     deferredPrompt: null,
     showIosModal: false,
     canInstall: false,
@@ -162,7 +178,7 @@
         this.showInstallBanner = false;
         localStorage.setItem('pwa_banner_dismissed', '1');
     }
-}" x-init="initPwa()" class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-sky-500 selection:text-white">
+}" x-init="initPwa()" class="bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-sky-500 selection:text-white transition-colors duration-200">
 
     <!-- PWA Install Banner for Mobile & Tablet (Admin ONLY) -->
     @if(auth()->check() && auth()->user()->isAdmin())
@@ -249,12 +265,12 @@
     </div>
 
     <!-- Top Navigation Bar -->
-    <header class="bg-slate-900/95 border-b border-slate-800 backdrop-blur-md sticky top-0 z-40 transition-colors duration-200 shadow-lg">
+    <header class="bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 backdrop-blur-md sticky top-0 z-40 transition-colors duration-200 shadow-md">
         <div class="max-w-[1680px] w-full mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-14 sm:h-16 gap-2">
                 <!-- Logo & Brand -->
                 <div class="flex items-center space-x-2 sm:space-x-3 space-x-reverse min-w-0 shrink-0">
-                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700 shrink-0">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white border border-slate-200 dark:border-slate-700 shrink-0">
                         <i class="fa-solid" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
                     </button>
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 sm:gap-3 group">
@@ -262,10 +278,10 @@
                             <i class="fa-solid fa-passport text-white text-base sm:text-xl"></i>
                         </div>
                         <div class="min-w-0">
-                            <h1 class="text-xs sm:text-base lg:text-lg font-black text-white leading-tight truncate">
+                            <h1 class="text-xs sm:text-base lg:text-lg font-black text-slate-900 dark:text-white leading-tight truncate">
                                 بەڕێوەبەرایەتی گومرگی سلێمانی
                             </h1>
-                            <p class="text-[10px] sm:text-xs font-bold text-sky-400 truncate leading-tight">
+                            <p class="text-[10px] sm:text-xs font-bold text-sky-600 dark:text-sky-400 truncate leading-tight">
                                 سیستەمی ئەلیکترۆنی دەفتەری ئۆتۆمبێل
                             </p>
                         </div>
@@ -273,12 +289,12 @@
                 </div>
 
                 <!-- Live Clock & Date Display (Prominent & Real-time) -->
-                <div class="hidden 2xl:flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-950/80 border border-slate-800 shadow-inner shrink-0" title="بەروار و کاتی ڕاستەوخۆی کۆمپیوتەرەکەت">
-                    <i class="fa-regular fa-calendar-days text-sky-400 text-xs"></i>
-                    <span class="app-live-date text-xs font-mono font-bold text-slate-300">{{ now()->format('Y-m-d') }}</span>
-                    <span class="text-slate-600 font-bold">•</span>
-                    <i class="fa-regular fa-clock text-emerald-400 text-xs"></i>
-                    <span class="app-live-clock text-xs font-mono font-black text-emerald-400 tracking-wider">{{ now()->format('H:i:s') }}</span>
+                <div class="hidden 2xl:flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 shadow-inner shrink-0" title="بەروار و کاتی ڕاستەوخۆی کۆمپیوتەرەکەت">
+                    <i class="fa-regular fa-calendar-days text-sky-600 dark:text-sky-400 text-xs"></i>
+                    <span class="app-live-date text-xs font-mono font-bold text-slate-700 dark:text-slate-300">{{ now()->format('Y-m-d') }}</span>
+                    <span class="text-slate-400 dark:text-slate-600 font-bold">•</span>
+                    <i class="fa-regular fa-clock text-emerald-600 dark:text-emerald-400 text-xs"></i>
+                    <span class="app-live-clock text-xs font-mono font-black text-emerald-600 dark:text-emerald-400 tracking-wider">{{ now()->format('H:i:s') }}</span>
                 </div>
 
                 <!-- Fast Barcode Scanner Form (Desktop / Tablet - دیزاینی زۆر دیار و پرۆفشناڵ) -->
@@ -287,18 +303,18 @@
                     @csrf
                     <div class="relative flex items-center group">
                         <!-- Glowing Pulse Barcode Icon -->
-                        <div class="absolute right-3 pointer-events-none text-sky-400 flex items-center gap-1.5 z-10">
-                            <i class="fa-solid fa-barcode text-base group-focus-within:text-sky-300 transition-colors"></i>
+                        <div class="absolute right-3 pointer-events-none text-sky-500 dark:text-sky-400 flex items-center gap-1.5 z-10">
+                            <i class="fa-solid fa-barcode text-base group-focus-within:text-sky-400 transition-colors"></i>
                         </div>
 
                         <input type="text" name="barcode" id="globalDesktopBarcodeInput" placeholder="سکانی بارکۆد... (F2)" 
-                               class="w-48 sm:w-56 lg:w-64 xl:w-72 h-10 bg-slate-950/95 text-sm text-white placeholder-slate-400 rounded-2xl border-2 border-sky-500/50 hover:border-sky-400 focus:border-sky-400 pr-9 pl-14 py-1.5 focus:outline-none focus:ring-4 focus:ring-sky-500/20 transition-all font-mono font-black shadow-lg shadow-sky-500/10 tracking-wider"
+                               class="w-48 sm:w-56 lg:w-64 xl:w-72 h-10 bg-slate-100 dark:bg-slate-950/95 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 rounded-2xl border-2 border-sky-500/50 hover:border-sky-400 focus:border-sky-400 pr-9 pl-14 py-1.5 focus:outline-none focus:ring-4 focus:ring-sky-500/20 transition-all font-mono font-black shadow-lg shadow-sky-500/10 tracking-wider"
                                autocomplete="off"
                                title="تێکست بۆکسی لێدانی بارکۆد (یاخود کلیلی F2 داگرە)">
 
                         <!-- Left Shortcut Badge & Submit Arrow -->
                         <div class="absolute left-2 flex items-center gap-1 z-10">
-                            <kbd class="hidden sm:inline-block px-1.5 py-0.5 rounded-md bg-sky-950 text-sky-300 border border-sky-500/40 font-mono text-[10px] font-black shadow-sm pointer-events-none">F2</kbd>
+                            <kbd class="hidden sm:inline-block px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-sky-950 text-slate-700 dark:text-sky-300 border border-slate-300 dark:border-sky-500/40 font-mono text-[10px] font-black shadow-sm pointer-events-none">F2</kbd>
                             <button type="submit" class="w-6 h-6 flex items-center justify-center rounded-lg bg-sky-600 hover:bg-sky-500 text-white transition text-[11px] shadow active:scale-95" title="گەڕان بەپێی بارکۆد">
                                 <i class="fa-solid fa-arrow-left"></i>
                             </button>
@@ -425,10 +441,26 @@
                     @endif
                 </nav>
 
-                <!-- Action Section: Notifications & Unified Profile Dropdown -->
+                <!-- Action Section: Theme Toggle, Notifications & Unified Profile Dropdown -->
                 <div class="flex items-center space-x-2 space-x-reverse shrink-0">
+                    <!-- Day / Night Mode Toggle Switch (مۆدی شەو و ڕۆژ بە دیزاینێکی شاهانە) -->
+                    <button type="button" 
+                            @click="toggleTheme()" 
+                            class="relative px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border transition-all duration-300 flex items-center gap-1.5 sm:gap-2 shadow-sm group active:scale-95 bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700 dark:bg-slate-800/90 dark:hover:bg-slate-750 dark:border-slate-700 dark:text-slate-200"
+                            :title="isDark ? 'گۆڕین بۆ مۆدی ڕۆژ (ڕووناک)' : 'گۆڕین بۆ مۆدی شەو (تاریک)'">
+                        <div class="relative w-5 h-5 flex items-center justify-center">
+                            <!-- Sun (shown when dark) -->
+                            <i class="fa-solid fa-sun text-amber-400 text-sm transition-all duration-300 transform group-hover:rotate-90 group-hover:scale-110 drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]"
+                               x-show="isDark" x-cloak></i>
+                            <!-- Moon (shown when light) -->
+                            <i class="fa-solid fa-moon text-indigo-600 text-sm transition-all duration-300 transform group-hover:-rotate-45 group-hover:scale-110 drop-shadow-[0_0_8px_rgba(79,70,229,0.4)]"
+                               x-show="!isDark" x-cloak></i>
+                        </div>
+                        <span class="text-xs font-bold hidden sm:inline" x-text="isDark ? 'ڕۆژ' : 'شەو'"></span>
+                    </button>
+
                     <!-- Mobile Barcode Quick Trigger -->
-                    <button type="button" @click="showMobileBarcodeModal = true" class="md:hidden p-2 rounded-xl bg-slate-800 text-sky-400 border border-slate-700" title="سکانی خێرای بارکۆد">
+                    <button type="button" @click="showMobileBarcodeModal = true" class="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-sky-400 border border-slate-200 dark:border-slate-700" title="سکانی خێرای بارکۆد">
                         <i class="fa-solid fa-barcode text-sm"></i>
                     </button>
 
@@ -550,6 +582,17 @@
 
             <!-- Mobile Navigation Drawer -->
             <div x-show="mobileMenuOpen" x-cloak class="lg:hidden py-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
+                <!-- Mobile Day / Night Mode Button -->
+                <button type="button" @click="toggleTheme()" 
+                        class="w-full p-2.5 rounded-xl border flex items-center justify-between text-xs font-bold transition shadow-sm bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 dark:border-slate-700 dark:text-slate-100">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid text-sm" :class="isDark ? 'fa-sun text-amber-400' : 'fa-moon text-indigo-600'"></i>
+                        <span x-text="isDark ? 'گۆڕینی سیستەم بۆ مۆدی ڕۆژ (Light Mode)' : 'گۆڕینی سیستەم بۆ مۆدی شەو (Dark Mode)'"></span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300" 
+                          x-text="isDark ? 'شەو چالاکە' : 'ڕۆژ چالاکە'"></span>
+                </button>
+
                 @auth
                     <!-- User Profile Card in Drawer -->
                     <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-between">

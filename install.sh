@@ -71,6 +71,7 @@ docker exec tourist-app mkdir -p /var/www/storage/framework/cache/data \
                                 /var/www/bootstrap/cache
 docker exec tourist-app chmod -R 777 /var/www/storage /var/www/bootstrap/cache /var/www/database
 docker exec tourist-app php artisan storage:link || true
+docker exec tourist-app php artisan migrate --force || true
 docker exec tourist-app php artisan view:clear || true
 docker exec tourist-app php artisan route:clear || true
 docker exec tourist-app php artisan config:clear || true
