@@ -860,10 +860,11 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
                 alert('تکایە هەردوو ناوی کوردی و ئینگلیزی بنووسە!');
                 return;
             }
-            fetch("{{ route('settings.lookups.car_makes.store') }}", {
+            fetch("{{ route('lookup.car_make') }}", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    "Accept": "application/json",
                     "X-CSRF-TOKEN": "{{ csrf_token() }}"
                 },
                 body: JSON.stringify({
@@ -873,14 +874,15 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
             })
             .then(res => res.json())
             .then(data => {
-                if (data.success && data.make) {
-                    this.allMakes.unshift(data.make);
-                    this.selectCarMake(data.make);
+                const make = data.item || data.make;
+                if (data.success && make) {
+                    this.allMakes.unshift(make);
+                    this.selectCarMake(make);
                     this.showCarMakeModal = false;
                     this.newMakeKurdish = '';
                     this.newMakeEnglish = '';
                 } else {
-                    alert('هەڵەیەک ڕوویدا لە زیادکردنی مارکە.');
+                    alert(data.message || 'هەڵەیەک ڕوویدا لە زیادکردنی مارکە.');
                 }
             })
             .catch(() => alert('هەڵەی پەیوەندی بە سێرڤەرەوە.'));

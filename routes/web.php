@@ -114,6 +114,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/lookup/plate-type/{plateType}', [LookupController::class, 'updatePlateType'])->name('lookup.plate_type.update');
 
     Route::post('/lookup/car-make', [LookupController::class, 'storeCarMake'])->name('lookup.car_make');
+    Route::post('/settings/lookups/car-makes', [LookupController::class, 'storeCarMake'])->name('settings.lookups.car_makes.store');
     Route::put('/lookup/car-make/{carMake}', [LookupController::class, 'updateCarMake'])->name('lookup.car_make.update');
 
     Route::post('/lookup/car-color', [LookupController::class, 'storeCarColor'])->name('lookup.car_color');
