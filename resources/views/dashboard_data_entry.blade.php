@@ -553,10 +553,12 @@
                         <i class="fa-solid fa-eye"></i>
                         <span>بینینی تەواوی فایل</span>
                     </a>
-                    <a href="{{ route('transactions.edit', $searchedTransaction->id) }}" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-white transition flex items-center gap-1.5 font-bold">
+                    @if($searchedTransaction->canBeEditedByUser(auth()->user()))
+                    <a href="{{ route('transactions.edit', $searchedTransaction->id) }}" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition flex items-center gap-1.5 font-black shadow-md shadow-amber-500/25 border border-amber-400/40">
                         <i class="fa-solid fa-pen-to-square"></i>
                         <span>دەستکاریکردن</span>
                     </a>
+                    @endif
                 </div>
 
                 <a href="{{ route('transactions.print_data_entry', $searchedTransaction->id) }}" target="_blank"

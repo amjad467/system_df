@@ -717,25 +717,17 @@ class TransactionController extends Controller
                 ->with('error', 'ئەم مامەڵەیە پووچەڵکراوەتەوە و دەستکاریکردنی ڕاگیراوە.');
         }
 
-        // Editing allowed ONLY for Data Entry, Inspector (تەخمین), and Admin
-        if (!auth()->user()->isAdmin() && !in_array(auth()->user()->role, ['data_entry', 'inspector'])) {
-            return redirect()->route('transactions.show', $transaction->id)
-                ->with('error', 'تەنها فەرمانبەری داتائەنتەری، ئەندازیاری تەخمین، یان ئەدمین دەتوانێت دەستکاری زانیاری مامەڵە بکات.');
-        }
-
-        // Non-admin can edit if canBeEditedByDataEntry, or Inspector before audit/payment
-        $canEdit = auth()->user()->isAdmin()
-            || $transaction->canBeEditedByDataEntry()
-            || (auth()->user()->role === 'inspector' && !$transaction->is_audited && !$transaction->is_paid && !$transaction->is_cancelled && !$transaction->is_submitted);
-
-        if (!$canEdit) {
-            $stageName = 'وردبینی';
+        $user = auth()->user();
+        if (!$transaction->canBeEditedByUser($user)) {
+            $stageName = 'دواتر';
             if ($transaction->is_submitted) $stageName = 'سەبمیت و ئەرشیف';
             elseif ($transaction->is_booklet_completed) $stageName = 'چاپکردنی دەفتەر';
             elseif ($transaction->is_paid) $stageName = 'وەسڵ و پارەدان';
+            elseif ($transaction->is_audited) $stageName = 'وردبینی';
+            elseif ($transaction->is_inspected) $stageName = 'کەشف و تەخمین';
 
             return redirect()->route('transactions.show', $transaction->id)
-                ->with('error', "دەستکاریکردنی ئەم مامەڵەیە قوفڵ بووە چونکە قۆناغی '{$stageName}'ی بۆ ئەنجامدراوە! تەنها ئەدمین دەتوانێت قۆناغەکە ڕێکبخاتەوە (Reset) تا ڕێگە بە دەستکاری بدات.");
+                ->with('error', "دەستکاریکردنی ئەم مامەڵەیە لەم قۆناغە قوفڵ بووە چونکە قۆناغی '{$stageName}'ی بۆ ئەنجامدراوە! تەنها ئەدمین یان گەڕاندنەوەی مامەڵە دەتوانێت ڕێگە بە دەستکاری بدات.");
         }
 
         $directorates = \Illuminate\Support\Facades\Cache::remember('all_traffic_directorates', 3600, fn() => TrafficDirectorate::all());
@@ -760,13 +752,10 @@ class TransactionController extends Controller
 
     public function update(Request $request, Transaction $transaction)
     {
-        $canEdit = auth()->user()->isAdmin()
-            || $transaction->canBeEditedByDataEntry()
-            || (auth()->user()->role === 'inspector' && !$transaction->is_audited && !$transaction->is_paid && !$transaction->is_cancelled && !$transaction->is_submitted);
-
-        if (!$canEdit) {
+        $user = auth()->user();
+        if (!$transaction->canBeEditedByUser($user)) {
             return redirect()->route('transactions.show', $transaction->id)
-                ->with('error', 'دەستکاریکردنی ئەم مامەڵەیە قوفڵ کراوە.');
+                ->with('error', 'دەستکاریکردنی ئەم مامەڵەیە لەم قۆناغەدا قوفڵ کراوە چونکە قۆناغی دوای خۆی بۆ ئەنجامدراوە.');
         }
 
         $validated = $request->validate([

@@ -200,6 +200,19 @@
                 </a>
             @endif
 
+            <!-- 2. Primary Edit/Modify Button (دەستکاری یان گۆڕین - دیار و بەرچاو لە تەنیشت چاپی فیشە) -->
+            @php
+                $canUserEditThis = $transaction->canBeEditedByUser(auth()->user());
+            @endphp
+            @if($canUserEditThis)
+                <a href="{{ route('transactions.edit', $transaction->id) }}" 
+                   class="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-black rounded-xl shadow-lg shadow-amber-500/25 transition-all duration-200 flex items-center gap-1.5 shrink-0 border border-amber-300/40 hover:scale-[1.03] active:scale-95 group" 
+                   title="دەستکاریکردن یان گۆڕینی زانیارییەکانی ئەم مامەڵەیە">
+                    <i class="fa-solid fa-pen-to-square text-xs group-hover:rotate-6 transition-transform"></i>
+                    <span>دەستکاری مامەڵە</span>
+                </a>
+            @endif
+
             <!-- 2. Master Prints Dropdown (Never Closes Unexpectedly & Complete Options) -->
             <div class="relative" x-data="{ openPrintsMenu: false }">
                 <button type="button" @click.stop="openPrintsMenu = !openPrintsMenu" 
@@ -353,20 +366,6 @@
                 </div>
             </div>
 
-            <!-- 3. Edit Action Button (Admin, Data Entry, and Inspector) -->
-            @php
-                $canUserEditThis = (auth()->user()->isAdmin() || auth()->user()->role === 'data_entry' || auth()->user()->role === 'inspector')
-                    && !$transaction->is_cancelled
-                    && (auth()->user()->isAdmin() || $transaction->canBeEditedByDataEntry() || (auth()->user()->role === 'inspector' && !$transaction->is_audited && !$transaction->is_paid && !$transaction->is_submitted));
-            @endphp
-            @if($canUserEditThis)
-                <a href="{{ route('transactions.edit', $transaction->id) }}" 
-                   class="px-3 py-2 bg-amber-600/90 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 shrink-0" 
-                   title="دەستکاریکردن یان ڕاستکردنەوە">
-                    <i class="fa-solid fa-pen-to-square text-xs"></i>
-                    <span>دەستکاری</span>
-                </a>
-            @endif
 
             <!-- 4. Follow-up Transaction Dropdown -->
             @if(auth()->user()->isAdmin() || auth()->user()->role === 'data_entry')
