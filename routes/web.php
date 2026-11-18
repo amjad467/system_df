@@ -108,6 +108,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/lookup/directorate/{directorate}', [LookupController::class, 'updateDirectorate'])->name('lookup.directorate.update');
 
     Route::post('/lookup/director', [LookupController::class, 'storeDirector'])->name('lookup.director');
+    Route::post('/lookup/director/set-active-dropdown', [LookupController::class, 'setActiveDirectorDropdown'])->name('lookup.director.set_active_dropdown');
+    Route::post('/settings/director/set-active', [LookupController::class, 'setActiveDirectorDropdown'])->name('settings.director.set_active');
     Route::post('/lookup/director/{director}/set-active', [LookupController::class, 'setActiveDirector'])->name('lookup.director.set_active');
     Route::put('/lookup/director/{director}', [LookupController::class, 'updateDirector'])->name('lookup.director.update');
     Route::delete('/lookup/director/{director}', [LookupController::class, 'destroyDirector'])->name('lookup.director.destroy');

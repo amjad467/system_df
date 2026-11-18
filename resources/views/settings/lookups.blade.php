@@ -3,7 +3,7 @@
 @section('title', 'بەڕێوەبردنی داتاکانی سەرەتایی و بەڕێوەبەرایەتییەکان')
 
 @section('content')
-<div class="space-y-6" x-data="{ activeTab: 'txTypes' }">
+<div class="space-y-6" x-data="{ activeTab: '{{ request('tab', 'txTypes') }}' }">
 
     <!-- Header Banner -->
     <div class="bg-gradient-to-r from-slate-800 via-slate-800 to-indigo-950 p-6 rounded-2xl border border-slate-700/80 shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -165,15 +165,56 @@
             <i class="fa-solid fa-circle-info text-indigo-400 text-lg"></i>
             <div>
                 <span class="font-bold text-white block">ڕێنمایی ناوی بەڕێوەبەر بۆ نووسراوە فەرمییەکان:</span>
-                ناوی ئەو بەڕێوەبەرەی لێرە بە (دەستنیشانکردن بۆ نووسراو) دیاری دەکەیت، بە شێوەیەکی خۆکار لەسەر سەرجەم نووسراوە فەرمییەکان چاپ دەبێت (نووسراوی قەدەغەکردنی هاتووچۆ، پووچەڵکردنەوە، پشکنین، و بەڵێننامە) بەبێ پێویستی نووسینی لە فۆرمی تۆماردا.
+                ناوی ئەو بەڕێوەبەرەی لێرە هەڵیبژێریت یان زیادی بکەیت، بە شێوەیەکی خۆکار لەسەر سەرجەم نووسراوە فەرمییەکان چاپ دەبێت (نووسراوی قەدەغەکردنی هاتووچۆ، پووچەڵکردنەوە، پشکنین، و بەڵێننامە) بەبێ پێویستی دەستکاری لە فۆرمی تۆماردا.
             </div>
+        </div>
+
+        <!-- Dedicated Form to Pick Active Director -->
+        <div class="bg-gradient-to-r from-slate-900 via-slate-850 to-indigo-950 p-5 rounded-2xl border-2 border-indigo-500/50 shadow-xl space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-700/80 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-base border border-indigo-500/30">
+                        <i class="fa-solid fa-stamp"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-black text-white">فۆڕمی هەڵبژاردن و دیاریکردنی بەڕێوەبەری سەرەکی نووسراوەکان</h4>
+                        <p class="text-[11px] text-slate-400">بەڕێوەبەرێک لەم لیستە هەڵبژێرە و دوگمەی پاشەکەوتکردن دابگرە.</p>
+                    </div>
+                </div>
+
+                @php $activeDir = $directors->firstWhere('is_active', true) ?? $directors->first(); @endphp
+                @if($activeDir)
+                    <div class="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                        <span>بەڕێوەبەری چالاکی ئێستا:</span>
+                        <strong class="text-white underline">{{ $activeDir->name }}</strong>
+                    </div>
+                @endif
+            </div>
+
+            <form action="{{ route('lookup.director.set_active_dropdown') }}" method="POST" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                @csrf
+                <div class="flex-1">
+                    <select name="director_id" class="w-full bg-slate-900 border-2 border-indigo-500/60 focus:border-indigo-400 rounded-xl px-3.5 py-2.5 text-sm font-bold text-white focus:outline-none shadow-inner">
+                        @foreach($directors as $d)
+                            <option value="{{ $d->id }}" {{ $d->is_active ? 'selected' : '' }}>
+                                {{ $d->name }} {{ $d->is_active ? ' ★ (بەڕێوەبەری سەرەکی ئێستا)' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-floppy-disk text-sm"></i>
+                    <span>پاشەکەوتکردن و دیاریکردن بۆ نووسراو</span>
+                </button>
+            </form>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Add Form -->
             <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl">
                 <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                    <i class="fa-solid fa-plus-circle text-emerald-400"></i> زیادکردنی بەڕێوەبەر / لێپرسراوی نوێ
+                    <i class="fa-solid fa-user-plus text-emerald-400"></i> زیادکردنی بەڕێوەبەر / لێپرسراوی نوێ
                 </h3>
                 <form action="{{ route('lookup.director') }}" method="POST" class="space-y-3">
                     @csrf
@@ -182,8 +223,12 @@
                         <input type="text" name="name" required placeholder="بۆ نموونە: عەمید هێمن مامەند"
                                class="w-full bg-slate-900 text-sm text-slate-100 rounded-xl border border-slate-700 px-3 py-2 focus:outline-none focus:border-indigo-500">
                     </div>
+                    <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
+                        <input type="checkbox" name="is_active" value="1" checked class="rounded border-slate-700 text-indigo-600 focus:ring-0">
+                        <span>یەکسەر وەک بەڕێوەبەری سەرەکی چالاکبێت</span>
+                    </label>
                     <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg transition">
-                        تۆمارکردن
+                        تۆمارکردن و زیادکردن
                     </button>
                 </form>
             </div>

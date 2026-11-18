@@ -394,7 +394,11 @@
                                     <i class="fa-solid fa-users-gear w-4 text-center"></i>
                                     <span>فەرمانبەران</span>
                                 </a>
-                                <a href="{{ route('settings.lookups') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.lookups') ? 'bg-teal-600 text-white' : 'text-teal-300 hover:bg-teal-500/10' }}">
+                                <a href="{{ route('settings.lookups', ['tab' => 'directors']) }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.lookups') && request('tab') == 'directors' ? 'bg-indigo-600 text-white' : 'text-indigo-300 hover:bg-indigo-500/10' }}">
+                                    <i class="fa-solid fa-user-tie w-4 text-center"></i>
+                                    <span>ڕێکخستنی بەڕێوەبەر</span>
+                                </a>
+                                <a href="{{ route('settings.lookups') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.lookups') && request('tab') != 'directors' ? 'bg-teal-600 text-white' : 'text-teal-300 hover:bg-teal-500/10' }}">
                                     <i class="fa-solid fa-folder-tree w-4 text-center"></i>
                                     <span>پێناسەکان</span>
                                 </a>
@@ -675,6 +679,9 @@
                     @endif
 
                     @if(auth()->check() && auth()->user()->isAdmin())
+                        <a href="{{ route('settings.lookups', ['tab' => 'directors']) }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-indigo-300 dark:border-indigo-500/40 text-indigo-600 dark:text-indigo-300 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-user-tie ml-1.5"></i> بەڕێوەبەر
+                        </a>
                         <a href="{{ route('settings.lookups') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-500/40 text-teal-600 dark:text-teal-300 flex items-center justify-center">
                             <i class="fa-solid fa-folder-tree ml-1.5"></i> پێناسەکان
                         </a>

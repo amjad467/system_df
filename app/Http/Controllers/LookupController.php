@@ -89,6 +89,27 @@ class LookupController extends Controller
         return redirect()->back()->with('success', "بەڕێوەبەر [{$director->name}] دیاریکرا وەک بەڕێوەبەری سەرەکی لەسەر نووسراوە فەرمییەکان.");
     }
 
+    public function setActiveDirectorDropdown(Request $request)
+    {
+        $validated = $request->validate([
+            'director_id' => 'required|exists:directors,id',
+        ]);
+
+        Director::query()->update(['is_active' => false]);
+        $director = Director::findOrFail($validated['director_id']);
+        $director->update(['is_active' => true]);
+
+        Cache::forget('all_directors');
+        Cache::forget('active_director');
+        AuditLogger::log('دیاریکردنی بەڕێوەبەری سەرەکی بۆ نووسراوەکان', Director::class, $director->id, $director->name);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'item' => $director]);
+        }
+
+        return redirect()->back()->with('success', "بەڕێوەبەر [{$director->name}] دیاریکرا وەک بەڕێوەبەری سەرەکی لەسەر نووسراوە فەرمییەکان.");
+    }
+
     public function destroyDirector(Request $request, Director $director)
     {
         $name = $director->name;

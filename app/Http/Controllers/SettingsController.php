@@ -4,18 +4,53 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\TransactionType;
+use App\Models\Director;
 use App\Services\AuditLogger;
+use Illuminate\Support\Facades\Cache;
 
 class SettingsController extends Controller
 {
     public function pricing()
     {
         $transactionTypes = TransactionType::all();
-        return view('settings.pricing', compact('transactionTypes'));
+        $directors = Director::orderBy('id', 'asc')->get();
+        $activeDirector = Director::getActiveDirector();
+
+        return view('settings.pricing', compact('transactionTypes', 'directors', 'activeDirector'));
     }
 
     public function updatePricing(Request $request)
     {
+        // 1. Update Active Director if selected
+        if ($request->filled('active_director_id')) {
+            Director::query()->update(['is_active' => false]);
+            $activeDir = Director::find($request->active_director_id);
+            if ($activeDir) {
+                $activeDir->update(['is_active' => true]);
+                Cache::forget('all_directors');
+                Cache::forget('active_director');
+                AuditLogger::log('دیاریکردنی بەڕێوەبەری سەرەکی بۆ نووسراوەکان', Director::class, $activeDir->id, $activeDir->name);
+            }
+        }
+
+        // 2. Add New Director if name entered
+        if ($request->filled('new_director_name')) {
+            $newName = trim($request->new_director_name);
+            if (!empty($newName)) {
+                $makeActive = $request->boolean('make_new_director_active') || !Director::where('is_active', true)->exists();
+                if ($makeActive) {
+                    Director::query()->update(['is_active' => false]);
+                }
+                $newDir = Director::create([
+                    'name' => $newName,
+                    'is_active' => $makeActive,
+                ]);
+                Cache::forget('all_directors');
+                Cache::forget('active_director');
+                AuditLogger::log('زیادکردنی بەڕێوەبەری نوێ لە فۆڕمی ڕێکخستن', Director::class, $newDir->id, $newDir->name);
+            }
+        }
+
         $prices = $request->input('prices', []);
 
         foreach ($prices as $id => $data) {
@@ -36,7 +71,7 @@ class SettingsController extends Controller
 
         AuditLogger::log('دەستکاریکردنی نرخی مامەڵەکان لایەن سۆپەر ئەدمین', null, null, 'گۆڕانکاری لە سزاکان، ڕسوومات و نرخەکان کرا');
 
-        return redirect()->back()->with('success', 'نرخی سەرجەم مامەڵەکان بە سەرکەوتوویی لەلایەن سۆپەر ئەدمین نوێکرایەوە.');
+        return redirect()->back()->with('success', 'ڕێکخستنەکان (بەڕێوەبەری سەرەکی نووسراوەکان و نرخەکان) بە سەرکەوتوویی پاشەکەوتکران.');
     }
 
     public function lookups()
