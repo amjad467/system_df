@@ -166,7 +166,7 @@
         <!-- Director Signature Block -->
         <div class="flex justify-end pt-4 pb-2 pl-8">
             <div class="text-center font-black space-y-1">
-                <p class="text-lg">{{ $transaction->director->name ?? 'قادر پیرۆت قادر' }}</p>
+                <p class="text-lg">{{ $transaction->director?->name ?? \App\Models\Director::getActiveDirector()?->name ?? 'قادر پیرۆت قادر' }}</p>
                 <p class="text-base">بەڕێوەبەری گومرگی سلیمانی</p>
                 <p class="pt-1">
                     <span dir="ltr" class="inline-block font-mono text-sm font-bold">{{ date('Y/m') }}/ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span>

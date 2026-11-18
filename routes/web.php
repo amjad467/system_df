@@ -108,7 +108,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/lookup/directorate/{directorate}', [LookupController::class, 'updateDirectorate'])->name('lookup.directorate.update');
 
     Route::post('/lookup/director', [LookupController::class, 'storeDirector'])->name('lookup.director');
+    Route::post('/lookup/director/{director}/set-active', [LookupController::class, 'setActiveDirector'])->name('lookup.director.set_active');
     Route::put('/lookup/director/{director}', [LookupController::class, 'updateDirector'])->name('lookup.director.update');
+    Route::delete('/lookup/director/{director}', [LookupController::class, 'destroyDirector'])->name('lookup.director.destroy');
 
     Route::post('/lookup/plate-type', [LookupController::class, 'storePlateType'])->name('lookup.plate_type');
     Route::put('/lookup/plate-type/{plateType}', [LookupController::class, 'updatePlateType'])->name('lookup.plate_type.update');
@@ -118,6 +120,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/lookup/car-make/{carMake}', [LookupController::class, 'updateCarMake'])->name('lookup.car_make.update');
 
     Route::post('/lookup/car-color', [LookupController::class, 'storeCarColor'])->name('lookup.car_color');
+    Route::post('/settings/lookups/car-colors', [LookupController::class, 'storeCarColor'])->name('settings.lookups.car_colors.store');
     Route::put('/lookup/car-color/{carColor}', [LookupController::class, 'updateCarColor'])->name('lookup.car_color.update');
 
     Route::post('/lookup/transaction-type', [LookupController::class, 'storeTransactionType'])->name('lookup.transaction_type');

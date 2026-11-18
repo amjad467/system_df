@@ -56,11 +56,52 @@ class LookupController extends Controller
             'name.unique' => 'ئەم ناوەی بەڕێوەبەر پێشتر تۆمارکراوە!'
         ]);
 
+        // If no director is active yet, make this one active
+        $hasActive = Director::where('is_active', true)->exists();
+        if (!$hasActive) {
+            $validated['is_active'] = true;
+        }
+
         $item = Director::create($validated);
         Cache::forget('all_directors');
+        Cache::forget('active_director');
         AuditLogger::log('زیادکردنی بەڕێوەبەری نوێ', Director::class, $item->id, $item->name);
 
-        return response()->json(['success' => true, 'item' => $item]);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'item' => $item]);
+        }
+
+        return redirect()->back()->with('success', "بەڕێوەبەری نوێ [{$item->name}] بە سەرکەوتوویی تۆمارکرا.");
+    }
+
+    public function setActiveDirector(Request $request, Director $director)
+    {
+        Director::query()->update(['is_active' => false]);
+        $director->update(['is_active' => true]);
+        Cache::forget('all_directors');
+        Cache::forget('active_director');
+        AuditLogger::log('دیاریکردنی بەڕێوەبەری سەرەکی بۆ نووسراوەکان', Director::class, $director->id, $director->name);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'item' => $director]);
+        }
+
+        return redirect()->back()->with('success', "بەڕێوەبەر [{$director->name}] دیاریکرا وەک بەڕێوەبەری سەرەکی لەسەر نووسراوە فەرمییەکان.");
+    }
+
+    public function destroyDirector(Request $request, Director $director)
+    {
+        $name = $director->name;
+        $director->delete();
+        // Ensure at least one is active if available
+        if (!Director::where('is_active', true)->exists()) {
+            Director::first()?->update(['is_active' => true]);
+        }
+        Cache::forget('all_directors');
+        Cache::forget('active_director');
+        AuditLogger::log('سڕینەوەی بەڕێوەبەر', Director::class, $director->id, $name);
+
+        return redirect()->back()->with('success', "بەڕێوەبەر [{$name}] سڕایەوە.");
     }
 
     public function updateDirector(Request $request, Director $director)
@@ -73,9 +114,14 @@ class LookupController extends Controller
 
         $director->update($validated);
         Cache::forget('all_directors');
+        Cache::forget('active_director');
         AuditLogger::log('دەستکاریکردنی ناوی بەڕێوەبەر', Director::class, $director->id, $director->name);
 
-        return response()->json(['success' => true, 'item' => $director]);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'item' => $director]);
+        }
+
+        return redirect()->back()->with('success', "ناوی بەڕێوەبەر نوێکرایەوە.");
     }
 
     // 3. Plate Types
@@ -125,7 +171,11 @@ class LookupController extends Controller
         Cache::forget('all_car_makes');
         AuditLogger::log('زیادکردنی مارکەی ئۆتۆمبێلی نوێ', CarMake::class, $item->id, "{$item->name_kurdish} - {$item->name_english}");
 
-        return response()->json(['success' => true, 'item' => $item]);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'item' => $item, 'make' => $item]);
+        }
+
+        return redirect()->back()->with('success', "مارکەی نوێ [{$item->name_kurdish}] زیادکرا.");
     }
 
     public function updateCarMake(Request $request, CarMake $carMake)
@@ -150,17 +200,24 @@ class LookupController extends Controller
     {
         $validated = $request->validate([
             'name_kurdish' => 'required|string|max:255|unique:car_colors,name_kurdish',
-            'name_english' => 'required|string|max:255|unique:car_colors,name_english',
+            'name_english' => 'nullable|string|max:255',
         ], [
             'name_kurdish.unique' => 'ئەم ڕەنگە کوردییە پێشتر تۆمارکراوە!',
-            'name_english.unique' => 'ئەم ڕەنگە ئینگلیزییە پێشتر تۆمارکراوە!'
         ]);
+
+        if (empty($validated['name_english'])) {
+            $validated['name_english'] = $validated['name_kurdish'];
+        }
 
         $item = CarColor::create($validated);
         Cache::forget('all_car_colors');
         AuditLogger::log('زیادکردنی ڕەنگی نوێ', CarColor::class, $item->id, "{$item->name_kurdish} - {$item->name_english}");
 
-        return response()->json(['success' => true, 'item' => $item]);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'item' => $item, 'color' => $item]);
+        }
+
+        return redirect()->back()->with('success', "ڕەنگی نوێ [{$item->name_kurdish}] زیادکرا.");
     }
 
     public function updateCarColor(Request $request, CarColor $carColor)

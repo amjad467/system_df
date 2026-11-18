@@ -160,6 +160,15 @@
 
     <!-- Tab 3: Directors -->
     <div x-show="activeTab === 'directors'" x-cloak class="space-y-6">
+        <!-- Notice banner -->
+        <div class="p-4 bg-indigo-950/40 border border-indigo-700/50 rounded-2xl flex items-center gap-3 text-xs text-indigo-200">
+            <i class="fa-solid fa-circle-info text-indigo-400 text-lg"></i>
+            <div>
+                <span class="font-bold text-white block">ڕێنمایی ناوی بەڕێوەبەر بۆ نووسراوە فەرمییەکان:</span>
+                ناوی ئەو بەڕێوەبەرەی لێرە بە (دەستنیشانکردن بۆ نووسراو) دیاری دەکەیت، بە شێوەیەکی خۆکار لەسەر سەرجەم نووسراوە فەرمییەکان چاپ دەبێت (نووسراوی قەدەغەکردنی هاتووچۆ، پووچەڵکردنەوە، پشکنین، و بەڵێننامە) بەبێ پێویستی نووسینی لە فۆرمی تۆماردا.
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Add Form -->
             <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl">
@@ -181,21 +190,56 @@
 
             <!-- List Table -->
             <div class="lg:col-span-2 bg-slate-800/90 border border-slate-700/80 rounded-2xl overflow-hidden shadow-xl">
-                <div class="p-4 border-b border-slate-700 font-bold text-sm text-white">لیستی بەڕێوەبەر و لێپرسراوان</div>
+                <div class="p-4 border-b border-slate-700 font-bold text-sm text-white flex items-center justify-between">
+                    <span>لیستی بەڕێوەبەر و لێپرسراوان</span>
+                    <span class="text-xs text-slate-400 font-normal">کۆی گشتی: {{ $directors->count() }} بەڕێوەبەر</span>
+                </div>
                 <table class="w-full text-right text-xs">
                     <thead class="bg-slate-900/80 text-slate-400">
                         <tr>
                             <th class="p-3">#</th>
-                            <th class="p-3">ناوی بەڕێوەبەر</th>
-                            <th class="p-3">بەرواری زیادکردن</th>
+                            <th class="p-3">ناوی بەڕێوەبەر / لێپرسراو</th>
+                            <th class="p-3 text-center">دۆخی دەرکەوتن لەسەر نووسراوەکان</th>
+                            <th class="p-3 text-left">کردارەکان</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-700/60">
                         @foreach($directors as $d)
-                            <tr class="hover:bg-slate-700/30 text-slate-200">
+                            <tr class="hover:bg-slate-700/30 text-slate-200 transition {{ $d->is_active ? 'bg-indigo-950/20' : '' }}">
                                 <td class="p-3 font-mono text-slate-400">{{ $d->id }}</td>
-                                <td class="p-3 font-bold text-white">{{ $d->name }}</td>
-                                <td class="p-3 font-mono text-slate-400">{{ $d->created_at?->toDateString() ?? '-' }}</td>
+                                <td class="p-3 font-bold text-white text-sm">
+                                    {{ $d->name }}
+                                </td>
+                                <td class="p-3 text-center">
+                                    @if($d->is_active)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-black text-xs shadow">
+                                            <i class="fa-solid fa-stamp text-emerald-400"></i> بەڕێوەبەری سەرەکی لەسەر نووسراوەکان
+                                        </span>
+                                    @else
+                                        <span class="text-slate-500 text-xs font-mono">ناچالاک</span>
+                                    @endif
+                                </td>
+                                <td class="p-3 text-left">
+                                    <div class="flex items-center justify-end gap-2">
+                                        @if(!$d->is_active)
+                                            <form action="{{ route('lookup.director.set_active', $d->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow">
+                                                    <i class="fa-solid fa-check"></i> دەستنیشانکردن بۆ نووسراو
+                                                </button>
+                                            </form>
+                                            <form action="{{ route('lookup.director.destroy', $d->id) }}" method="POST" class="inline" onsubmit="return confirm('ئایا دڵنیایت لە سڕینەوەی ئەم بەڕێوەبەرە؟')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl text-xs transition" title="سڕینەوە">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <span class="text-xs text-emerald-400 font-bold px-2">چالاکە</span>
+                                        @endif
+                                    </div>
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>

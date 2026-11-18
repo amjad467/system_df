@@ -70,7 +70,7 @@
         $passportIssuePlace = $tx->passport_issue_place ?: ($parent?->passport_issue_place ?: '');
         $address = $tx->address ?: ($parent?->address ?: '');
         $phoneNumber = $tx->phone_number ?: ($parent?->phone_number ?: '');
-        $directorName = $tx->director?->name ?: ($parent?->director?->name ?: 'قادر پیرۆت قادر');
+        $directorName = $tx->director?->name ?: ($parent?->director?->name ?: (\App\Models\Director::getActiveDirector()?->name ?? 'قادر پیرۆت قادر'));
         $txDate = $tx->transaction_date ?: ($parent?->transaction_date ?: now());
 
         $legalUser = (auth()->check() && auth()->user()->isLegal())

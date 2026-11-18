@@ -22,13 +22,23 @@
             'name_english' => $m->name_english ?? '',
         ];
     })->values();
+
+    $colorsList = $carColors->map(function($c) {
+        return [
+            'id' => $c->id,
+            'name_kurdish' => $c->name_kurdish,
+            'name_english' => $c->name_english ?? '',
+        ];
+    })->values();
 @endphp
 
 <div x-data="unifiedTransactionForm(
         {{ \Illuminate\Support\Js::from($fromTransaction) }}, 
         {{ $targetTypeId ? (int)$targetTypeId : 'null' }}, 
         {{ \Illuminate\Support\Js::from($txRates) }},
-        {{ \Illuminate\Support\Js::from($makesList) }}
+        {{ \Illuminate\Support\Js::from($makesList) }},
+        {{ \Illuminate\Support\Js::from($colorsList) }},
+        {{ \Illuminate\Support\Js::from($directorateCodeMap) }}
      )" 
      @keydown.window.alt.s.prevent="submitForm()"
      class="max-w-7xl mx-auto space-y-4 pb-12 text-slate-800 dark:text-slate-100">
@@ -153,8 +163,22 @@
                            placeholder="17-DIGIT CHASSIS VIN NUMBER" 
                            class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-sky-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono font-bold tracking-widest uppercase transition">
 
+                    <!-- Active Booklet Warning Alert (Req 1) -->
+                    <div x-show="hasActiveBooklet && typeId == 1" x-cloak class="p-2.5 bg-rose-500/15 border-2 border-rose-500/80 rounded-xl text-rose-700 dark:text-rose-300 space-y-1 shadow-sm">
+                        <div class="flex items-center justify-between font-black text-xs">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-triangle-exclamation text-rose-500 text-sm"></i>
+                                <span>تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە!</span>
+                            </span>
+                            <span class="text-[10px] bg-rose-600 text-white px-2 py-0.5 rounded-md font-mono" x-text="activeBooklet ? activeBooklet.barcode : ''"></span>
+                        </div>
+                        <p class="text-[11px] font-medium leading-relaxed">
+                            ئەم شاسییە خاوەنی مامەڵەی دەرهێنانی دەفتەری پێشووە کە هێشتا پووچەڵ نەکراوەتەوە. ناتوانیت دەرهێنانی نوێ بکەیت پێش پووچەڵکردنەوە.
+                        </p>
+                    </div>
+
                     <!-- Found Alert Badge -->
-                    <div x-show="chassisFound && chassisPreviousInfo" x-cloak class="p-1.5 bg-emerald-500/15 border border-emerald-500/40 rounded-lg text-[11px] text-emerald-700 dark:text-emerald-300 flex items-center justify-between">
+                    <div x-show="chassisFound && chassisPreviousInfo && (!hasActiveBooklet || typeId != 1)" x-cloak class="p-1.5 bg-emerald-500/15 border border-emerald-500/40 rounded-lg text-[11px] text-emerald-700 dark:text-emerald-300 flex items-center justify-between">
                         <span class="flex items-center gap-1">
                             <i class="fa-solid fa-circle-check text-emerald-500"></i>
                             <span>شاسی دۆزرایەوە؛ زانیارییەکان هێنرانەوە.</span>
@@ -168,13 +192,20 @@
                 <!-- Plate Number & Plate Type -->
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">ژمارەی تابلۆ *</label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-[11px] font-bold text-slate-700 dark:text-slate-300">ژمارەی تابلۆ *</label>
+                            <span x-show="detectedDirectorateName" x-cloak class="text-[10px] text-sky-600 dark:text-sky-400 font-bold flex items-center gap-1">
+                                <i class="fa-solid fa-location-dot text-[9px]"></i>
+                                <span x-text="detectedDirectorateName"></span>
+                            </span>
+                        </div>
                         <input type="text" 
                                id="input_plateNumber"
                                name="plate_number" 
                                x-model="plateNumber" 
+                               @input="onPlateInput($event.target.value)"
                                required 
-                               placeholder="مثلاً: 22 A 12345" 
+                               placeholder="مثلاً: 21 A 12345" 
                                dir="ltr"
                                :class="missingField === 'plateNumber' ? 'border-rose-500 ring-2 ring-rose-500/30' : 'border-slate-300 dark:border-slate-700'"
                                class="w-full bg-white dark:bg-slate-950 border focus:border-sky-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono font-bold tracking-wider transition">
@@ -238,15 +269,14 @@
                     </div>
                 </div>
 
-                <!-- Auto English Car Make Preview -->
+                <!-- Car Make English - Editable (Req 2B) -->
                 <div x-show="isFullBookletForm()">
-                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">مارکە بە ئینگلیزی (خۆکار)</label>
+                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">مارکە بە ئینگلیزی (با کارمەند خۆی بینوسێت)</label>
                     <input type="text" 
                            x-model="carMakeEng" 
-                           readonly 
                            dir="ltr"
-                           placeholder="ENGLISH MAKE AUTO-POPULATED"
-                           class="w-full bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-sky-600 dark:text-sky-400 font-mono font-bold tracking-wider">
+                           placeholder="ناوی ئینگلیزی مارکە بنووسە..."
+                           class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 focus:border-sky-500 rounded-lg px-2.5 py-1.5 text-xs text-sky-600 dark:text-sky-400 font-mono font-bold tracking-wider">
                 </div>
 
                 <!-- Model Year & Color Grid -->
@@ -266,7 +296,12 @@
                     </div>
 
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">ڕەنگ *</label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-[11px] font-bold text-slate-700 dark:text-slate-300">ڕەنگ *</label>
+                            <button type="button" @click="showCarColorModal = true" class="text-[10px] text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 font-bold">
+                                <i class="fa-solid fa-plus-circle"></i> نوێ
+                            </button>
+                        </div>
                         <select name="car_color_id" 
                                 id="input_carColorId"
                                 x-model="carColorId" 
@@ -274,9 +309,9 @@
                                 :class="missingField === 'carColorId' ? 'border-rose-500 ring-2 ring-rose-500/30' : 'border-slate-300 dark:border-slate-700'"
                                 class="w-full bg-white dark:bg-slate-950 border focus:border-sky-500 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none">
                             <option value="">هەڵبژێرە...</option>
-                            @foreach($carColors as $cc)
-                                <option value="{{ $cc->id }}" data-eng="{{ $cc->name_english }}">{{ $cc->name_kurdish }}</option>
-                            @endforeach
+                            <template x-for="c in allColors" :key="c.id">
+                                <option :value="c.id" :selected="carColorId == c.id" x-text="c.name_kurdish"></option>
+                            </template>
                         </select>
                     </div>
                 </div>
@@ -433,29 +468,19 @@
                     <span class="text-[10px] text-slate-400 font-mono">Rates & Officers</span>
                 </div>
 
-                <!-- Directorate & Director Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">بەڕێوەبەرایەتی هاتوچۆ</label>
-                        <select name="traffic_directorate_id" 
-                                x-model="directorateId" 
-                                class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none">
-                            @foreach($directorates as $dir)
-                                <option value="{{ $dir->id }}">{{ $dir->name_kurdish }}</option>
-                            @endforeach
-                        </select>
+                <!-- Traffic Directorate (Auto-selected from plate code: 21, 22, 23, 24) -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-[11px] font-bold text-slate-700 dark:text-slate-300">بەڕێوەبەرایەتی هاتوچۆ</label>
+                        <span class="text-[10px] text-slate-400 font-mono">دەستنیشانکردنی خۆکار (21، 22، 23، 24)</span>
                     </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">بەڕێوەبەر / لێپرسراو</label>
-                        <select name="director_id" 
-                                x-model="directorId" 
-                                class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none">
-                            @foreach($directors as $d)
-                                <option value="{{ $d->id }}">{{ $d->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                    <select name="traffic_directorate_id" 
+                            x-model="directorateId" 
+                            class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none">
+                        @foreach($directorates as $dir)
+                            <option value="{{ $dir->id }}">{{ $dir->name_kurdish }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <!-- Validity Duration (Years) -->
@@ -530,29 +555,88 @@
         </div>
     </form>
 
-    <!-- INLINE MODAL: Quick Add Car Make -->
+    <!-- INLINE MODAL: Quick Add & Search Car Make (Req 2B) -->
     <div x-show="showCarMakeModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-car text-sky-500"></i>
-                    <span>زیادکردنی مارکەی نوێ</span>
+                    <span>جۆری ئۆتۆمبێل (مارکە)</span>
                 </h3>
                 <button type="button" @click="showCarMakeModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">ناوی کوردی *</label>
-                    <input type="text" x-model="newMakeKurdish" placeholder="مثلاً: تۆیوتا" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100">
+            <!-- Existing Makes Search & List (سێرچ و لیستی پێشوو) -->
+            <div class="space-y-2 bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                <div class="flex items-center justify-between text-xs">
+                    <label class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-magnifying-glass text-sky-500"></i>
+                        <span>گەڕان لە لیستی مارکە هەبووەکانی پێشوو</span>
+                    </label>
+                    <span class="text-[10px] text-slate-400 font-mono" x-text="allMakes.length + ' مارکە'"></span>
+                </div>
+                <input type="text" 
+                       x-model="modalMakeSearch" 
+                       placeholder="بگەڕێ لە مارکەکانی پێشوو (تۆیۆتا، نیسان، BMW...)" 
+                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold focus:border-sky-500">
+                
+                <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pt-1">
+                    <template x-for="m in modalFilteredMakes" :key="m.id">
+                        <button type="button" 
+                                @click="selectCarMake(m); showCarMakeModal = false;" 
+                                class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-sky-50 dark:hover:bg-sky-950/50 hover:border-sky-400 text-slate-800 dark:text-slate-200 flex items-center gap-1.5 transition cursor-pointer">
+                            <span class="font-bold" x-text="m.name_kurdish"></span>
+                            <span class="text-[10px] text-slate-400 font-mono" x-text="m.name_english"></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Add Truly New Make Form (با کارمەند خۆی بینوسێت) -->
+            <div class="space-y-3 pt-1 border-t border-slate-200 dark:border-slate-800">
+                <div class="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus-circle text-emerald-500"></i>
+                    <span>یاخود تۆمارکردنی جۆری نوێ (ئەگەر لە سەرەوە نەبوو):</span>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">ناوی ئینگلیزی (English) *</label>
-                    <input type="text" x-model="newMakeEnglish" placeholder="TOYOTA" dir="ltr" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 uppercase font-mono">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">ناوی کوردی مارکە *</label>
+                    <input type="text" x-model="newMakeKurdish" placeholder="مثلاً: چێری یان جێتۆر" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">ناوی ئینگلیزی (با کارمەند خۆی بینوسێت) *</label>
+                    <input type="text" x-model="newMakeEnglish" placeholder="مثلاً: CHERY یان JETOUR" dir="ltr" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 uppercase font-mono font-bold">
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" @click="showCarMakeModal = false" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold rounded-xl">داخستن</button>
-                    <button type="button" @click="addCarMake()" class="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow">زیادکردن</button>
+                    <button type="button" @click="addCarMake()" class="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow">تۆمارکردنی مارکە</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INLINE MODAL: Quick Add Car Color (Req 2A) -->
+    <div x-show="showCarColorModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-palette text-amber-500"></i>
+                    <span>زیادکردنی ڕەنگی نوێ</span>
+                </h3>
+                <button type="button" @click="showCarColorModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">ناوی کوردی ڕەنگ *</label>
+                    <input type="text" x-model="newColorKurdish" placeholder="بۆ نموونە: ڕەساسی تۆخ، مەرەکەبی..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-bold">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">ناوی ئینگلیزی ڕەنگ (با کارمەند خۆی بینوسێت)</label>
+                    <input type="text" x-model="newColorEnglish" placeholder="DARK GREY" dir="ltr" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 uppercase font-mono font-bold">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" @click="showCarColorModal = false" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold rounded-xl">داخستن</button>
+                    <button type="button" @click="addCarColor()" class="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow">زیادکردنی ڕەنگ</button>
                 </div>
             </div>
         </div>
@@ -560,7 +644,7 @@
 </div>
 
 <script>
-function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
+function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, colorsList, dirCodeMap) {
     return {
         typeId: targetTypeId || (initialTx ? initialTx.transaction_type_id : 1),
         parentTransactionId: initialTx ? initialTx.id : '',
@@ -589,24 +673,34 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
         pistonCount: initialTx ? (initialTx.piston_count || 4) : 4,
         salanaNumber: initialTx ? (initialTx.salana_number || '') : '',
 
-        // Office details
+        // Directorate & Plate prefix code map (Req 4: 21, 22, 23, 24)
         directorateId: initialTx ? (initialTx.traffic_directorate_id || '{{ $defaultDirectorateId }}') : '{{ $defaultDirectorateId }}',
-        directorId: initialTx ? (initialTx.director_id || '{{ $defaultDirectorId }}') : '{{ $defaultDirectorId }}',
+        codeMap: dirCodeMap || {},
+        detectedDirectorateName: '',
 
-        // Makes list & Combobox search
+        // Makes list & modal search (Req 2B)
         allMakes: makesList || [],
         filteredMakes: makesList || [],
         showCarMakeModal: false,
+        modalMakeSearch: '',
         newMakeKurdish: '',
         newMakeEnglish: '',
 
-        // Chassis status
+        // Colors list & modal (Req 2A)
+        allColors: colorsList || [],
+        showCarColorModal: false,
+        newColorKurdish: '',
+        newColorEnglish: '',
+
+        // Chassis status & Active Booklet Duplicate Check (Req 1)
         isCheckingChassis: false,
         chassisFound: initialTx ? true : false,
         chassisPreviousInfo: initialTx || null,
+        hasActiveBooklet: false,
+        activeBooklet: null,
         _chassisTimer: null,
 
-        // Validation & Missing Field Indicator (Point 4)
+        // Validation & Missing Field Indicator
         validationError: '',
         missingField: '',
 
@@ -620,16 +714,55 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
             totalPay: 0
         },
 
+        get modalFilteredMakes() {
+            const q = (this.modalMakeSearch || '').trim().toLowerCase();
+            if (!q) return this.allMakes.slice(0, 20);
+            return this.allMakes.filter(m => 
+                (m.name_kurdish && m.name_kurdish.toLowerCase().includes(q)) ||
+                (m.name_english && m.name_english.toLowerCase().includes(q))
+            ).slice(0, 30);
+        },
+
         init() {
             // Initialize selected make Kurdish name if already set
             if (this.carMakeId) {
                 const found = this.allMakes.find(m => m.id == this.carMakeId);
                 if (found) {
                     this.selectedMakeKurdish = found.name_kurdish;
-                    this.carMakeEng = found.name_english;
+                    if (!this.carMakeEng) this.carMakeEng = found.name_english;
                 }
             }
+            if (this.plateNumber) {
+                this.onPlateInput(this.plateNumber);
+            }
             this.calculateFees();
+        },
+
+        onPlateInput(val) {
+            if (!val) {
+                this.detectedDirectorateName = '';
+                return;
+            }
+            // Normalize Kurdish/Arabic-Indic digits to ASCII (e.g. ٢١ -> 21)
+            const norm = String(val).trim()
+                .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+                .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+
+            if (norm.startsWith('21') && this.codeMap['21']) {
+                this.directorateId = this.codeMap['21'];
+                this.detectedDirectorateName = 'هاتووچۆی سلێمانی (21)';
+            } else if (norm.startsWith('22') && this.codeMap['22']) {
+                this.directorateId = this.codeMap['22'];
+                this.detectedDirectorateName = 'هاتووچۆی هەولێر (22)';
+            } else if (norm.startsWith('23') && this.codeMap['23']) {
+                this.directorateId = this.codeMap['23'];
+                this.detectedDirectorateName = 'هاتووچۆی هەڵەبجە (23)';
+            } else if (norm.startsWith('24') && this.codeMap['24']) {
+                this.directorateId = this.codeMap['24'];
+                this.detectedDirectorateName = 'هاتووچۆی دهۆک (24)';
+            } else {
+                this.detectedDirectorateName = '';
+            }
         },
 
         getTypeName() {
@@ -672,8 +805,8 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
 
         selectCarMake(make) {
             this.carMakeId = make.id;
-            this.selectedMakeKurdish = make.name_kurdish; // Strictly Kurdish in field
-            this.carMakeEng = make.name_english;         // Strictly English in companion field
+            this.selectedMakeKurdish = make.name_kurdish;
+            this.carMakeEng = make.name_english;
             this.missingField = (this.missingField === 'carMakeId') ? '' : this.missingField;
         },
 
@@ -697,6 +830,8 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
             if (clean.length < 3) {
                 this.chassisFound = false;
                 this.chassisPreviousInfo = null;
+                this.hasActiveBooklet = false;
+                this.activeBooklet = null;
                 return;
             }
 
@@ -705,6 +840,13 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
                 .then(res => res.json())
                 .then(data => {
                     this.isCheckingChassis = false;
+                    this.hasActiveBooklet = Boolean(data && data.has_active_booklet);
+                    this.activeBooklet = (data && data.active_booklet) ? data.active_booklet : null;
+
+                    if (this.hasActiveBooklet && this.typeId == 1) {
+                        alert('تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە!\n\nئەم شاسییە خاوەنی دەفتەری پێشووی چالاکە بە بارکۆدی: ' + (this.activeBooklet ? this.activeBooklet.barcode : '') + '\nناتوانیت دووبارە دەرهێنان بکەیت هەتاوەکو پووچەڵ نەکرێتەوە.');
+                    }
+
                     if (data && data.found && data.record) {
                         this.chassisFound = true;
                         this.chassisPreviousInfo = data.record;
@@ -729,7 +871,10 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
             this.secondDriverName = record.second_driver_name || '';
             this.secondDriverNameEng = record.second_driver_name_eng || '';
 
-            this.plateNumber = record.plate_number || '';
+            if (record.plate_number) {
+                this.plateNumber = record.plate_number;
+                this.onPlateInput(this.plateNumber);
+            }
             if (record.plate_type_id) this.plateTypeId = record.plate_type_id;
             
             if (record.car_make_id) {
@@ -749,7 +894,6 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
             if (record.piston_count) this.pistonCount = record.piston_count;
             if (record.salana_number) this.salanaNumber = record.salana_number;
             if (record.traffic_directorate_id) this.directorateId = record.traffic_directorate_id;
-            if (record.director_id) this.directorId = record.director_id;
 
             this.calculateFees();
         },
@@ -758,6 +902,8 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
             this.chassisFound = false;
             this.chassisPreviousInfo = null;
             this.parentTransactionId = '';
+            this.hasActiveBooklet = false;
+            this.activeBooklet = null;
         },
 
         onKurdishInput(e, field) {
@@ -793,11 +939,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
         },
 
         onCarColorChange() {
-            const sel = document.querySelector('select[name="car_color_id"]');
-            if (sel && sel.selectedIndex >= 0) {
-                const opt = sel.options[sel.selectedIndex];
-                this.carColorEng = opt.getAttribute('data-eng') || '';
-            }
+            // Can be used for extra callbacks if needed
         },
 
         calculateFees() {
@@ -822,10 +964,22 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
             if (el) el.focus();
         },
 
-        // Smart Field Validation (Item 4)
+        // Smart Field Validation
         submitForm() {
             this.validationError = '';
             this.missingField = '';
+
+            // Requirement 1: Check active booklet duplicate blocking
+            if (this.typeId == 1 && this.hasActiveBooklet) {
+                this.validationError = 'تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە! ناتوانیت مامەڵەی دەرهێنانی نوێ تۆمار بکەیت پێش ئەوەی دەفتەری پێشوو پووچەڵ بکرێتەوە.';
+                alert('تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە!\n\nئەم شاسییە خاوەنی دەفتەری پێشووی چالاکە بە بارکۆدی: ' + (this.activeBooklet ? this.activeBooklet.barcode : '') + '\nناتوانیت دووبارە دەرهێنان بکەیت هەتاوەکو دەفتەری پێشوو پووچەڵ نەکرێتەوە.');
+                const el = document.getElementById('input_chassisNumber');
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.focus();
+                }
+                return;
+            }
 
             const requiredFields = [
                 { id: 'chassisNumber', name: 'ژمارەی شاسی ئۆتۆمبێل (Chassis VIN)' },
@@ -857,7 +1011,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
 
         addCarMake() {
             if (!this.newMakeKurdish || !this.newMakeEnglish) {
-                alert('تکایە هەردوو ناوی کوردی و ئینگلیزی بنووسە!');
+                alert('تکایە هەردوو ناوی کوردی و ئینگلیزی مارکە بنووسە!');
                 return;
             }
             fetch("{{ route('lookup.car_make') }}", {
@@ -881,11 +1035,45 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList) {
                     this.showCarMakeModal = false;
                     this.newMakeKurdish = '';
                     this.newMakeEnglish = '';
+                    this.modalMakeSearch = '';
                 } else {
                     alert(data.message || 'هەڵەیەک ڕوویدا لە زیادکردنی مارکە.');
                 }
             })
             .catch(() => alert('هەڵەی پەیوەندی بە سێرڤەرەوە.'));
+        },
+
+        addCarColor() {
+            if (!this.newColorKurdish) {
+                alert('تکایە ناوی کوردی ڕەنگ بنووسە!');
+                return;
+            }
+            fetch("{{ route('lookup.car_color') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    name_kurdish: this.newColorKurdish,
+                    name_english: this.newColorEnglish || this.newColorKurdish
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const color = data.item || data.color;
+                if (data.success && color) {
+                    this.allColors.unshift(color);
+                    this.carColorId = color.id;
+                    this.showCarColorModal = false;
+                    this.newColorKurdish = '';
+                    this.newColorEnglish = '';
+                } else {
+                    alert(data.message || 'هەڵەیەک ڕوویدا لە زیادکردنی ڕەنگ.');
+                }
+            })
+            .catch(() => alert('هەڵەی پەیوەندی بە سێرڤەر بۆ زیادکردنی ڕەنگ.'));
         }
     };
 }

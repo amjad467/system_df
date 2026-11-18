@@ -316,7 +316,14 @@ class TransactionController extends Controller
         $passportIssuePlaces = \Illuminate\Support\Facades\Cache::remember('all_passport_issue_places', 3600, fn() => \App\Models\PassportIssuePlace::orderBy('name')->get());
 
         $defaultDirectorateId = $directorates->first(fn($d) => str_contains($d->name_kurdish ?? '', 'سلێمانی'))?->id ?? $directorates->first()?->id;
-        $defaultDirectorId = $directors->first()?->id ?? 1;
+        $defaultDirectorId = Director::getActiveDirector()?->id ?? ($directors->first()?->id ?? 1);
+
+        $directorateCodeMap = [
+            '21' => $directorates->first(fn($d) => str_contains($d->name_kurdish ?? '', 'سلێمانی'))?->id,
+            '22' => $directorates->first(fn($d) => str_contains($d->name_kurdish ?? '', 'هەولێر') || str_contains($d->name_kurdish ?? '', 'هه ولير'))?->id,
+            '23' => $directorates->first(fn($d) => str_contains($d->name_kurdish ?? '', 'هەڵەبجە') || str_contains($d->name_kurdish ?? '', 'هةلَةبجة'))?->id,
+            '24' => $directorates->first(fn($d) => str_contains($d->name_kurdish ?? '', 'دهۆک') || str_contains($d->name_kurdish ?? '', 'دهوك'))?->id,
+        ];
 
         $fromTransaction = null;
         if ($request->filled('from_transaction')) {
@@ -335,6 +342,7 @@ class TransactionController extends Controller
             'passportIssuePlaces',
             'defaultDirectorateId',
             'defaultDirectorId',
+            'directorateCodeMap',
             'fromTransaction',
             'targetTypeId'
         ));
@@ -356,6 +364,41 @@ class TransactionController extends Controller
                 ->latest('id')
                 ->first();
 
+            // Check if there is an active booklet (Type 1) for this chassis that hasn't been cancelled
+            $activeBooklet = Transaction::where(function($q) use ($chassis, $chassisClean) {
+                $q->whereRaw("UPPER(REPLACE(REPLACE(chassis_number, ' ', ''), '-', '')) = ?", [$chassisClean])
+                  ->orWhere('chassis_number', $chassis);
+            })
+            ->where('transaction_type_id', 1)
+            ->where('is_cancelled', false)
+            ->latest('id')
+            ->first();
+
+            $hasActiveBooklet = false;
+            $activeBookletData = null;
+
+            if ($activeBooklet) {
+                // Check if there's any subsequent cancellation transaction (Type 5)
+                $isCancelledByLaterTx = Transaction::where(function($q) use ($chassis, $chassisClean) {
+                    $q->whereRaw("UPPER(REPLACE(REPLACE(chassis_number, ' ', ''), '-', '')) = ?", [$chassisClean])
+                      ->orWhere('chassis_number', $chassis);
+                })
+                ->where('transaction_type_id', 5)
+                ->where('id', '>', $activeBooklet->id)
+                ->exists();
+
+                if (!$isCancelledByLaterTx) {
+                    $hasActiveBooklet = true;
+                    $activeBookletData = [
+                        'id' => $activeBooklet->id,
+                        'barcode' => $activeBooklet->barcode,
+                        'visitor_name' => $activeBooklet->visitor_name,
+                        'plate_number' => $activeBooklet->plate_number,
+                        'transaction_date' => $activeBooklet->transaction_date ? \Carbon\Carbon::parse($activeBooklet->transaction_date)->format('Y-m-d') : $activeBooklet->created_at?->format('Y-m-d'),
+                    ];
+                }
+            }
+
             $formatted = null;
             if ($record) {
                 $formatted = $record->toArray();
@@ -369,6 +412,9 @@ class TransactionController extends Controller
             return response()->json([
                 'found' => (bool)$record,
                 'record' => $formatted,
+                'has_active_booklet' => $hasActiveBooklet,
+                'active_booklet' => $activeBookletData,
+                'active_booklet_warning' => $hasActiveBooklet ? 'تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە' : null,
             ]);
         }
 
@@ -497,6 +543,49 @@ class TransactionController extends Controller
             'NO_boxfile' => 'nullable|integer|min:0',
             'NO_boxfile_puchal' => 'nullable|integer|min:0',
         ]);
+
+        // 1. Prevent duplicate Booklet Issue (دەرهێنانی دەفتەر) if previous booklet is active and not cancelled
+        if ((int)$request->transaction_type_id === 1) {
+            $chassis = trim($request->chassis_number ?? '');
+            $cleanChassis = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $chassis));
+            if (!empty($cleanChassis)) {
+                $activeBooklet = Transaction::where(function($q) use ($chassis, $cleanChassis) {
+                    $q->whereRaw("UPPER(REPLACE(REPLACE(chassis_number, ' ', ''), '-', '')) = ?", [$cleanChassis])
+                      ->orWhere('chassis_number', $chassis);
+                })
+                ->where('transaction_type_id', 1)
+                ->where('is_cancelled', false)
+                ->latest('id')
+                ->first();
+
+                if ($activeBooklet) {
+                    $isCancelledByLater = Transaction::where(function($q) use ($chassis, $cleanChassis) {
+                        $q->whereRaw("UPPER(REPLACE(REPLACE(chassis_number, ' ', ''), '-', '')) = ?", [$cleanChassis])
+                          ->orWhere('chassis_number', $chassis);
+                    })
+                    ->where('transaction_type_id', 5)
+                    ->where('id', '>', $activeBooklet->id)
+                    ->exists();
+
+                    if (!$isCancelledByLater) {
+                        return redirect()->back()
+                            ->withInput()
+                            ->with('error', "تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە! ئەم شاسییە خاوەنی دەفتەری پێشووە بە بارکۆدی [{$activeBooklet->barcode}]. ناتوانیت دەرهێنانی نوێ ئەنجام بدەیت هەتاوەکو دەفتەری پێشوو پووچەڵ نەکرێتەوە.");
+                    }
+                }
+            }
+        }
+
+        // 2. Auto-assign designated active Director if not explicitly selected
+        if (empty($validated['director_id'])) {
+            $activeDirector = Director::getActiveDirector();
+            $validated['director_id'] = $activeDirector?->id;
+        }
+
+        // 3. Fallback for traffic directorate if not selected
+        if (empty($validated['traffic_directorate_id'])) {
+            $validated['traffic_directorate_id'] = TrafficDirectorate::where('name_kurdish', 'like', '%سلێمانی%')->value('id') ?? 1;
+        }
 
         $transaction = DB::transaction(function () use ($validated, $request) {
             $barcode = BarcodeService::generateNextBarcode();
