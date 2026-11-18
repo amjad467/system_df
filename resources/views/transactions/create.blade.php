@@ -248,7 +248,7 @@
                     ];
                 @endphp
                 <button type="button" 
-                        @click="typeId = {{ $tt->id }}; calculateFees();" 
+                        @click="typeId = {{ $tt->id }}; calculateFees(); validationError = '';" 
                         :class="typeId == {{ $tt->id }} 
                             ? '{{ $style['active'] }} scale-[1.03] font-black' 
                             : '{{ $style['day_inactive'] }} {{ $style['dark_inactive'] }} hover:scale-[1.02] font-bold'" 
@@ -1051,7 +1051,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
                     this.activeBooklet = (data && data.active_booklet) ? data.active_booklet : null;
 
                     if (this.hasActiveBooklet && this.typeId == 1) {
-                        alert('تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە!\n\nئەم شاسییە خاوەنی دەفتەری پێشووی چالاکە بە بارکۆدی: ' + (this.activeBooklet ? this.activeBooklet.barcode : '') + '\nناتوانیت دووبارە دەرهێنان بکەیت هەتاوەکو دەفتەری پێشوو پووچەڵ نەکرێتەوە، بەڵام دەتوانیت مامەڵەی پووچەڵکردنەوە، تازەکردنەوە، یان جۆرەکانی تر هەڵبژێریت.');
+                        this.validationError = 'تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە! ناتوانیت دووبارە دەرهێنان بکەیت، بەڵام دەتوانیت مامەڵەی پووچەڵکردنەوە، تازەکردنەوە، یان جۆرەکانی تر هەڵبژێریت.';
                     }
 
                     if (data && data.found && data.record) {
@@ -1178,8 +1178,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
 
             // Requirement 1: Check active booklet duplicate blocking
             if (this.typeId == 1 && this.hasActiveBooklet) {
-                this.validationError = 'تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە! ناتوانیت مامەڵەی دەرهێنانی نوێ تۆمار بکەیت، بەڵام دەتوانیت جۆری مامەڵەکە بگۆڕیت بۆ پووچەڵکردنەوە، تازەکردنەوە، یان جۆرەکانی تر.';
-                alert('تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە!\n\nئەم شاسییە خاوەنی دەفتەری پێشووی چالاکە بە بارکۆدی: ' + (this.activeBooklet ? this.activeBooklet.barcode : '') + '\nناتوانیت دووبارە دەرهێنان بکەیت هەتاوەکو دەفتەری پێشوو پووچەڵ نەکرێتەوە، بەڵام دەتوانیت مامەڵەی پووچەڵکردنەوە، تازەکردنەوە، یان جۆرەکانی تر هەڵبژێریت.');
+                this.validationError = 'تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە! ناتوانیت مامەڵەی دەرهێنانی نوێ تۆمار بکەیت، بەڵام دەتوانیت لە سەرەوە جۆری مامەڵەکە بگۆڕیت بۆ پووچەڵکردنەوە، تازەکردنەوە، یان جۆرەکانی تر.';
                 const el = document.getElementById('input_chassisNumber');
                 if (el) {
                     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
