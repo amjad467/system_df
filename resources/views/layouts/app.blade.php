@@ -1005,18 +1005,36 @@
                 'c': 'C', 'چ': 'C', 'ؤ': 'C',
                 'v': 'V', 'ڤ': 'V',
                 'b': 'B', 'ب': 'B', 'لا': 'B',
-                'n': 'N', 'ن': 'N', 'ى': 'N',
+                'n': 'N', 'ن': 'N', 'ى': 'Y',
                 'm': 'M', 'م': 'M', 'ة': 'M',
                 '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
                 '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
                 '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
                 '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'
             },
+            enToAr101Map: {
+                'q': 'ض', 'w': 'ص', 'e': 'ث', 'r': 'ق', 't': 'ف', 'y': 'غ', 'u': 'ع', 'i': 'ه', 'o': 'خ', 'p': 'ح', '[': 'ج', ']': 'د',
+                'a': 'ش', 's': 'س', 'd': 'ي', 'f': 'ب', 'g': 'ل', 'h': 'ا', 'j': 'ت', 'k': 'ن', 'l': 'م', ';': 'ك', '\'': 'ط',
+                'z': 'ئ', 'x': 'ء', 'c': 'ؤ', 'v': 'ر', 'b': 'لا', 'n': 'ى', 'm': 'ة', ',': 'و', '.': 'ز', '/': 'ظ', '`': 'ذ',
+                'Q': 'ض', 'W': 'ص', 'E': 'ث', 'R': 'ق', 'T': 'ف', 'Y': 'غ', 'U': 'ع', 'I': 'ه', 'O': 'خ', 'P': 'ح',
+                'A': 'ش', 'S': 'س', 'D': 'ي', 'F': 'ب', 'G': 'ل', 'H': 'ا', 'J': 'ت', 'K': 'ن', 'L': 'م',
+                'Z': 'ئ', 'X': 'ء', 'C': 'ؤ', 'V': 'ر', 'B': 'لا', 'N': 'ى', 'M': 'ة'
+            },
+            enToKuPhoneticMap: {
+                'a': 'ا', 'b': 'ب', 'c': 'چ', 'd': 'د', 'e': 'ە', 'f': 'ف', 'g': 'گ', 'h': 'ه', 'i': 'ی', 'j': 'ژ',
+                'k': 'ک', 'l': 'ل', 'm': 'م', 'n': 'ن', 'o': 'ۆ', 'p': 'پ', 'q': 'ق', 'r': 'ر', 's': 'س', 't': 'ت',
+                'u': 'و', 'v': 'ڤ', 'w': 'و', 'x': 'خ', 'y': 'ی', 'z': 'ز',
+                'A': 'ا', 'B': 'ب', 'C': 'چ', 'D': 'د', 'E': 'ێ', 'F': 'ف', 'G': 'گ', 'H': 'ح', 'I': 'ی', 'J': 'ژ',
+                'K': 'ک', 'L': 'ڵ', 'M': 'م', 'N': 'ن', 'O': 'ۆ', 'P': 'پ', 'Q': 'ق', 'R': 'ڕ', 'S': 'ص', 'T': 'ط',
+                'U': 'ع', 'V': 'ڤ', 'W': 'وو', 'X': 'خ', 'Y': 'ی', 'Z': 'ز'
+            },
             nameDict: {
                 // Standard Iraqi Passport (Official Anglo-Arabic) Spellings for Kurdish and Iraqi Names
                 'محمد': 'MOHAMMED', 'محەمەد': 'MOHAMMED', 'محەممەد': 'MOHAMMED', 'مەحەمەد': 'MOHAMMED',
                 'احمد': 'AHMED', 'ئەحمەد': 'AHMED', 'ئەحمد': 'AHMED',
-                'علی': 'ALI', 'عەلی': 'ALI',
+                'علی': 'ALI', 'عەلی': 'ALI', 'على': 'ALI', 'علي': 'ALI',
+                'شادی': 'SHADI', 'شادى': 'SHADI', 'شادي': 'SHADI',
+                'سامان': 'SAMAN',
                 'حسن': 'HASAN', 'حەسەن': 'HASAN',
                 'حسین': 'HUSSEIN', 'حوسێن': 'HUSSEIN', 'حسێن': 'HUSSEIN',
                 'عثمان': 'OSMAN', 'عوسمان': 'OSMAN',
@@ -1025,9 +1043,14 @@
                 'صالح': 'SALIH', 'ساڵح': 'SALIH',
                 'قادر': 'QADIR', 'فتاح': 'FATTAH', 'فەتاح': 'FATTAH',
                 'رحمان': 'RAHMAN', 'رەحمان': 'RAHMAN',
-                'کمال': 'KAMAL', 'کەمال': 'KAMAL',
+                'کمال': 'KAMAL', 'کەمال': 'KAMAL', 'كمال': 'KAMAL',
                 'جمال': 'JAMAL', 'جەمال': 'JAMAL',
                 'خالد': 'KHALID', 'خالید': 'KHALID',
+                'هادی': 'HADI', 'هادى': 'HADI', 'هادي': 'HADI',
+                'مهدی': 'MAHDI', 'مهدى': 'MAHDI', 'مهدي': 'MAHDI',
+                'سامی': 'SAMI', 'سامى': 'SAMI', 'سامي': 'SAMI',
+                'حبیب': 'HABIB', 'حەبیب': 'HABIB',
+                'فاروق': 'FAROOQ', 'فارووق': 'FAROOQ',
                 'عبدالله': 'ABDULLAH', 'عەبدوڵڵا': 'ABDULLAH', 'عبد الله': 'ABDULLAH', 'عەبدوڵا': 'ABDULLAH',
                 'عبدالرحمن': 'ABDULRAHMAN', 'عەبدولڕەحمان': 'ABDULRAHMAN', 'عبد الرحمن': 'ABDULRAHMAN',
                 'عبدالکریم': 'ABDULKARIM', 'عەبدولکەریم': 'ABDULKARIM',
@@ -1104,6 +1127,12 @@
                 if (!str) return '';
                 return str.split('').map(ch => this.kuToEnMap[ch] || this.kuToEnMap[ch.toLowerCase()] || ch).join('').toUpperCase();
             },
+            // Convert English keyboard keystrokes to Arabic/Kurdish characters if typed in wrong layout
+            toArabic(str, mode = 'ar101') {
+                if (!str) return '';
+                const map = (mode === 'kurdish') ? this.enToKuPhoneticMap : this.enToAr101Map;
+                return str.split('').map(ch => map[ch] || ch).join('');
+            },
             // Intelligent phonetic transliterator for full names matching Official Iraqi Passport Conventions
             transliterate(str) {
                 if (!str) return '';
@@ -1138,11 +1167,18 @@
                     'ق': 'Q', 'ک': 'K', 'ك': 'K', 'گ': 'G', 'ل': 'L', 'ڵ': 'L',
                     'م': 'M', 'ن': 'N', 'و': 'W', 'ۆ': 'O', 'ه': 'H', 'ھ': 'H', 
                     'ە': 'A', // Iraqi Passport: Fatha/ە is transliterated as 'A' (e.g. Sardar, Ahmed, Kawa), NOT Latin Kurdish 'E'
-                    'ی': 'Y', 'ي': 'Y', 'ێ': 'E', 'ة': 'A'
+                    'ی': 'I', 'ي': 'I', 'ى': 'I', 'ۍ': 'I', 'ې': 'I', 'ێ': 'E', 'ة': 'A'
                 };
 
+                const isYeh = ch => ['ی', 'ي', 'ى', 'ۍ', 'ې'].includes(ch);
+                const isVowel = ch => ['ا', 'آ', 'أ', 'إ', 'ە', 'ۆ', 'و', 'ێ'].includes(ch);
+
                 return cleaned.split(' ').map(w => {
+                    const normW = w.replace(/[\u064A\u0649\u06D0\u06D2]/g, '\u06CC')
+                                   .replace(/\u0643/g, '\u06A9')
+                                   .replace(/\u06BE/g, '\u0647');
                     if (this.nameDict[w]) return this.nameDict[w];
+                    if (this.nameDict[normW]) return this.nameDict[normW];
                     
                     // Phonetic transliteration matching Iraqi passport standard
                     let res = '';
@@ -1157,8 +1193,8 @@
                             i++;
                             continue;
                         }
-                        // Initial 'ئی' -> 'I' (e.g. ئیبراهیم -> IBRAHIM)
-                        if (curr === 'ئ' && next === 'ی') {
+                        // Initial 'ئی' / 'ئى' -> 'I' (e.g. ئیبراهیم -> IBRAHIM, ئیدریس -> IDRIS)
+                        if (curr === 'ئ' && isYeh(next)) {
                             res += 'I';
                             i++;
                             continue;
@@ -1187,8 +1223,8 @@
                             i++;
                             continue;
                         }
-                        // Initial 'عی' -> 'I' (e.g. عیماد -> EMAD / IMAD)
-                        if (curr === 'ع' && next === 'ی') {
+                        // Initial 'عی' / 'عى' -> 'I' (e.g. عیماد -> IMAD, عیسا -> ISA)
+                        if (curr === 'ع' && isYeh(next)) {
                             res += 'I';
                             i++;
                             continue;
@@ -1204,8 +1240,30 @@
                             res += 'A';
                             continue;
                         }
-                        // Final 'ی' preceded by consonants -> 'I' (e.g. سەعید -> SAEED, مەهدی -> MAHDI)
-                        if (curr === 'ی' && i === w.length - 1 && res.length >= 2) {
+
+                        // Intelligent Yeh / Alef Maksura (ی / ي / ى) handling
+                        if (isYeh(curr)) {
+                            // At word start -> Y (e.g. یاسین -> YASIN, یوسف -> YOUSIF, یاسر -> YASIR)
+                            if (i === 0) {
+                                res += 'Y';
+                                continue;
+                            }
+                            // At word end -> I (e.g. شادی / شادى -> SHADI, علی / على -> ALI, هادی / هادى -> HADI, مەهدی / مهدى -> MAHDI)
+                            if (i === w.length - 1) {
+                                res += 'I';
+                                continue;
+                            }
+                            // Preceded by consonant and followed by vowel -> 'IY' (e.g. دیار -> DIYAR, شنیار -> SHNYAR)
+                            if (!isVowel(prev) && isVowel(next)) {
+                                res += 'IY';
+                                continue;
+                            }
+                            // Preceded or followed by vowel -> 'Y' (e.g. شایان -> SHAYAN, هۆشیار -> HOSHYAR, پەیمان -> PAYMAN)
+                            if (isVowel(prev) || isVowel(next)) {
+                                res += 'Y';
+                                continue;
+                            }
+                            // Between consonants -> I (e.g. سیروان -> SIRWAN, کەریم -> KARIM, حەمید -> HAMID, خالید -> KHALID)
                             res += 'I';
                             continue;
                         }
