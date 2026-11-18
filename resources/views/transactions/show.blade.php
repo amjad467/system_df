@@ -488,40 +488,40 @@
     <!-- ========================================================================= -->
     <!-- 2. EXECUTIVE CUSTOMS DOSSIER (ناسنامەی فەرمی و دەستەڵاتداری مامەڵە)           -->
     <!-- ========================================================================= -->
-    <div class="bg-slate-900/95 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden relative backdrop-blur-xl">
+    <div class="bg-slate-900/95 border border-slate-800 rounded-2xl shadow-xl overflow-hidden relative backdrop-blur-xl">
         
-        <!-- A. LUXURY ACCENT TOP BAR (Distinct glow line matching the transaction type) -->
-        <div class="h-1.5 w-full bg-gradient-to-r {{ $typeTheme['accentGradient'] ?? 'from-indigo-500 via-sky-400 to-indigo-600' }}"></div>
+        <!-- A. LUXURY ACCENT TOP BAR -->
+        <div class="h-1 w-full bg-gradient-to-r {{ $typeTheme['accentGradient'] ?? 'from-indigo-500 via-sky-400 to-indigo-600' }}"></div>
 
         <!-- B. CARD HEADER: STATUS & TRANSACTION METADATA STRIP -->
-        <div class="px-5 py-3 sm:px-6 bg-slate-950/60 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+        <div class="px-4 py-2 sm:px-5 bg-slate-950/70 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-2.5">
             <!-- Right: Transaction Type & Current Stage -->
             <div class="flex items-center gap-2 flex-wrap">
                 <!-- Transaction Type Pill -->
-                <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-black {{ $typeTheme['pill'] ?? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 shadow-sm' }}">
-                    <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-folder-open text-indigo-400' }} text-xs"></i>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-black {{ $typeTheme['pill'] ?? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 shadow-sm' }}">
+                    <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-folder-open text-indigo-400' }} text-[11px]"></i>
                     <span>{{ $typeName }}</span>
-                    <span class="text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-black/20">#{{ $transaction->transaction_type_id }}</span>
+                    <span class="text-[10px] font-mono px-1 py-0.5 rounded bg-black/30">#{{ $transaction->transaction_type_id }}</span>
                 </span>
 
                 <!-- Workflow Stage Pill -->
                 @if($transaction->is_returned)
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs font-bold rounded-xl animate-pulse">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs font-bold rounded-lg animate-pulse">
                         <i class="fa-solid fa-triangle-exclamation text-xs"></i>
                         <span>گەڕێنراوەتەوە (Returned)</span>
                     </span>
                 @elseif($transaction->is_cancelled)
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs font-bold rounded-xl">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs font-bold rounded-lg">
                         <i class="fa-solid fa-ban text-xs"></i>
                         <span>مامەڵەی پووچەڵکراوە</span>
                     </span>
                 @elseif($transaction->is_submitted)
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold rounded-xl">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold rounded-lg">
                         <i class="fa-solid fa-circle-check text-xs"></i>
                         <span>تەواوکراو و ئەرشیفکراو</span>
                     </span>
                 @else
-                    <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-sky-500/15 text-sky-300 border border-sky-500/30 text-xs font-bold rounded-xl shadow-sm">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-sky-500/15 text-sky-300 border border-sky-500/30 text-xs font-bold rounded-lg shadow-sm">
                         <span class="relative flex h-2 w-2">
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
                             <span class="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
@@ -532,18 +532,17 @@
             </div>
 
             <!-- Left: Quick Barcode & Date Metadata -->
-            <div class="flex items-center gap-3 text-xs">
-                <!-- Linked / Parent Transaction if any -->
+            <div class="flex items-center gap-2 text-xs">
                 @if($transaction->parentTransaction)
                     <a href="{{ route('transactions.show', $transaction->parentTransaction->id) }}" 
-                       class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold transition">
+                       class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-bold transition text-[11px]">
                         <i class="fa-solid fa-link text-[10px]"></i>
-                        <span>مامەڵەی بنەڕەتی:</span>
+                        <span>بنەڕەتی:</span>
                         <span class="font-mono text-white underline">{{ $transaction->parentTransaction->barcode }}</span>
                     </a>
                 @endif
 
-                <div class="flex items-center gap-2 text-slate-400 font-mono text-[11px] bg-slate-900/80 px-2.5 py-1 rounded-xl border border-slate-800">
+                <div class="flex items-center gap-2 text-slate-400 font-mono text-[11px] bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-800">
                     <i class="fa-regular fa-calendar text-slate-500"></i>
                     <span>{{ $transaction->transaction_date ? $transaction->transaction_date->format('Y-m-d') : ($transaction->created_at ? $transaction->created_at->format('Y-m-d') : '-') }}</span>
                     <span class="text-slate-600">•</span>
@@ -553,16 +552,16 @@
             </div>
         </div>
 
-        <!-- C. CARD MAIN CONTENT: 3 BALANCED PANELS -->
-        <div class="p-5 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch relative">
+        <!-- C. CARD MAIN CONTENT: 3 BALANCED COMPACT PANELS -->
+        <div class="p-3 sm:p-4 grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-stretch relative">
             
             <!-- Ambient subtle background lighting -->
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-sky-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
-            <!-- PANEL 1: CITIZEN & REGISTRATION DOSSIER (5 Cols) -->
-            <div class="lg:col-span-5 flex flex-col justify-between space-y-4 bg-slate-950/40 p-4 sm:p-5 rounded-2xl border border-slate-800/60 shadow-inner">
+            <!-- PANEL 1: CITIZEN DOSSIER (5 Cols) -->
+            <div class="lg:col-span-5 flex flex-col justify-between p-3 sm:p-3.5 rounded-xl bg-slate-950/50 border border-slate-800/70 shadow-sm space-y-2">
                 <div>
-                    <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center justify-between mb-1">
                         <span class="text-[11px] font-bold text-sky-400/90 flex items-center gap-1.5 uppercase tracking-wider">
                             <i class="fa-solid fa-id-card text-xs"></i>
                             <span>خاوەن مامەڵە / هاووڵاتی</span>
@@ -575,32 +574,32 @@
                     </div>
 
                     <!-- Citizen Name -->
-                    <h1 class="text-xl sm:text-2xl font-black text-white tracking-wide leading-tight">
+                    <h1 class="text-lg sm:text-xl font-black text-white tracking-wide leading-tight">
                         {{ $transaction->visitor_name }}
                     </h1>
                     
                     <!-- English Name -->
                     @if($transaction->visitor_name_eng)
-                        <div class="text-xs font-semibold text-slate-400 tracking-wider uppercase mt-1 flex items-center gap-1.5" dir="ltr">
+                        <div class="text-[11px] font-semibold text-slate-400 tracking-wider uppercase mt-0.5 flex items-center gap-1.5" dir="ltr">
                             <span class="text-[10px] text-slate-500 font-mono">ENG:</span>
                             <span>{{ $transaction->visitor_name_eng }}</span>
                         </div>
                     @endif
                 </div>
 
-                <!-- Citizen Metadata Chips -->
-                <div class="space-y-2 pt-2 border-t border-slate-800/80">
+                <!-- Citizen Metadata Chips (Phone & Directorate) -->
+                <div class="pt-2 border-t border-slate-800/80 space-y-1.5">
                     <div class="flex flex-wrap items-center gap-2">
                         @if($transaction->phone_number)
                             <a href="tel:{{ $transaction->phone_number }}" 
-                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-bold transition shadow-sm" dir="ltr" title="ژمارەی مۆبایل">
+                               class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-bold transition shadow-sm" dir="ltr" title="ژمارەی مۆبایل">
                                 <i class="fa-solid fa-phone text-[10px] text-emerald-400"></i>
                                 <span>{{ $transaction->phone_number }}</span>
                             </a>
                         @endif
 
                         @if($transaction->trafficDirectorate)
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-900 text-slate-300 border border-slate-800 text-xs font-medium" title="بەڕێوەبەرایەتی هاتوچۆ">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 text-slate-300 border border-slate-800 text-xs font-medium" title="بەڕێوەبەرایەتی هاتوچۆ">
                                 <i class="fa-solid fa-building-columns text-[10px] text-slate-400"></i>
                                 <span>{{ $transaction->trafficDirectorate->name_kurdish }}</span>
                             </span>
@@ -608,7 +607,7 @@
                     </div>
 
                     @if($transaction->second_driver_name)
-                        <div class="flex items-center gap-2 text-xs bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-800">
+                        <div class="flex items-center gap-1.5 text-xs bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300">
                             <i class="fa-solid fa-user-group text-slate-400 text-xs"></i>
                             <span class="text-slate-400 text-[11px]">شۆفێری دووەم:</span>
                             <span class="font-bold text-slate-200">{{ $transaction->second_driver_name }}</span>
@@ -618,28 +617,28 @@
             </div>
 
             <!-- PANEL 2: VEHICLE IDENTITY SHOWCASE (4 Cols) -->
-            <div class="lg:col-span-4 flex flex-col items-center justify-between text-center bg-slate-950/40 p-4 sm:p-5 rounded-2xl border border-slate-800/60 shadow-inner space-y-3">
+            <div class="lg:col-span-4 flex flex-col items-center justify-between text-center p-3 sm:p-3.5 rounded-xl bg-slate-950/50 border border-slate-800/70 shadow-sm space-y-2">
                 <span class="text-[11px] font-bold text-slate-400 flex items-center gap-1.5 self-start">
                     <i class="fa-solid fa-car text-xs text-slate-400"></i>
                     <span>ناسنامەی ئۆتۆمبێل</span>
                 </span>
 
-                <!-- Kurdistan License Plate in High-End Showcase Pedestal -->
-                <div class="py-1 transform transition hover:scale-105 duration-200 drop-shadow-xl">
-                    <x-vehicle-plate :plate="$transaction->plate_number" :type="$transaction->plateType" size="lg" />
+                <!-- Kurdistan License Plate in Perfectly Proportioned Medium Size -->
+                <div class="py-0.5 transform transition hover:scale-105 duration-200 drop-shadow-md">
+                    <x-vehicle-plate :plate="$transaction->plate_number" :type="$transaction->plateType" size="md" />
                 </div>
 
                 <!-- Vehicle Model & Color Details -->
-                <div class="w-full space-y-1.5 pt-1">
-                    <div class="text-sm font-black text-white flex items-center justify-center gap-1.5 flex-wrap">
+                <div class="w-full space-y-1">
+                    <div class="text-xs sm:text-sm font-black text-white flex items-center justify-center gap-1.5 flex-wrap">
                         <span>{{ $transaction->carMake->name_kurdish ?? '-' }}</span>
                         @if($transaction->model_year)
-                            <span class="font-mono text-slate-300 text-xs px-1.5 py-0.5 rounded-md bg-slate-900 border border-slate-800">
+                            <span class="font-mono text-slate-300 text-xs px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800">
                                 {{ $transaction->model_year }}
                             </span>
                         @endif
                         @if($transaction->carColor)
-                            <span class="text-xs text-sky-400 font-bold px-2 py-0.5 rounded-md bg-sky-950/40 border border-sky-800/40">
+                            <span class="text-xs text-sky-400 font-bold px-2 py-0.5 rounded bg-sky-950/40 border border-sky-800/40">
                                 {{ $transaction->carColor->name_kurdish }}
                             </span>
                         @endif
@@ -647,7 +646,7 @@
 
                     <!-- VIN Number Badge -->
                     @if($transaction->chassis_number && $transaction->chassis_number !== '-')
-                        <div class="inline-flex items-center gap-1.5 text-xs font-mono bg-slate-900 px-3 py-1 rounded-xl border border-slate-800 text-slate-300" dir="ltr" title="ژمارەی شاسی (VIN)">
+                        <div class="inline-flex items-center gap-1.5 text-xs font-mono bg-slate-900 px-2.5 py-0.5 rounded-lg border border-slate-800 text-slate-300" dir="ltr" title="ژمارەی شاسی (VIN)">
                             <span class="text-slate-500 text-[10px] font-bold">VIN:</span>
                             <span class="text-sky-300 font-bold uppercase tracking-wider select-all">{{ $transaction->chassis_number }}</span>
                         </div>
@@ -655,53 +654,54 @@
                 </div>
             </div>
 
-            <!-- PANEL 3: FINANCIALS & DOSSIER STATUS (3 Cols) -->
-            <div class="lg:col-span-3 flex flex-col justify-between space-y-3">
+            <!-- PANEL 3: FINANCIALS & DOSSIER STATUS (3 Cols - Compact & Unified) -->
+            <div class="lg:col-span-3 flex flex-col justify-between p-3 sm:p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 shadow-sm space-y-2">
                 
-                <!-- Amount & Payment Receipt Card -->
-                <div class="bg-slate-950/70 border border-emerald-900/40 p-3.5 rounded-2xl shadow-inner space-y-2">
-                    <div class="flex items-center justify-between">
+                <!-- Amount & Payment Status -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">کۆی بڕی رسومات:</span>
                         @if($transaction->is_paid)
-                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/30">
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
                                 <i class="fa-solid fa-check text-[9px]"></i> وەرگیراوە
                             </span>
                         @else
-                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/30">
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30">
                                 <i class="fa-regular fa-clock text-[9px]"></i> نەدراوە
                             </span>
                         @endif
                     </div>
 
-                    <div class="flex items-baseline justify-between">
-                        <span class="text-2xl font-black font-mono text-emerald-400">
+                    <div class="flex items-baseline justify-between py-0.5">
+                        <span class="text-xl sm:text-2xl font-black font-mono text-emerald-400">
                             {{ number_format($transaction->total_pay) }}
                         </span>
                         <span class="text-xs font-bold text-slate-400">دینار</span>
                     </div>
+                </div>
 
-                    <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                <!-- Structured Details: Receipt, Booklet, Boxfile -->
+                <div class="space-y-1.5 pt-2 border-t border-slate-800/80 text-xs">
+                    <!-- وەسڵی 37/أ -->
+                    <div class="flex items-center justify-between">
                         <span class="text-[11px] text-slate-400">وەسڵی ۳۷/أ:</span>
                         @if($transaction->receipt_37a_number)
-                            <span class="font-mono font-black text-white bg-emerald-950 px-2 py-0.5 rounded-md border border-emerald-600">
+                            <span class="font-mono font-black text-white bg-emerald-950 px-2 py-0.5 rounded border border-emerald-600 text-[11px]">
                                 {{ $transaction->receipt_37a_number }}
                             </span>
                         @else
                             <span class="text-[11px] text-amber-400 font-bold">نەبڕدراوە</span>
                         @endif
                     </div>
-                </div>
 
-                <!-- Booklet & Boxfile Card -->
-                <div class="bg-slate-950/50 border border-slate-800/80 p-3 rounded-2xl space-y-2 text-xs">
-                    <!-- Booklet Number -->
+                    <!-- دەفتەری گەشتیاری -->
                     <div class="flex items-center justify-between">
                         <span class="text-slate-400 text-[11px] flex items-center gap-1">
                             <i class="fa-solid fa-passport text-indigo-400 text-[10px]"></i>
                             <span>دەفتەری گەشتیاری:</span>
                         </span>
                         @if($transaction->booklet_number)
-                            <span class="font-mono font-black text-indigo-300 bg-indigo-950/60 px-2 py-0.5 rounded-md border border-indigo-700/60">
+                            <span class="font-mono font-black text-indigo-300 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-700/60 text-[11px]">
                                 {{ $transaction->booklet_number }}
                             </span>
                         @else
@@ -709,8 +709,8 @@
                         @endif
                     </div>
 
-                    <!-- Boxfile / Archive Location -->
-                    <div class="flex items-center justify-between pt-1.5 border-t border-slate-800/80">
+                    <!-- شوێنی بۆکس -->
+                    <div class="flex items-center justify-between pt-1 border-t border-slate-800/50">
                         <span class="text-slate-400 text-[11px] flex items-center gap-1">
                             <i class="fa-solid fa-box-archive text-amber-400 text-[10px]"></i>
                             <span>شوێنی بۆکس:</span>
@@ -735,13 +735,13 @@
 
         <!-- D. RELATED TRANSACTIONS TRAY (IF ANY) -->
         @if($transaction->relatedTransactions->count() > 0)
-            <div class="px-5 py-2.5 bg-slate-950/70 border-t border-slate-800/80 flex items-center flex-wrap gap-2 text-xs">
+            <div class="px-4 py-2 bg-slate-950/70 border-t border-slate-800/80 flex items-center flex-wrap gap-2 text-xs">
                 <span class="text-[11px] font-bold text-sky-400 flex items-center gap-1.5 shrink-0">
                     <i class="fa-solid fa-network-wired text-[10px]"></i>
                     <span>مامەڵە پەیوەندیدارەکان:</span>
                 </span>
                 @foreach($transaction->relatedTransactions as $rel)
-                    <a href="{{ route('transactions.show', $rel->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-sky-500/50 rounded-xl text-sky-300 hover:text-white transition shadow-sm text-xs">
+                    <a href="{{ route('transactions.show', $rel->id) }}" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-sky-500/50 rounded-lg text-sky-300 hover:text-white transition shadow-sm text-xs">
                         <span class="font-mono font-black">{{ $rel->barcode }}</span>
                         <span class="text-slate-300">({{ $rel->transactionType->name_kurdish ?? 'مامەڵە' }})</span>
                         <i class="fa-solid fa-arrow-left text-[9px] text-slate-400"></i>
@@ -771,27 +771,27 @@
     <!-- DEDICATED AUDIT STAGE WORKSPACE (فۆرمی قۆناغی وردبینی - پیشاندانی ئاسان) -->
     <!-- ========================================================================= -->
     @if($transaction->is_inspected && !$transaction->is_audited)
-    <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-purple-950/40 border-2 border-purple-500 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-5 relative ring-4 ring-purple-500/15">
+    <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-purple-950/40 border-2 border-purple-500 rounded-2xl p-3.5 sm:p-5 shadow-2xl space-y-3.5 relative ring-4 ring-purple-500/15">
         
         <!-- بەشی سەرەوە: ئەو زانیارییانەی پێویستە ببینرێت لە سەرەوەی فۆرمەکە دەربکەوێت -->
-        <div class="bg-slate-950/95 border border-purple-500/40 rounded-2xl p-4 shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        <div class="bg-slate-950/95 border border-purple-500/40 rounded-xl p-3 sm:p-3.5 shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
             <div class="flex items-center gap-3 min-w-0">
-                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-500 flex items-center justify-center text-white text-xl shadow-lg shadow-purple-600/30 shrink-0">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-500 flex items-center justify-center text-white text-lg shadow-lg shadow-purple-600/30 shrink-0">
                     <i class="fa-solid fa-clipboard-check"></i>
                 </div>
                 <div class="min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-xs font-black px-2.5 py-0.5 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                        <span class="text-xs font-black px-2.5 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/40">
                             قۆناغی ٣: پەسەندکردنی وردبینی
                         </span>
-                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-lg border {{ $typeTheme['pill'] ?? 'bg-slate-800 text-slate-300 border-slate-700' }}">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded-md border {{ $typeTheme['pill'] ?? 'bg-slate-800 text-slate-300 border-slate-700' }}">
                             {{ $typeName }}
                         </span>
                         <span class="font-mono text-xs font-bold text-sky-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
                             #{{ $transaction->barcode }}
                         </span>
                     </div>
-                    <h3 class="text-base sm:text-lg font-black text-white mt-1 truncate">
+                    <h3 class="text-sm sm:text-base font-black text-white mt-1 truncate">
                         {{ $transaction->visitor_name }} 
                         <span class="text-xs font-normal text-slate-400">({{ $transaction->plate_number }} - {{ $transaction->plateType->clean_kurdish_name ?? $transaction->plateType->name_kurdish ?? 'تایبەت' }})</span>
                     </h3>
@@ -799,7 +799,7 @@
             </div>
 
             <!-- پشکنینی کەشف و پارە لە سەرەوە -->
-            <div class="flex items-center flex-wrap gap-4 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 border-slate-800 pt-3 lg:pt-0">
+            <div class="flex items-center flex-wrap gap-4 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 border-slate-800 pt-2 lg:pt-0">
                 <!-- کەشفکراو لەلایەن -->
                 <div class="text-right">
                     <span class="text-[10px] text-slate-400 block font-bold">ئەندازیاری کەشف و تەخمین:</span>
@@ -811,9 +811,9 @@
                 </div>
 
                 <!-- بڕی پارەی دیاریکراو -->
-                <div class="text-right bg-emerald-950/40 border border-emerald-500/40 px-3.5 py-1.5 rounded-xl">
+                <div class="text-right bg-emerald-950/40 border border-emerald-500/40 px-3 py-1.5 rounded-xl">
                     <span class="text-[10px] text-emerald-300 block font-bold">کۆی بڕی پارەی پێویست:</span>
-                    <span class="text-lg font-black font-mono text-emerald-400">
+                    <span class="text-base sm:text-lg font-black font-mono text-emerald-400">
                         {{ number_format($transaction->total_pay) }} <span class="text-xs font-sans text-emerald-300 font-normal">دینار</span>
                     </span>
                 </div>
@@ -821,121 +821,164 @@
         </div>
 
         <!-- دابەشکردنی خوارەوە: زۆربەی زانیارییەکان لە لایەکی فۆرمەکە (لای ڕاست) و بڕیاری وردبینی لە لایەکەی تر (لای چەپ) -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
             
             <!-- لای ڕاست (8 لە 12): زۆربەی ئەو زانیارییانەی پێویستە وردبینی بکرێن -->
-            <div class="lg:col-span-8 bg-slate-950/80 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl">
+            <div class="lg:col-span-8 bg-slate-950/80 border border-slate-800 rounded-xl p-3 sm:p-3.5 space-y-3 shadow-xl">
                 
-                <!-- هێڵی ژمارەی شاسی بە فۆکەسی گەورە -->
-                <div class="bg-gradient-to-r from-sky-950/60 to-slate-900 border-2 border-sky-500/60 p-3 rounded-xl flex items-center justify-between flex-wrap gap-2 shadow-inner">
+                <!-- هێڵی ژمارەی شاسی و تابلۆ بە یەک هێڵی spotlight پێشەنگ -->
+                <div class="bg-gradient-to-r from-sky-950/70 via-slate-900 to-indigo-950/50 border-2 border-sky-500/60 p-2.5 sm:p-3 rounded-xl flex items-center justify-between flex-wrap gap-2 shadow-inner">
+                    <!-- Chassis VIN -->
                     <div class="flex items-center gap-2">
-                        <span class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-xs font-bold">
+                        <span class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-xs font-bold shrink-0">
                             <i class="fa-solid fa-fingerprint"></i>
                         </span>
                         <div>
-                            <span class="text-[10px] text-sky-400 font-bold block uppercase tracking-wider">ژمارەی شاسی (Chassis VIN)</span>
-                            <span class="font-mono text-base sm:text-lg font-black text-white uppercase tracking-widest select-all">{{ $transaction->chassis_number }}</span>
+                            <span class="text-[10px] text-sky-400 font-bold block uppercase tracking-wider">ژمارەی شاسی (CHASSIS VIN)</span>
+                            <span class="font-mono text-sm sm:text-base font-black text-amber-300 uppercase tracking-widest select-all">{{ $transaction->chassis_number }}</span>
                         </div>
+                        <button type="button" onclick="navigator.clipboard.writeText('{{ $transaction->chassis_number }}'); alert('ژمارەی شاسی کۆپی کرا');" class="mr-1 px-2 py-0.5 bg-sky-600/30 hover:bg-sky-600/50 text-sky-300 border border-sky-500/40 rounded text-[11px] font-bold transition flex items-center gap-1" title="کۆپیکردنی شاسی">
+                            <i class="fa-regular fa-copy"></i>
+                            <span>کۆپیکردن</span>
+                        </button>
                     </div>
-                    <button type="button" onclick="navigator.clipboard.writeText('{{ $transaction->chassis_number }}'); alert('ژمارەی شاسی کۆپی کرا');" class="px-2.5 py-1 bg-sky-600/30 hover:bg-sky-600/50 text-sky-300 border border-sky-500/40 rounded-lg text-xs font-bold transition flex items-center gap-1">
-                        <i class="fa-regular fa-copy"></i>
-                        <span>کۆپیکردن</span>
-                    </button>
-                </div>
 
-                <!-- زانیاری ئۆتۆمبێل (خشتەی ڕوون و پوخت) -->
-                <div class="space-y-2">
-                    <h4 class="text-xs font-black text-sky-400 border-b border-slate-800 pb-1.5 flex items-center gap-2">
-                        <i class="fa-solid fa-car-side"></i>
-                        <span>زانیارییەکانی ئۆتۆمبێل</span>
-                    </h4>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
-                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                            <span class="text-slate-400 text-[11px] block">ژمارەی تابلۆ:</span>
-                            <strong class="font-mono text-white text-sm block mt-0.5" dir="ltr">{{ $transaction->plate_number }}</strong>
-                            <span class="text-[10px] text-slate-400 font-bold block mt-0.5">({{ $transaction->trafficDirectorate->name_kurdish ?? '' }} - {{ $transaction->plateType->clean_kurdish_name ?? $transaction->plateType->name_kurdish ?? 'تایبەت' }})</span>
+                    <!-- Plate & Directorate Spotlight -->
+                    <div class="flex items-center gap-2 text-xs">
+                        <div class="bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700 text-center font-mono font-black text-white text-sm" dir="ltr">
+                            {{ $transaction->plate_number }}
                         </div>
-                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                            <span class="text-slate-400 text-[11px] block">مارکەی ئۆتۆمبێل:</span>
-                            <strong class="text-white text-xs block mt-0.5">{{ $transaction->carMake->name_kurdish ?? '-' }}</strong>
-                            <span class="text-[10px] font-mono text-slate-400 block">({{ $transaction->carMake->name_english ?? '-' }})</span>
-                        </div>
-                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                            <span class="text-slate-400 text-[11px] block">مۆدێل و پستۆن:</span>
-                            <strong class="text-white text-xs block mt-0.5">{{ $transaction->model_year }}</strong>
-                            <span class="text-[10px] font-mono text-slate-400 block">({{ $transaction->piston_count }} Piston)</span>
-                        </div>
-                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                            <span class="text-slate-400 text-[11px] block">ڕەنگی ئۆتۆمبێل:</span>
-                            <strong class="text-white text-xs block mt-0.5">{{ $transaction->carColor->name_kurdish ?? '-' }}</strong>
-                            <span class="text-[10px] font-mono text-slate-400 block">({{ $transaction->carColor->name_english ?? '-' }})</span>
-                        </div>
-                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                            <span class="text-slate-400 text-[11px] block">ژمارەی ساڵانە:</span>
-                            <strong class="font-mono text-white text-xs block mt-0.5">{{ $transaction->salana_number ?: 'نییە' }}</strong>
-                        </div>
-                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                            <span class="text-slate-400 text-[11px] block">ماوەی دەفتەر:</span>
-                            <strong class="text-amber-300 text-xs block mt-0.5">{{ $transaction->isCancellationOrInspection() ? '-' : ($transaction->num_years ?? 1) . ' ساڵ' }}</strong>
-                            @if($transaction->start_date && $transaction->end_date)
-                                <span class="text-[10px] font-mono text-slate-400 block">{{ $transaction->start_date->format('Y-m-d') }} ➔ {{ $transaction->end_date->format('Y-m-d') }}</span>
-                            @endif
+                        <div class="text-[11px] text-slate-300 text-right leading-tight">
+                            <span class="font-bold block">{{ $transaction->trafficDirectorate->name_kurdish ?? '' }}</span>
+                            <span class="text-[10px] text-slate-400">{{ $transaction->plateType->clean_kurdish_name ?? $transaction->plateType->name_kurdish ?? 'تایبەت' }}</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- زانیاری هاووڵاتی و شۆفێران -->
-                <div class="space-y-2 pt-2 border-t border-slate-800">
-                    <h4 class="text-xs font-black text-sky-400 border-b border-slate-800 pb-1.5 flex items-center gap-2">
-                        <i class="fa-solid fa-user-check"></i>
-                        <span>زانیارییەکانی هاووڵاتی و شۆفێر</span>
-                    </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
-                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                            <span class="text-slate-400 text-[11px] block">شۆفێری یەکەم (هاووڵاتی):</span>
-                            <strong class="text-white text-sm block mt-0.5">{{ $transaction->visitor_name }}</strong>
-                            @if($transaction->visitor_name_eng)
-                                <span class="text-[11px] font-mono text-slate-400 block">({{ $transaction->visitor_name_eng }})</span>
-                            @endif
+                <!-- 2-COLUMN SIDE-BY-SIDE GRID: هەردوو بەشەکە پێکەوە هاوتەریب دەبینرێن بەبێ پێویستی بە سکرۆڵ -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch">
+                    
+                    <!-- کۆڵۆمی 1: زانیارییەکانی ئۆتۆمبێل -->
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-2 flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-xs font-black text-sky-400 border-b border-slate-800 pb-1.5 flex items-center gap-1.5 mb-2">
+                                <i class="fa-solid fa-car-side"></i>
+                                <span>زانیارییەکانی ئۆتۆمبێل</span>
+                            </h4>
+                            
+                            <div class="space-y-1.5 text-xs">
+                                <div class="flex justify-between items-center py-0.5 border-b border-slate-800/60">
+                                    <span class="text-slate-400 text-[11px]">مارکە و جۆر:</span>
+                                    <span class="text-white font-bold text-left">
+                                        {{ $transaction->carMake->name_kurdish ?? '-' }}
+                                        @if($transaction->carMake && $transaction->carMake->name_english)
+                                            <span class="text-[10px] text-slate-400 font-mono block">({{ $transaction->carMake->name_english }})</span>
+                                        @endif
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center py-0.5 border-b border-slate-800/60">
+                                    <span class="text-slate-400 text-[11px]">مۆدێل و پستۆن:</span>
+                                    <span class="font-mono text-white font-bold">
+                                        {{ $transaction->model_year }} <span class="text-slate-400 text-[10px]">({{ $transaction->piston_count }} Piston)</span>
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center py-0.5 border-b border-slate-800/60">
+                                    <span class="text-slate-400 text-[11px]">ڕەنگی ئۆتۆمبێل:</span>
+                                    <span class="text-sky-300 font-bold">
+                                        {{ $transaction->carColor->name_kurdish ?? '-' }}
+                                        @if($transaction->carColor && $transaction->carColor->name_english)
+                                            <span class="text-[10px] text-slate-400 font-mono">({{ $transaction->carColor->name_english }})</span>
+                                        @endif
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center py-0.5 border-b border-slate-800/60">
+                                    <span class="text-slate-400 text-[11px]">ژمارەی ساڵانە:</span>
+                                    <span class="font-mono text-white font-bold">{{ $transaction->salana_number ?: 'نییە' }}</span>
+                                </div>
+                                <div class="flex justify-between items-center py-0.5">
+                                    <span class="text-slate-400 text-[11px]">ماوەی دەفتەر:</span>
+                                    <span class="text-amber-300 font-bold text-left">
+                                        {{ $transaction->isCancellationOrInspection() ? '-' : ($transaction->num_years ?? 1) . ' ساڵ' }}
+                                        @if($transaction->start_date && $transaction->end_date)
+                                            <span class="text-[10px] font-mono text-slate-400 block">{{ $transaction->start_date->format('Y-m-d') }} ➔ {{ $transaction->end_date->format('Y-m-d') }}</span>
+                                        @endif
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                            <span class="text-slate-400 text-[11px] block">مۆبایل و ناونیشان:</span>
-                            <strong class="font-mono text-emerald-400 text-xs block mt-0.5" dir="ltr">{{ $transaction->phone_number ?: 'تۆمارنەکراوە' }}</strong>
-                            <span class="text-[11px] text-slate-400 block mt-0.5">{{ $transaction->address ?: 'ناونیشان تۆمارنەکراوە' }}</span>
-                        </div>
-                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                            <span class="text-slate-400 text-[11px] block">پاسپۆرت:</span>
-                            <strong class="font-mono text-amber-300 text-xs block mt-0.5">{{ $transaction->passport_number ?: 'تۆمارنەکراوە' }}</strong>
-                            @if($transaction->passport_issue_date)
-                                <span class="text-[10px] text-slate-400 block">بەروار: {{ $transaction->passport_issue_date->format('Y-m-d') }}</span>
-                            @endif
-                        </div>
-                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                            <span class="text-slate-400 text-[11px] block">شۆفێری دووەم:</span>
-                            <strong class="text-white text-xs block mt-0.5">{{ $transaction->second_driver_name ?: 'دیارینەکراوە' }}</strong>
-                            @if($transaction->second_driver_name_eng)
-                                <span class="text-[11px] font-mono text-slate-400 block">({{ $transaction->second_driver_name_eng }})</span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
 
-                <!-- باری کەشف و داخڵکار -->
-                <div class="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
-                    <div class="flex items-center gap-3 text-slate-400">
-                        <span>زیادەبار: <strong class="text-white">{{ $transaction->zedabar ?? 'باشە' }}</strong></span>
-                        <span>•</span>
-                        <span>کەموکوڕی: <strong class="text-white">{{ $transaction->kamukurty ?? 'باشە' }}</strong></span>
-                        <span>•</span>
-                        <span>باری گشتی: <strong class="text-white">{{ $transaction->bary_gshty ?? 'باشە' }}</strong></span>
+                        <!-- باری کەشف و پشکنین -->
+                        <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                            <span>زیادەبار: <strong class="text-white">{{ $transaction->zedabar ?? 'باشە' }}</strong></span>
+                            <span>•</span>
+                            <span>کەموکوڕی: <strong class="text-white">{{ $transaction->kamukurty ?? 'باشە' }}</strong></span>
+                            <span>•</span>
+                            <span>بار: <strong class="text-white">{{ $transaction->bary_gshty ?? 'باشە' }}</strong></span>
+                        </div>
                     </div>
-                    <div class="text-slate-500 text-[11px]">
-                        داخڵکار: <strong class="text-slate-300">{{ $transaction->user_input }}</strong> ({{ $transaction->created_at ? $transaction->created_at->format('Y-m-d H:i') : '' }})
+
+                    <!-- کۆڵۆمی 2: زانیاری هاووڵاتی و شۆفێر -->
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3 space-y-2 flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-xs font-black text-emerald-400 border-b border-slate-800 pb-1.5 flex items-center gap-1.5 mb-2">
+                                <i class="fa-solid fa-user-check"></i>
+                                <span>زانیاری هاووڵاتی و شۆفێر</span>
+                            </h4>
+                            
+                            <div class="space-y-1.5 text-xs">
+                                <div class="flex justify-between items-start py-0.5 border-b border-slate-800/60">
+                                    <span class="text-slate-400 text-[11px]">خاوەن مامەڵە:</span>
+                                    <span class="text-white font-bold text-left">
+                                        {{ $transaction->visitor_name }}
+                                        @if($transaction->visitor_name_eng)
+                                            <span class="text-[10px] font-mono text-slate-400 block uppercase" dir="ltr">ENG: {{ $transaction->visitor_name_eng }}</span>
+                                        @endif
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center py-0.5 border-b border-slate-800/60">
+                                    <span class="text-slate-400 text-[11px]">ژمارەی مۆبایل:</span>
+                                    @if($transaction->phone_number)
+                                        <a href="tel:{{ $transaction->phone_number }}" class="font-mono text-emerald-400 font-bold hover:underline" dir="ltr">{{ $transaction->phone_number }}</a>
+                                    @else
+                                        <span class="text-slate-500 text-[11px]">تۆمارنەکراوە</span>
+                                    @endif
+                                </div>
+                                <div class="flex justify-between items-center py-0.5 border-b border-slate-800/60">
+                                    <span class="text-slate-400 text-[11px]">ناونیشان:</span>
+                                    <span class="text-slate-300 text-[11px] truncate max-w-[160px]">{{ $transaction->address ?: 'تۆمارنەکراوە' }}</span>
+                                </div>
+                                <div class="flex justify-between items-center py-0.5 border-b border-slate-800/60">
+                                    <span class="text-slate-400 text-[11px]">پاسپۆرت:</span>
+                                    <span class="font-mono text-amber-300 font-bold">
+                                        {{ $transaction->passport_number ?: 'تۆمارنەکراوە' }}
+                                        @if($transaction->passport_issue_date)
+                                            <span class="text-[10px] text-slate-400 font-normal mr-1">({{ $transaction->passport_issue_date->format('Y-m-d') }})</span>
+                                        @endif
+                                    </span>
+                                </div>
+                                <div class="flex justify-between items-center py-0.5">
+                                    <span class="text-slate-400 text-[11px]">شۆفێری دووەم:</span>
+                                    <span class="text-slate-200 text-left">
+                                        {{ $transaction->second_driver_name ?: 'دیارینەکراوە' }}
+                                        @if($transaction->second_driver_name_eng)
+                                            <span class="text-[10px] font-mono text-slate-400 block" dir="ltr">{{ $transaction->second_driver_name_eng }}</span>
+                                        @endif
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- داخڵکار و کاتی تۆمار -->
+                        <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                            <span>داخڵکار: <strong class="text-slate-200">{{ $transaction->user_input }}</strong></span>
+                            <span class="font-mono text-slate-500 text-[10px]">{{ $transaction->created_at ? $transaction->created_at->format('Y-m-d H:i') : '' }}</span>
+                        </div>
                     </div>
+
                 </div>
 
                 @if($linkedPledge)
-                    <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/40 flex items-center justify-between text-xs text-amber-300">
+                    <div class="p-2 rounded-xl bg-amber-500/10 border border-amber-500/40 flex items-center justify-between text-xs text-amber-300">
                         <span class="flex items-center gap-1.5 font-bold">
                             <i class="fa-solid fa-link"></i>
                             مامەڵەی بەڵێننامەی بەستراوەی هەیە: <strong class="font-mono text-white">{{ $linkedPledge->barcode }}</strong>
@@ -946,9 +989,9 @@
             </div>
 
             <!-- لای چەپ (4 لە 12): بڕیاری وردبینی، پەسەندکردن، و ڕسوومات -->
-            <div class="lg:col-span-4 bg-slate-950/90 border-2 border-purple-500/50 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl sticky top-20">
-                <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
-                    <h4 class="text-sm font-black text-purple-300 flex items-center gap-2">
+            <div class="lg:col-span-4 bg-slate-950/90 border-2 border-purple-500/50 rounded-xl p-3.5 sm:p-4 space-y-3 shadow-xl sticky top-20">
+                <div class="border-b border-slate-800 pb-2.5 flex items-center justify-between">
+                    <h4 class="text-xs sm:text-sm font-black text-purple-300 flex items-center gap-1.5">
                         <i class="fa-solid fa-clipboard-check"></i>
                         <span>بڕیاری وردبینی</span>
                     </h4>
@@ -958,18 +1001,18 @@
                 </div>
 
                 <!-- پوختەی پارە و ڕسوومات -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2">
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 space-y-1.5">
                     <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400">ڕسووماتی مامەڵە:</span>
+                        <span class="text-slate-400 text-[11px]">ڕسووماتی مامەڵە:</span>
                         <span class="font-mono font-bold text-white">{{ number_format($transaction->total_pay) }} د.ع</span>
                     </div>
                     @if($linkedPledge)
                     <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400">ڕسووماتی بەڵێننامە:</span>
+                        <span class="text-slate-400 text-[11px]">ڕسووماتی بەڵێننامە:</span>
                         <span class="font-mono font-bold text-amber-300">{{ number_format($linkedPledge->total_pay) }} د.ع</span>
                     </div>
-                    <div class="pt-2 border-t border-slate-800 flex justify-between items-center text-xs">
-                        <span class="text-slate-300 font-bold">کۆی هەردووکیان:</span>
+                    <div class="pt-1.5 border-t border-slate-800 flex justify-between items-center text-xs">
+                        <span class="text-slate-300 font-bold text-[11px]">کۆی هەردووکیان:</span>
                         <span class="font-mono font-black text-emerald-400 text-sm">{{ number_format($transaction->total_pay + $linkedPledge->total_pay) }} د.ع</span>
                     </div>
                     @endif
@@ -977,7 +1020,7 @@
 
                 <!-- فۆرمی فەرمی پەسەندکردنی وردبینی -->
                 @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.audit'))
-                <form action="{{ route('transactions.audit', $transaction->id) }}" method="POST" class="space-y-3">
+                <form action="{{ route('transactions.audit', $transaction->id) }}" method="POST" class="space-y-2.5">
                     @csrf
                     <div>
                         <div class="flex items-center justify-between mb-1">
@@ -997,7 +1040,7 @@
                                class="w-full bg-slate-950 border border-slate-700 focus:border-purple-500 rounded-xl px-3 py-2 text-sm font-bold text-slate-100 text-center tracking-wider focus:outline-none focus:ring-2 focus:ring-purple-500/20" />
                         
                         <template x-if="confirmAuditAmount.length > 0 && confirmAuditAmount.replace(/\D/g, '') !== expectedAuditAmount">
-                            <p class="text-[10px] text-rose-400 font-bold mt-1.5 flex items-center gap-1">
+                            <p class="text-[10px] text-rose-400 font-bold mt-1 flex items-center gap-1">
                                 <i class="fa-solid fa-circle-exclamation"></i>
                                 بڕی پارەکە یەکسان نییە ({{ number_format($transaction->total_pay) }} دینار)
                             </p>
@@ -1006,7 +1049,7 @@
 
                     <button type="submit" 
                             :disabled="confirmAuditAmount.length > 0 && confirmAuditAmount.replace(/\D/g, '') !== expectedAuditAmount"
-                            class="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-purple-600/30 transition flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                            class="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-purple-600/30 transition flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i class="fa-solid fa-clipboard-check text-base"></i>
                         <span>پەسەندکردنی فەرمی وردبینی</span>
                     </button>
@@ -1020,19 +1063,19 @@
                 @endif
 
                 <!-- چاپی نووسراوە ئیدارییەکان لە قۆناغی وردبینی -->
-                <div class="pt-2 border-t border-slate-800 space-y-1.5">
+                <div class="pt-2 border-t border-slate-800 space-y-1">
                     <span class="text-[10px] text-slate-400 font-bold block">نووسراوە ئیدارییە پەیوەندیدارەکان:</span>
                     @if($transaction->isCancellation())
-                        <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="w-full py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-rose-300 border border-rose-600/40 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                        <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="w-full py-1 px-2.5 bg-slate-900 hover:bg-slate-800 text-rose-300 border border-rose-600/40 rounded-lg text-[11px] font-bold transition flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-file-circle-xmark"></i> چاپی نووسراوی پووچەڵکردنەوە
                         </a>
                     @elseif($transaction->isBookletIssue())
-                        <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="w-full py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-600/40 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                        <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="w-full py-1 px-2.5 bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-600/40 rounded-lg text-[11px] font-bold transition flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-file-circle-exclamation"></i> چاپی نیشانەی ڕەفتارنەکردن
                         </a>
                     @endif
                     @if($linkedPledge)
-                        <a href="{{ route('transactions.print_pledge', $transaction->id) }}" target="_blank" class="w-full py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-600/40 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                        <a href="{{ route('transactions.print_pledge', $transaction->id) }}" target="_blank" class="w-full py-1 px-2.5 bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-600/40 rounded-lg text-[11px] font-bold transition flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-file-contract"></i> چاپی بەڵێننامەی یاسایی
                         </a>
                     @endif
