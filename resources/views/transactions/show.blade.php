@@ -767,6 +767,284 @@
         </div>
     @endif
 
+    <!-- ========================================================================= -->
+    <!-- DEDICATED AUDIT STAGE WORKSPACE (فۆرمی قۆناغی وردبینی - پیشاندانی ئاسان) -->
+    <!-- ========================================================================= -->
+    @if($transaction->is_inspected && !$transaction->is_audited)
+    <div class="bg-gradient-to-b from-slate-900 via-slate-900 to-purple-950/40 border-2 border-purple-500 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-5 relative ring-4 ring-purple-500/15">
+        
+        <!-- بەشی سەرەوە: ئەو زانیارییانەی پێویستە ببینرێت لە سەرەوەی فۆرمەکە دەربکەوێت -->
+        <div class="bg-slate-950/95 border border-purple-500/40 rounded-2xl p-4 shadow-xl flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-500 flex items-center justify-center text-white text-xl shadow-lg shadow-purple-600/30 shrink-0">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-xs font-black px-2.5 py-0.5 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                            قۆناغی ٣: پەسەندکردنی وردبینی
+                        </span>
+                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-lg border {{ $typeTheme['pill'] ?? 'bg-slate-800 text-slate-300 border-slate-700' }}">
+                            {{ $typeName }}
+                        </span>
+                        <span class="font-mono text-xs font-bold text-sky-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                            #{{ $transaction->barcode }}
+                        </span>
+                    </div>
+                    <h3 class="text-base sm:text-lg font-black text-white mt-1 truncate">
+                        {{ $transaction->visitor_name }} 
+                        <span class="text-xs font-normal text-slate-400">({{ $transaction->plate_number }} - {{ $transaction->plateType->clean_kurdish_name ?? $transaction->plateType->name_kurdish ?? 'تایبەت' }})</span>
+                    </h3>
+                </div>
+            </div>
+
+            <!-- پشکنینی کەشف و پارە لە سەرەوە -->
+            <div class="flex items-center flex-wrap gap-4 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 border-slate-800 pt-3 lg:pt-0">
+                <!-- کەشفکراو لەلایەن -->
+                <div class="text-right">
+                    <span class="text-[10px] text-slate-400 block font-bold">ئەندازیاری کەشف و تەخمین:</span>
+                    <span class="text-xs font-black text-emerald-400 flex items-center gap-1">
+                        <i class="fa-solid fa-circle-check text-[10px]"></i>
+                        {{ $transaction->inspected_by ?: 'پەسەندکراوە' }}
+                    </span>
+                    <span class="text-[10px] text-slate-500 font-mono block">{{ $transaction->inspected_at ? $transaction->inspected_at->format('Y-m-d H:i') : '' }}</span>
+                </div>
+
+                <!-- بڕی پارەی دیاریکراو -->
+                <div class="text-right bg-emerald-950/40 border border-emerald-500/40 px-3.5 py-1.5 rounded-xl">
+                    <span class="text-[10px] text-emerald-300 block font-bold">کۆی بڕی پارەی پێویست:</span>
+                    <span class="text-lg font-black font-mono text-emerald-400">
+                        {{ number_format($transaction->total_pay) }} <span class="text-xs font-sans text-emerald-300 font-normal">دینار</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- دابەشکردنی خوارەوە: زۆربەی زانیارییەکان لە لایەکی فۆرمەکە (لای ڕاست) و بڕیاری وردبینی لە لایەکەی تر (لای چەپ) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            
+            <!-- لای ڕاست (8 لە 12): زۆربەی ئەو زانیارییانەی پێویستە وردبینی بکرێن -->
+            <div class="lg:col-span-8 bg-slate-950/80 border border-slate-800 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl">
+                
+                <!-- هێڵی ژمارەی شاسی بە فۆکەسی گەورە -->
+                <div class="bg-gradient-to-r from-sky-950/60 to-slate-900 border-2 border-sky-500/60 p-3 rounded-xl flex items-center justify-between flex-wrap gap-2 shadow-inner">
+                    <div class="flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-xs font-bold">
+                            <i class="fa-solid fa-fingerprint"></i>
+                        </span>
+                        <div>
+                            <span class="text-[10px] text-sky-400 font-bold block uppercase tracking-wider">ژمارەی شاسی (Chassis VIN)</span>
+                            <span class="font-mono text-base sm:text-lg font-black text-white uppercase tracking-widest select-all">{{ $transaction->chassis_number }}</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="navigator.clipboard.writeText('{{ $transaction->chassis_number }}'); alert('ژمارەی شاسی کۆپی کرا');" class="px-2.5 py-1 bg-sky-600/30 hover:bg-sky-600/50 text-sky-300 border border-sky-500/40 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                        <i class="fa-regular fa-copy"></i>
+                        <span>کۆپیکردن</span>
+                    </button>
+                </div>
+
+                <!-- زانیاری ئۆتۆمبێل (خشتەی ڕوون و پوخت) -->
+                <div class="space-y-2">
+                    <h4 class="text-xs font-black text-sky-400 border-b border-slate-800 pb-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-car-side"></i>
+                        <span>زانیارییەکانی ئۆتۆمبێل</span>
+                    </h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[11px] block">ژمارەی تابلۆ:</span>
+                            <strong class="font-mono text-white text-sm block mt-0.5" dir="ltr">{{ $transaction->plate_number }}</strong>
+                            <span class="text-[10px] text-slate-400 font-bold block mt-0.5">({{ $transaction->trafficDirectorate->name_kurdish ?? '' }} - {{ $transaction->plateType->clean_kurdish_name ?? $transaction->plateType->name_kurdish ?? 'تایبەت' }})</span>
+                        </div>
+                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[11px] block">مارکەی ئۆتۆمبێل:</span>
+                            <strong class="text-white text-xs block mt-0.5">{{ $transaction->carMake->name_kurdish ?? '-' }}</strong>
+                            <span class="text-[10px] font-mono text-slate-400 block">({{ $transaction->carMake->name_english ?? '-' }})</span>
+                        </div>
+                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[11px] block">مۆدێل و پستۆن:</span>
+                            <strong class="text-white text-xs block mt-0.5">{{ $transaction->model_year }}</strong>
+                            <span class="text-[10px] font-mono text-slate-400 block">({{ $transaction->piston_count }} Piston)</span>
+                        </div>
+                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[11px] block">ڕەنگی ئۆتۆمبێل:</span>
+                            <strong class="text-white text-xs block mt-0.5">{{ $transaction->carColor->name_kurdish ?? '-' }}</strong>
+                            <span class="text-[10px] font-mono text-slate-400 block">({{ $transaction->carColor->name_english ?? '-' }})</span>
+                        </div>
+                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[11px] block">ژمارەی ساڵانە:</span>
+                            <strong class="font-mono text-white text-xs block mt-0.5">{{ $transaction->salana_number ?: 'نییە' }}</strong>
+                        </div>
+                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[11px] block">ماوەی دەفتەر:</span>
+                            <strong class="text-amber-300 text-xs block mt-0.5">{{ $transaction->isCancellationOrInspection() ? '-' : ($transaction->num_years ?? 1) . ' ساڵ' }}</strong>
+                            @if($transaction->start_date && $transaction->end_date)
+                                <span class="text-[10px] font-mono text-slate-400 block">{{ $transaction->start_date->format('Y-m-d') }} ➔ {{ $transaction->end_date->format('Y-m-d') }}</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- زانیاری هاووڵاتی و شۆفێران -->
+                <div class="space-y-2 pt-2 border-t border-slate-800">
+                    <h4 class="text-xs font-black text-sky-400 border-b border-slate-800 pb-1.5 flex items-center gap-2">
+                        <i class="fa-solid fa-user-check"></i>
+                        <span>زانیارییەکانی هاووڵاتی و شۆفێر</span>
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[11px] block">شۆفێری یەکەم (هاووڵاتی):</span>
+                            <strong class="text-white text-sm block mt-0.5">{{ $transaction->visitor_name }}</strong>
+                            @if($transaction->visitor_name_eng)
+                                <span class="text-[11px] font-mono text-slate-400 block">({{ $transaction->visitor_name_eng }})</span>
+                            @endif
+                        </div>
+                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[11px] block">مۆبایل و ناونیشان:</span>
+                            <strong class="font-mono text-emerald-400 text-xs block mt-0.5" dir="ltr">{{ $transaction->phone_number ?: 'تۆمارنەکراوە' }}</strong>
+                            <span class="text-[11px] text-slate-400 block mt-0.5">{{ $transaction->address ?: 'ناونیشان تۆمارنەکراوە' }}</span>
+                        </div>
+                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[11px] block">پاسپۆرت:</span>
+                            <strong class="font-mono text-amber-300 text-xs block mt-0.5">{{ $transaction->passport_number ?: 'تۆمارنەکراوە' }}</strong>
+                            @if($transaction->passport_issue_date)
+                                <span class="text-[10px] text-slate-400 block">بەروار: {{ $transaction->passport_issue_date->format('Y-m-d') }}</span>
+                            @endif
+                        </div>
+                        <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[11px] block">شۆفێری دووەم:</span>
+                            <strong class="text-white text-xs block mt-0.5">{{ $transaction->second_driver_name ?: 'دیارینەکراوە' }}</strong>
+                            @if($transaction->second_driver_name_eng)
+                                <span class="text-[11px] font-mono text-slate-400 block">({{ $transaction->second_driver_name_eng }})</span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- باری کەشف و داخڵکار -->
+                <div class="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center gap-3 text-slate-400">
+                        <span>زیادەبار: <strong class="text-white">{{ $transaction->zedabar ?? 'باشە' }}</strong></span>
+                        <span>•</span>
+                        <span>کەموکوڕی: <strong class="text-white">{{ $transaction->kamukurty ?? 'باشە' }}</strong></span>
+                        <span>•</span>
+                        <span>باری گشتی: <strong class="text-white">{{ $transaction->bary_gshty ?? 'باشە' }}</strong></span>
+                    </div>
+                    <div class="text-slate-500 text-[11px]">
+                        داخڵکار: <strong class="text-slate-300">{{ $transaction->user_input }}</strong> ({{ $transaction->created_at ? $transaction->created_at->format('Y-m-d H:i') : '' }})
+                    </div>
+                </div>
+
+                @if($linkedPledge)
+                    <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/40 flex items-center justify-between text-xs text-amber-300">
+                        <span class="flex items-center gap-1.5 font-bold">
+                            <i class="fa-solid fa-link"></i>
+                            مامەڵەی بەڵێننامەی بەستراوەی هەیە: <strong class="font-mono text-white">{{ $linkedPledge->barcode }}</strong>
+                        </span>
+                        <span class="font-mono font-bold">{{ number_format($linkedPledge->total_pay) }} دینار</span>
+                    </div>
+                @endif
+            </div>
+
+            <!-- لای چەپ (4 لە 12): بڕیاری وردبینی، پەسەندکردن، و ڕسوومات -->
+            <div class="lg:col-span-4 bg-slate-950/90 border-2 border-purple-500/50 rounded-2xl p-4 sm:p-5 space-y-4 shadow-xl sticky top-20">
+                <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
+                    <h4 class="text-sm font-black text-purple-300 flex items-center gap-2">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        <span>بڕیاری وردبینی</span>
+                    </h4>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                        ئامادەیە بۆ پەسەندکردن
+                    </span>
+                </div>
+
+                <!-- پوختەی پارە و ڕسوومات -->
+                <div class="bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">ڕسووماتی مامەڵە:</span>
+                        <span class="font-mono font-bold text-white">{{ number_format($transaction->total_pay) }} د.ع</span>
+                    </div>
+                    @if($linkedPledge)
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">ڕسووماتی بەڵێننامە:</span>
+                        <span class="font-mono font-bold text-amber-300">{{ number_format($linkedPledge->total_pay) }} د.ع</span>
+                    </div>
+                    <div class="pt-2 border-t border-slate-800 flex justify-between items-center text-xs">
+                        <span class="text-slate-300 font-bold">کۆی هەردووکیان:</span>
+                        <span class="font-mono font-black text-emerald-400 text-sm">{{ number_format($transaction->total_pay + $linkedPledge->total_pay) }} د.ع</span>
+                    </div>
+                    @endif
+                </div>
+
+                <!-- فۆرمی فەرمی پەسەندکردنی وردبینی -->
+                @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.audit'))
+                <form action="{{ route('transactions.audit', $transaction->id) }}" method="POST" class="space-y-3">
+                    @csrf
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-[11px] font-bold text-slate-300">
+                                دووپاتکردنەوەی بڕی پارە (دینار):
+                            </label>
+                            <button type="button" @click="confirmAuditAmount = expectedAuditAmount" class="text-[10px] text-purple-400 hover:text-purple-300 font-bold hover:underline">
+                                خۆکار پڕی بکەوە
+                            </button>
+                        </div>
+                        <input type="text" 
+                               name="confirm_total_pay" 
+                               x-model="confirmAuditAmount" 
+                               placeholder="{{ number_format($transaction->total_pay) }}" 
+                               required 
+                               autocomplete="off"
+                               class="w-full bg-slate-950 border border-slate-700 focus:border-purple-500 rounded-xl px-3 py-2 text-sm font-bold text-slate-100 text-center tracking-wider focus:outline-none focus:ring-2 focus:ring-purple-500/20" />
+                        
+                        <template x-if="confirmAuditAmount.length > 0 && confirmAuditAmount.replace(/\D/g, '') !== expectedAuditAmount">
+                            <p class="text-[10px] text-rose-400 font-bold mt-1.5 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                بڕی پارەکە یەکسان نییە ({{ number_format($transaction->total_pay) }} دینار)
+                            </p>
+                        </template>
+                    </div>
+
+                    <button type="submit" 
+                            :disabled="confirmAuditAmount.length > 0 && confirmAuditAmount.replace(/\D/g, '') !== expectedAuditAmount"
+                            class="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-purple-600/30 transition flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-clipboard-check text-base"></i>
+                        <span>پەسەندکردنی فەرمی وردبینی</span>
+                    </button>
+                </form>
+
+                <!-- دوگمەی گەڕاندنەوە بۆ تەخمین لە کاتی بوونی هەڵە -->
+                <button type="button" @click="showReturnModal = true" class="w-full py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-600/50 text-rose-300 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>گەڕاندنەوە بۆ تەخمین (هەڵەی زانیاری)</span>
+                </button>
+                @endif
+
+                <!-- چاپی نووسراوە ئیدارییەکان لە قۆناغی وردبینی -->
+                <div class="pt-2 border-t border-slate-800 space-y-1.5">
+                    <span class="text-[10px] text-slate-400 font-bold block">نووسراوە ئیدارییە پەیوەندیدارەکان:</span>
+                    @if($transaction->isCancellation())
+                        <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="w-full py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-rose-300 border border-rose-600/40 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-file-circle-xmark"></i> چاپی نووسراوی پووچەڵکردنەوە
+                        </a>
+                    @elseif($transaction->isBookletIssue())
+                        <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="w-full py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-600/40 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-file-circle-exclamation"></i> چاپی نیشانەی ڕەفتارنەکردن
+                        </a>
+                    @endif
+                    @if($linkedPledge)
+                        <a href="{{ route('transactions.print_pledge', $transaction->id) }}" target="_blank" class="w-full py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-600/40 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-file-contract"></i> چاپی بەڵێننامەی یاسایی
+                        </a>
+                    @endif
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+    @endif
+
     <!-- Workflow Progress Stepper Pipeline -->
     @php
         $requiresBooklet = $transaction->requiresBooklet();
@@ -1896,100 +2174,181 @@
     </div>
 
     <!-- MODAL 6: Auditor Verification Confirmation Modal (پەسەندکردنی وردبینی) -->
-    <div x-show="showAuditModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-purple-500/50 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl" @click.away="showAuditModal = false">
-            <div class="flex items-center justify-between border-b border-slate-700/80 pb-3">
-                <h3 class="text-base font-black text-purple-400 flex items-center">
-                    <i class="fa-solid fa-clipboard-check ml-2 text-lg"></i>
-                    دڵنیابوونەوە و پەسەندکردنی وردبینی
-                </h3>
-                <button @click="showAuditModal = false" class="text-slate-400 hover:text-slate-200 p-1">
+    <div x-show="showAuditModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+        <div class="bg-slate-900 border-2 border-purple-500/80 rounded-3xl max-w-5xl w-full p-5 sm:p-6 space-y-5 shadow-2xl text-right overflow-y-auto max-h-[90vh] touch-scroll ring-4 ring-purple-500/20" @click.away="showAuditModal = false">
+            
+            <!-- سەردێڕ و دوگمەی داخستن -->
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/40 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-white">فۆرمی پەسەندکردن و وردبینی مامەڵە</h3>
+                        <p class="text-xs text-slate-400">وردبینی وردی زانیارییەکانی هاووڵاتی و ئۆتۆمبێل پێش وەرگرتنی رسومات</p>
+                    </div>
+                </div>
+                <button @click="showAuditModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <!-- جۆری مامەڵە بە بارزی لە مۆداڵی وردبینی -->
-            <div class="p-3.5 rounded-xl border-2 {{ $typeTheme['border'] ?? 'border-emerald-500/80 shadow-emerald-500/20' }} bg-slate-950/90 flex items-center justify-between shadow-lg">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] ?? 'bg-emerald-500/20 text-emerald-400' }}">
-                        <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-clipboard-check' }}"></i>
-                    </div>
-                    <div>
-                        <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵەی ژێر وردبینی:</span>
-                        <span class="text-lg font-black text-white">{{ $typeName }}</span>
-                    </div>
+            <!-- سەرەوەی فۆرمەکە: ئەو زانیارییانەی پێویستە ببینرێت لە سەرەوە دەربکەوێت -->
+            <div class="bg-slate-950 border border-purple-500/40 rounded-2xl p-3.5 shadow-md flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="text-xs font-black px-2.5 py-1 rounded-lg border {{ $typeTheme['pill'] ?? 'bg-slate-800 text-slate-300 border-slate-700' }}">
+                        {{ $typeName }}
+                    </span>
+                    <span class="font-mono text-xs font-black text-sky-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
+                        {{ $transaction->barcode }}
+                    </span>
                 </div>
-                <span class="font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-black/50 text-sky-300 border border-slate-700">
-                    {{ $transaction->barcode }}
-                </span>
-            </div>
 
-            <!-- Transaction Details Summary Card -->
-            <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4 space-y-2.5">
-                <div class="flex justify-between items-center text-xs">
-                    <span class="text-slate-400">ناوی هاوڵاتی:</span>
-                    <span class="text-slate-100 font-bold text-sm">{{ $transaction->visitor_name }}</span>
+                <div class="text-xs text-slate-300">
+                    ئەندازیاری کەشف: <strong class="text-emerald-400">{{ $transaction->inspected_by ?: 'پەسەندکراوە' }}</strong>
+                    <span class="text-slate-500 font-mono text-[11px] mr-1">({{ $transaction->inspected_at ? $transaction->inspected_at->format('Y-m-d H:i') : '' }})</span>
                 </div>
-                <div class="flex justify-between items-center text-xs">
-                    <span class="text-slate-400">ژمارەی تابلۆ:</span>
-                    <span class="font-mono text-sky-400 font-bold" dir="ltr">{{ $transaction->plate_number }}</span>
-                </div>
-                @if(in_array((int)$transaction->transaction_type_id, [1, 2]))
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-400">ماوەی ساڵانە (دەرهێنان / تازەکردنەوە):</span>
-                        <span class="text-amber-300 font-bold">{{ $transaction->num_years ?? 1 }} ساڵ</span>
-                    </div>
-                @endif
-                <div class="flex justify-between items-center text-xs pt-2 border-t border-slate-700">
-                    <span class="text-slate-400 font-bold">کۆی گشتی بڕی پارەی پێویست:</span>
-                    <span class="text-emerald-400 font-black text-base">{{ number_format($transaction->total_pay) }} دینار</span>
+
+                <div class="text-xs bg-emerald-950/50 border border-emerald-500/50 px-3 py-1 rounded-xl">
+                    <span class="text-slate-300 font-bold">کۆی بڕی پارە:</span>
+                    <strong class="font-mono text-emerald-400 text-base font-black mr-1">{{ number_format($transaction->total_pay) }} دینار</strong>
                 </div>
             </div>
 
-            <!-- Verification Textbox Form -->
-            <form action="{{ route('transactions.audit', $transaction->id) }}" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-xs font-bold text-slate-200 mb-1.5">
-                        <i class="fa-solid fa-pen-nib ml-1 text-purple-400"></i>
-                        بۆ دڵنیابوونەوە، تکایە کۆی گشتی بڕی پارەکە بە دروستی بنووسەوە: *
-                    </label>
-                    <input type="text" 
-                           name="confirm_total_pay" 
-                           x-model="confirmAuditAmount" 
-                           placeholder="بڕی پارەکە بنووسەوە (نموونە: {{ number_format($transaction->total_pay) }})" 
-                           required 
-                           autocomplete="off"
-                           class="w-full bg-slate-950 border border-slate-700 focus:border-purple-500 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-100 text-center tracking-wider focus:outline-none focus:ring-2 focus:ring-purple-500/20" />
+            <!-- دابەشکردنی ناوەوە: زۆربەی زانیارییەکان لە لایەک (ڕاست) و بڕیاری وردبینی لە لایەکەی تر (چەپ) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start text-xs">
+                
+                <!-- لای ڕاست (7 لە 12): زۆربەی ئەو زانیارییانەی دەبینرێت -->
+                <div class="lg:col-span-7 bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-3.5">
+                    
+                    <!-- ژمارەی شاسی دیار -->
+                    <div class="bg-slate-900 border-2 border-sky-500/60 p-2.5 rounded-xl flex items-center justify-between">
+                        <div>
+                            <span class="text-[10px] text-sky-400 font-bold block">ژمارەی شاسی (VIN):</span>
+                            <span class="font-mono text-sm sm:text-base font-black text-white tracking-widest select-all uppercase">{{ $transaction->chassis_number }}</span>
+                        </div>
+                        <button type="button" onclick="navigator.clipboard.writeText('{{ $transaction->chassis_number }}');" class="text-[10px] bg-sky-500/20 text-sky-300 px-2 py-1 rounded border border-sky-500/40 hover:bg-sky-500/30">
+                            کۆپی
+                        </button>
+                    </div>
 
-                    <!-- Mismatch warning or match indicator -->
-                    <template x-if="confirmAuditAmount.length > 0 && confirmAuditAmount.replace(/\D/g, '') !== expectedAuditAmount">
-                        <p class="text-xs text-rose-400 font-bold mt-2 flex items-center gap-1.5">
-                            <i class="fa-solid fa-circle-exclamation"></i>
-                            بڕی پارەی نووسراو یەکسان نییە بە کۆی پارەکە ({{ number_format($transaction->total_pay) }} دینار). تکایە بە دروستی بنووسە.
-                        </p>
-                    </template>
-                    <template x-if="confirmAuditAmount.replace(/\D/g, '') === expectedAuditAmount">
-                        <p class="text-xs text-emerald-400 font-bold mt-2 flex items-center gap-1.5">
-                            <i class="fa-solid fa-circle-check"></i>
-                            بڕی پارەکە تەواو و دروستە. دەتوانیت پەسەندی بکەیت.
-                        </p>
-                    </template>
+                    <!-- خشتەی زانیاری ئۆتۆمبێل -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[10px] block">تابلۆ:</span>
+                            <strong class="font-mono text-white text-xs block" dir="ltr">{{ $transaction->plate_number }}</strong>
+                            <span class="text-[10px] text-slate-400 font-bold">({{ $transaction->trafficDirectorate->name_kurdish ?? '' }} - {{ $transaction->plateType->clean_kurdish_name ?? $transaction->plateType->name_kurdish ?? 'تایبەت' }})</span>
+                        </div>
+                        <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[10px] block">مارکە:</span>
+                            <strong class="text-white text-xs block">{{ $transaction->carMake->name_kurdish ?? '-' }}</strong>
+                            <span class="text-[10px] font-mono text-slate-400">({{ $transaction->carMake->name_english ?? '-' }})</span>
+                        </div>
+                        <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[10px] block">مۆدێل و بستۆن:</span>
+                            <strong class="text-white text-xs block">{{ $transaction->model_year }} ({{ $transaction->piston_count }} Piston)</strong>
+                        </div>
+                        <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[10px] block">ڕەنگ:</span>
+                            <strong class="text-white text-xs block">{{ $transaction->carColor->name_kurdish ?? '-' }} ({{ $transaction->carColor->name_english ?? '-' }})</strong>
+                        </div>
+                        <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[10px] block">ماوەی ساڵانە:</span>
+                            <strong class="text-amber-300 text-xs block">{{ $transaction->num_years ?? 1 }} ساڵ</strong>
+                        </div>
+                        <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 text-[10px] block">ژمارەی ساڵانە:</span>
+                            <strong class="font-mono text-white text-xs block">{{ $transaction->salana_number ?: 'نییە' }}</strong>
+                        </div>
+                    </div>
+
+                    <!-- زانیاری هاووڵاتی و شۆفێر -->
+                    <div class="pt-2 border-t border-slate-800 space-y-2">
+                        <div class="flex justify-between items-center bg-slate-900 p-2 rounded-xl border border-slate-800">
+                            <span class="text-slate-400">هاووڵاتی:</span>
+                            <span class="text-white font-bold">{{ $transaction->visitor_name }} @if($transaction->visitor_name_eng) ({{ $transaction->visitor_name_eng }}) @endif</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-900 p-2 rounded-xl border border-slate-800">
+                            <span class="text-slate-400">مۆبایل و پاسپۆرت:</span>
+                            <span class="font-mono text-emerald-400 font-bold" dir="ltr">{{ $transaction->phone_number ?: '-' }} | پ: {{ $transaction->passport_number ?: '-' }}</span>
+                        </div>
+                        @if($transaction->second_driver_name)
+                        <div class="flex justify-between items-center bg-slate-900 p-2 rounded-xl border border-slate-800">
+                            <span class="text-slate-400">شۆفێری دووەم:</span>
+                            <span class="text-slate-200">{{ $transaction->second_driver_name }}</span>
+                        </div>
+                        @endif
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-end space-x-2 space-x-reverse pt-2">
-                    <button type="button" @click="showAuditModal = false" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition">
-                        پاشگەزبوونەوە
-                    </button>
-                    <button type="submit" 
-                            :disabled="confirmAuditAmount.replace(/\D/g, '') !== expectedAuditAmount"
-                            :class="confirmAuditAmount.replace(/\D/g, '') === expectedAuditAmount ? 'bg-purple-600 hover:bg-purple-500 text-white cursor-pointer shadow-lg shadow-purple-600/30' : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed opacity-50'"
-                            class="px-5 py-2 text-xs font-bold rounded-xl transition flex items-center">
-                        <i class="fa-solid fa-clipboard-check ml-1.5"></i>
-                        پەسەندکردنی کۆتایی وردبینی
-                    </button>
+                <!-- لای چەپ (5 لە 12): بڕیاری وردبینی و پەسەندکردن -->
+                <div class="lg:col-span-5 bg-slate-950/90 border border-purple-500/40 rounded-2xl p-4 space-y-4">
+                    
+                    <!-- ڕسوومات -->
+                    <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400">بڕی تێچووی سەرەکی:</span>
+                            <strong class="font-mono text-white">{{ number_format($transaction->total_pay) }} د.ع</strong>
+                        </div>
+                        @if($linkedPledge)
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400">ڕسووماتی بەڵێننامە:</span>
+                            <strong class="font-mono text-amber-300">{{ number_format($linkedPledge->total_pay) }} د.ع</strong>
+                        </div>
+                        <div class="pt-1.5 border-t border-slate-800 flex justify-between items-center">
+                            <span class="text-slate-200 font-bold">کۆی گشتی:</span>
+                            <strong class="font-mono text-emerald-400 text-sm font-black">{{ number_format($transaction->total_pay + $linkedPledge->total_pay) }} د.ع</strong>
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- فۆرمی پەسەندکردنی کۆتایی -->
+                    <form action="{{ route('transactions.audit', $transaction->id) }}" method="POST" class="space-y-3">
+                        @csrf
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="text-[11px] font-bold text-slate-300">
+                                    دووپاتکردنەوەی بڕی پارەکە: *
+                                </label>
+                                <button type="button" @click="confirmAuditAmount = expectedAuditAmount" class="text-[10px] text-purple-400 hover:text-purple-300 font-bold hover:underline">
+                                    خۆکار پڕی بکەوە
+                                </button>
+                            </div>
+                            <input type="text" 
+                                   name="confirm_total_pay" 
+                                   x-model="confirmAuditAmount" 
+                                   placeholder="نموونە: {{ number_format($transaction->total_pay) }}" 
+                                   required 
+                                   autocomplete="off"
+                                   class="w-full bg-slate-950 border border-slate-700 focus:border-purple-500 rounded-xl px-3 py-2 text-sm font-bold text-slate-100 text-center tracking-wider focus:outline-none focus:ring-2 focus:ring-purple-500/20" />
+
+                            <template x-if="confirmAuditAmount.length > 0 && confirmAuditAmount.replace(/\D/g, '') !== expectedAuditAmount">
+                                <p class="text-[10px] text-rose-400 font-bold mt-1.5 flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-exclamation"></i>
+                                    بڕی پارەکە یەکسان نییە ({{ number_format($transaction->total_pay) }} دینار)
+                                </p>
+                            </template>
+                        </div>
+
+                        <div class="space-y-2 pt-1">
+                            <button type="submit" 
+                                    :disabled="confirmAuditAmount.length > 0 && confirmAuditAmount.replace(/\D/g, '') !== expectedAuditAmount"
+                                    class="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs rounded-xl shadow-lg shadow-purple-600/30 transition flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fa-solid fa-clipboard-check"></i>
+                                <span>پەسەندکردنی کۆتایی وردبینی</span>
+                            </button>
+
+                            <button type="button" @click="showAuditModal = false; showReturnModal = true;" class="w-full py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-600/50 text-rose-300 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                <span>گەڕاندنەوە بۆ تەخمین (هەڵەی زانیاری)</span>
+                            </button>
+                        </div>
+                    </form>
+
                 </div>
-            </form>
+
+            </div>
+
         </div>
     </div>
 
