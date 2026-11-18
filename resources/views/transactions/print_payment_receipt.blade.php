@@ -382,6 +382,9 @@
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">
                         {{ $transaction->receipt_37a_number ?? $transaction->barcode }}
                     </span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/30 font-mono" title="قیاسی پسوولە بۆ پرنتەری دەرزی Epson LQ-690">
+                        Epson LQ-690 (16.0cm × 23.5cm)
+                    </span>
                 </div>
                 <p class="text-[10px] text-slate-400">هاووڵاتی: <strong class="text-slate-200">{{ $transaction->visitor_name }}</strong> • تابلۆ: <strong class="text-amber-300 font-mono">{{ $transaction->plate_number }}</strong></p>
             </div>
@@ -670,46 +673,9 @@
 
             <section id="receiptSheet" class="sheet-container">
                 
-                <!-- BACKGROUND TEMPLATE FRAME (Visual receipt layout) -->
-                <div id="bgTemplateFrame" class="sheet-bg-template border-2 border-black p-4 text-black text-xs font-bold pointer-events-none select-none">
-                    <div class="flex justify-between items-start border-b border-black pb-2">
-                        <div class="space-y-0.5 text-right text-[11px]">
-                            <p class="font-black text-xs">حکومەتی هەرێمی کوردستان</p>
-                            <p>وەزارەتی دارایی و ئابووری</p>
-                            <p>بەڕێوەبەرایەتی گشتی گومرگ</p>
-                            <p>بەڕێوەبەرایەتی گومرگی سلێمانی</p>
-                        </div>
-                        <div class="text-center space-y-1">
-                            <h2 class="text-xs font-black border border-black px-2 py-0.5 bg-gray-100">پسوولەی پارە وەرگرتن / ژمێرکاری ۱۳۷ تایبەت بە گومرگەکان</h2>
-                        </div>
-                        <div class="space-y-0.5 text-left font-mono text-[10px]">
-                            <p>ژمارە : </p>
-                            <p>ڕێکەوت : ۲۰۲ / / </p>
-                            <p class="text-[9px] text-gray-500">وێنەی پارەدەر</p>
-                        </div>
-                    </div>
-
-                    <!-- Table Lines Structure -->
-                    <div class="mt-3 border border-black rounded">
-                        <div class="flex border-b border-black bg-gray-100 font-black text-center py-1 text-xs">
-                            <div class="w-[68%] border-l border-black">وورده‌كاری</div>
-                            <div class="w-[32%]">بڕی پارە</div>
-                        </div>
-                        <div class="flex h-[130mm]">
-                            <div class="w-[68%] border-l border-black p-2"></div>
-                            <div class="w-[32%] p-2"></div>
-                        </div>
-                        <div class="border-t border-black p-1.5 flex justify-between font-black text-xs">
-                            <span>تەنها:</span>
-                        </div>
-                    </div>
-
-                    <!-- Signatures Footer -->
-                    <div class="flex justify-between text-center mt-5 pt-2 border-t border-black font-extrabold text-[11px]">
-                        <div class="w-1/3">خەزنەدار</div>
-                        <div class="w-1/3">ووردبینی</div>
-                        <div class="w-1/3">لێپرسراو</div>
-                    </div>
+                <!-- BACKGROUND TEMPLATE FRAME (ڕاستەقینەی کلیشەی پسوولەی ۱۳۷ / ۳۷-أ بۆ ڕێکخستن) -->
+                <div id="bgTemplateFrame" class="sheet-bg-template pointer-events-none select-none overflow-hidden" style="width: 160mm; height: 235mm;">
+                    <img src="{{ asset('images/receipt_37a_template.jpg') }}" alt="کڵێشەی وەسڵی گومرگ" class="w-full h-full object-fill pointer-events-none" />
                 </div>
 
                 <div class="sheet-ruler-grid"></div>
@@ -718,67 +684,67 @@
                 <div class="printable-content-layer">
 
                     <!-- 1. بارکۆد -->
-                    <div id="f-rcpt-barcode" class="calibrated-field" data-fid="f-rcpt-barcode" data-name-ku="بارکۆدی پسوولە" style="top: 8mm; right: 6mm;">
+                    <div id="f-rcpt-barcode" class="calibrated-field" data-fid="f-rcpt-barcode" data-name-ku="بارکۆدی پسوولە" style="top: 6mm; right: 8mm;">
                         <svg id="paymentBarcodeSvg" style="max-height: 11mm;"></svg>
                     </div>
 
                     <!-- 2. ژمارەی پسوولە -->
-                    <div id="f-rcpt-number" class="calibrated-field font-mono font-black" data-fid="f-rcpt-number" data-name-ku="ژمارەی پسوولە" style="top: 16mm; left: 6mm; font-size: 16px;">
+                    <div id="f-rcpt-number" class="calibrated-field font-mono font-black" data-fid="f-rcpt-number" data-name-ku="ژمارەی پسوولە" style="top: 21mm; left: 14mm; font-size: 15px;">
                         {{ toKurdishDigits($transaction->receipt_37a_number ?? $transaction->barcode) }}
                     </div>
 
                     <!-- 3. بەرواری پسوولە -->
-                    <div id="f-rcpt-date" class="calibrated-field font-mono font-black" data-fid="f-rcpt-date" data-name-ku="بەرواری پسوولە" style="top: 25mm; left: 6mm; font-size: 13px;">
+                    <div id="f-rcpt-date" class="calibrated-field font-mono font-black" data-fid="f-rcpt-date" data-name-ku="بەرواری پسوولە" style="top: 32mm; left: 14mm; font-size: 13px;">
                         {{ $transaction->paid_at ? $transaction->paid_at->format('d / m / Y') : date('d / m / Y') }}
                     </div>
 
-                    <!-- 4. ناوی سیانی هاووڵاتی -->
-                    <div id="f-rcpt-name" class="calibrated-field font-black" data-fid="f-rcpt-name" data-name-ku="ناوی سیانی هاووڵاتی" style="top: 44mm; right: 39mm; font-size: 15px;">
+                    <!-- 4. ناوی سیانی هاووڵاتی (لە خانەی ناوی سیانی پارەدەر) -->
+                    <div id="f-rcpt-name" class="calibrated-field font-black" data-fid="f-rcpt-name" data-name-ku="ناوی سیانی هاووڵاتی" style="top: 54.5mm; right: 46mm; font-size: 14.5px;">
                         {{ $transaction->visitor_name }}
                     </div>
 
                     <!-- 5. بڕی پارەی ڕەسم -->
-                    <div id="f-rcpt-rasm" class="calibrated-field font-mono font-black" data-fid="f-rcpt-rasm" data-name-ku="بڕی پارەی ڕەسم" style="top: 66mm; right: 14mm; font-size: 15px;">
+                    <div id="f-rcpt-rasm" class="calibrated-field font-mono font-black" data-fid="f-rcpt-rasm" data-name-ku="بڕی پارەی ڕەسم" style="top: 76mm; right: 10mm; min-width: 34mm; text-align: center; font-size: 15px;">
                         {{ toKurdishDigits(number_format($rasmAmount)) }}
                     </div>
 
                     <!-- 6. وشەی (ڕەسم:) -->
-                    <div id="f-lbl-rasm" class="calibrated-field font-black" data-fid="f-lbl-rasm" data-name-ku="وشەی (ڕەسم:)" style="top: 66mm; right: 44mm; font-size: 13.5px;">
+                    <div id="f-lbl-rasm" class="calibrated-field font-black" data-fid="f-lbl-rasm" data-name-ku="وشەی (ڕەسم:)" style="top: 76mm; right: 50mm; font-size: 13.5px;">
                         ڕەسم:
                     </div>
 
                     <!-- 7. بڕی پارەی سزا (ئەگەر هەبێت) -->
                     @if($hasFine)
-                        <div id="f-rcpt-fine" class="calibrated-field font-mono font-black" data-fid="f-rcpt-fine" data-name-ku="بڕی پارەی سزا" style="top: 75mm; right: 14mm; font-size: 15px;">
+                        <div id="f-rcpt-fine" class="calibrated-field font-mono font-black" data-fid="f-rcpt-fine" data-name-ku="بڕی پارەی سزا" style="top: 86mm; right: 10mm; min-width: 34mm; text-align: center; font-size: 15px;">
                             {{ toKurdishDigits(number_format($transaction->pay_fine)) }}
                         </div>
-                        <div id="f-lbl-fine" class="calibrated-field font-black" data-fid="f-lbl-fine" data-name-ku="وشەی (سزا:)" style="top: 75mm; right: 44mm; font-size: 13.5px;">
+                        <div id="f-lbl-fine" class="calibrated-field font-black" data-fid="f-lbl-fine" data-name-ku="وشەی (سزا:)" style="top: 86mm; right: 50mm; font-size: 13.5px;">
                             سزا:
                         </div>
                     @endif
 
                     <!-- 8. بڕی پارەی پوول -->
-                    <div id="f-rcpt-stamp" class="calibrated-field font-mono font-black" data-fid="f-rcpt-stamp" data-name-ku="بڕی پارەی پوول" style="top: {{ $hasFine ? '84mm' : '75mm' }}; right: 14mm; font-size: 15px;">
+                    <div id="f-rcpt-stamp" class="calibrated-field font-mono font-black" data-fid="f-rcpt-stamp" data-name-ku="بڕی پارەی پوول" style="top: {{ $hasFine ? '96mm' : '86mm' }}; right: 10mm; min-width: 34mm; text-align: center; font-size: 15px;">
                         {{ toKurdishDigits(number_format($transaction->pay_stamp)) }}
                     </div>
 
                     <!-- 9. وشەی (پوول:) -->
-                    <div id="f-lbl-stamp" class="calibrated-field font-black" data-fid="f-lbl-stamp" data-name-ku="وشەی (پوول:)" style="top: {{ $hasFine ? '84mm' : '75mm' }}; right: 44mm; font-size: 13.5px;">
+                    <div id="f-lbl-stamp" class="calibrated-field font-black" data-fid="f-lbl-stamp" data-name-ku="وشەی (پوول:)" style="top: {{ $hasFine ? '96mm' : '86mm' }}; right: 50mm; font-size: 13.5px;">
                         پوول:
                     </div>
 
                     <!-- 10. بڕی پارەی فۆڕم -->
-                    <div id="f-rcpt-form" class="calibrated-field font-mono font-black" data-fid="f-rcpt-form" data-name-ku="بڕی پارەی فۆڕم" style="top: {{ $hasFine ? '93mm' : '84mm' }}; right: 14mm; font-size: 15px;">
+                    <div id="f-rcpt-form" class="calibrated-field font-mono font-black" data-fid="f-rcpt-form" data-name-ku="بڕی پارەی فۆڕم" style="top: {{ $hasFine ? '106mm' : '96mm' }}; right: 10mm; min-width: 34mm; text-align: center; font-size: 15px;">
                         {{ toKurdishDigits(number_format($transaction->pay_form)) }}
                     </div>
 
                     <!-- 11. وشەی (فۆڕم:) -->
-                    <div id="f-lbl-form" class="calibrated-field font-black" data-fid="f-lbl-form" data-name-ku="وشەی (فۆڕم:)" style="top: {{ $hasFine ? '93mm' : '84mm' }}; right: 44mm; font-size: 13.5px;">
+                    <div id="f-lbl-form" class="calibrated-field font-black" data-fid="f-lbl-form" data-name-ku="وشەی (فۆڕم:)" style="top: {{ $hasFine ? '106mm' : '96mm' }}; right: 50mm; font-size: 13.5px;">
                         فۆڕم:
                     </div>
 
                     <!-- 12. ووردەکاری: جۆری مامەڵە و ساڵ -->
-                    <div id="f-dtl-txtype" class="calibrated-field font-black" data-fid="f-dtl-txtype" data-name-ku="ووردەکاری: جۆری مامەڵە" style="top: 66mm; right: 63mm; font-size: 13.5px;">
+                    <div id="f-dtl-txtype" class="calibrated-field font-black" data-fid="f-dtl-txtype" data-name-ku="ووردەکاری: جۆری مامەڵە" style="top: 76mm; right: 66mm; font-size: 13.5px;">
                         جۆری مامەڵە: <span>{{ $transaction->transactionType->name_kurdish ?? '' }}</span>
                         @if($transaction->requiresBooklet() || $transaction->num_years > 0)
                             <span class="mr-1">(بڕی ساڵ: <strong>{{ toKurdishDigits($transaction->num_years) }} ساڵ</strong>)</span>
@@ -786,45 +752,45 @@
                     </div>
 
                     <!-- 13. ووردەکاری: جۆری ئۆتۆمبێل -->
-                    <div id="f-dtl-carmake" class="calibrated-field font-bold" data-fid="f-dtl-carmake" data-name-ku="ووردەکاری: جۆری ئۆتۆمبێل" style="top: 75mm; right: 63mm; font-size: 13.5px;">
+                    <div id="f-dtl-carmake" class="calibrated-field font-bold" data-fid="f-dtl-carmake" data-name-ku="ووردەکاری: جۆری ئۆتۆمبێل" style="top: {{ $hasFine ? '118mm' : '108mm' }}; right: 50mm; font-size: 13.5px;">
                         جۆری ئۆتۆمبێل: <span>{{ $transaction->carMake->name_kurdish ?? '-' }}</span>
                     </div>
 
                     <!-- 14. ووردەکاری: ژمارەی تابلۆ -->
-                    <div id="f-dtl-plate" class="calibrated-field font-black" data-fid="f-dtl-plate" data-name-ku="ووردەکاری: ژمارەی تابلۆ" style="top: 84mm; right: 63mm; font-size: 13.5px;">
+                    <div id="f-dtl-plate" class="calibrated-field font-black" data-fid="f-dtl-plate" data-name-ku="ووردەکاری: ژمارەی تابلۆ" style="top: {{ $hasFine ? '128mm' : '118mm' }}; right: 50mm; font-size: 13.5px;">
                         ژمارە و تابلۆ: <span class="font-mono text-sm">{{ toKurdishDigits($transaction->plate_number) }}</span>
                         @if($transaction->plateType)
-                            <span class="text-xs font-bold">({{ $transaction->plateType->name_kurdish }})</span>
+                            <span class="text-xs font-bold">({{ $transaction->plateType->clean_kurdish_name ?? $transaction->plateType->name_kurdish }})</span>
                         @endif
                     </div>
 
                     <!-- 15. ووردەکاری: ژمارەی شاسی -->
                     @if($transaction->chassis_number)
-                        <div id="f-dtl-chassis" class="calibrated-field font-bold font-mono" data-fid="f-dtl-chassis" data-name-ku="ووردەکاری: ژمارەی شاسی" style="top: 93mm; right: 63mm; font-size: 12px;">
+                        <div id="f-dtl-chassis" class="calibrated-field font-bold font-mono" data-fid="f-dtl-chassis" data-name-ku="ووردەکاری: ژمارەی شاسی" style="top: {{ $hasFine ? '138mm' : '128mm' }}; right: 50mm; font-size: 12.5px;">
                             ژمارەی شاسی: <span>{{ $transaction->chassis_number }}</span>
                         </div>
                     @endif
 
                     <!-- 16. کۆی گشتی پارە (بە ژمارە و بە وشەی کوردی) -->
-                    <div id="f-rcpt-total" class="calibrated-field font-black" data-fid="f-rcpt-total" data-name-ku="کۆی گشتی پارە (ژمارە و وشە)" style="top: 179mm; right: 20mm; font-size: 14px;">
+                    <div id="f-rcpt-total" class="calibrated-field font-black" data-fid="f-rcpt-total" data-name-ku="کۆی گشتی پارە (ژمارە و وشە)" style="top: 185mm; right: 26mm; font-size: 13.5px;">
                         <strong class="font-mono text-base ml-2">{{ toKurdishDigits(number_format($transaction->total_pay)) }}</strong>
                         ({{ numberToKurdishWords($transaction->total_pay) }} دیناری عێراقی)
                     </div>
 
                     <!-- 17. خەزنەدار / پارەوەربگر -->
-                    <div id="f-sign-cashier" class="calibrated-field text-center font-black" data-fid="f-sign-cashier" data-name-ku="ئیمزای خەزنەدار و بەروار" style="top: 203mm; right: 6mm; min-width: 44mm; font-size: 13px;">
+                    <div id="f-sign-cashier" class="calibrated-field text-center font-black" data-fid="f-sign-cashier" data-name-ku="ئیمزای خەزنەدار و بەروار" style="top: 211mm; right: 8mm; min-width: 40mm; font-size: 12.5px;">
                         <div>{{ $transaction->paid_by ?? auth()->user()?->name ?? 'کارمەندی خەزنە' }}</div>
                         <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ $transaction->paid_at ? $transaction->paid_at->format('d-m-Y') : date('d-m-Y') }}</div>
                     </div>
 
                     <!-- 18. ووردبینی / وردبین -->
-                    <div id="f-sign-auditor" class="calibrated-field text-center font-black" data-fid="f-sign-auditor" data-name-ku="ئیمزای وردبین و بەروار" style="top: 203mm; right: 58mm; min-width: 44mm; font-size: 13px;">
+                    <div id="f-sign-auditor" class="calibrated-field text-center font-black" data-fid="f-sign-auditor" data-name-ku="ئیمزای وردبین و بەروار" style="top: 211mm; right: 60mm; min-width: 40mm; font-size: 12.5px;">
                         <div>{{ $transaction->audited_by ?? 'کارمەندی وردبین' }}</div>
                         <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ $transaction->audited_at ? $transaction->audited_at->format('d-m-Y') : date('d-m-Y') }}</div>
                     </div>
 
                     <!-- 19. لێپرسراو / خەملێنەر -->
-                    <div id="f-sign-estimator" class="calibrated-field text-center font-black" data-fid="f-sign-estimator" data-name-ku="ئیمزای خەمڵێنەر و بەروار" style="top: 203mm; right: 110mm; min-width: 44mm; font-size: 13px;">
+                    <div id="f-sign-estimator" class="calibrated-field text-center font-black" data-fid="f-sign-estimator" data-name-ku="ئیمزای خەمڵێنەر و بەروار" style="top: 211mm; right: 112mm; min-width: 40mm; font-size: 12.5px;">
                         <div>{{ $transaction->inspected_by ?? 'ئەندازیاری کەشف' }}</div>
                         <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ $transaction->inspected_at ? $transaction->inspected_at->format('d-m-Y') : date('d-m-Y') }}</div>
                     </div>
@@ -851,46 +817,8 @@
                 <section id="receiptSheetPledge" class="sheet-container receipt-sheet-pledge">
                     
                     <!-- BACKGROUND TEMPLATE FRAME (Visual receipt layout) -->
-                    <div class="sheet-bg-template border-2 border-black p-4 text-black text-xs font-bold pointer-events-none select-none">
-                        <div class="flex justify-between items-start border-b border-black pb-2">
-                            <div class="space-y-0.5 text-right text-[11px]">
-                                <p class="font-black text-xs">حکومەتی هەرێمی کوردستان</p>
-                                <p>وەزارەتی دارایی و ئابووری</p>
-                                <p>بەڕێوەبەرایەتی گشتی گومرگ</p>
-                                <p>بەڕێوەبەرایەتی گومرگی سلێمانی</p>
-                            </div>
-                            <div class="text-center space-y-1">
-                                <h2 class="text-xs font-black border border-black px-2 py-0.5 bg-gray-100">پسوولەی پارە وەرگرتن / ژمێرکاری ۱۳۷ تایبەت بە گومرگەکان</h2>
-                                <p class="text-[10px] text-gray-700 font-bold">(بەڵێننامەی یاسایی)</p>
-                            </div>
-                            <div class="space-y-0.5 text-left font-mono text-[10px]">
-                                <p>ژمارە : </p>
-                                <p>ڕێکەوت : ۲۰۲ / / </p>
-                                <p class="text-[9px] text-gray-500">وێنەی پارەدەر</p>
-                            </div>
-                        </div>
-
-                        <!-- Table Lines Structure -->
-                        <div class="mt-3 border border-black rounded">
-                            <div class="flex border-b border-black bg-gray-100 font-black text-center py-1 text-xs">
-                                <div class="w-[68%] border-l border-black">وورده‌كاری</div>
-                                <div class="w-[32%]">بڕی پارە</div>
-                            </div>
-                            <div class="flex h-[130mm]">
-                                <div class="w-[68%] border-l border-black p-2"></div>
-                                <div class="w-[32%] p-2"></div>
-                            </div>
-                            <div class="border-t border-black p-1.5 flex justify-between font-black text-xs">
-                                <span>تەنها:</span>
-                            </div>
-                        </div>
-
-                        <!-- Signatures Footer -->
-                        <div class="flex justify-between text-center mt-5 pt-2 border-t border-black font-extrabold text-[11px]">
-                            <div class="w-1/3">خەزنەدار</div>
-                            <div class="w-1/3">ووردبینی</div>
-                            <div class="w-1/3">لێپرسراو</div>
-                        </div>
+                    <div class="sheet-bg-template pointer-events-none select-none overflow-hidden" style="width: 160mm; height: 235mm;">
+                        <img src="{{ asset('images/receipt_37a_template.jpg') }}" alt="کڵێشەی پسوولە" class="w-full h-full object-fill pointer-events-none" />
                     </div>
 
                     <div class="sheet-ruler-grid"></div>
@@ -899,111 +827,111 @@
                     <div class="printable-content-layer">
 
                         <!-- 1. بارکۆد -->
-                        <div id="f-rcpt-barcode-pledge" class="calibrated-field" data-fid="f-rcpt-barcode" data-name-ku="بارکۆدی پسوولە" style="top: 8mm; right: 6mm;">
+                        <div id="f-rcpt-barcode-pledge" class="calibrated-field" data-fid="f-rcpt-barcode" data-name-ku="بارکۆدی پسوولە" style="top: 6mm; right: 8mm;">
                             <svg id="paymentBarcodeSvgPledge" style="max-height: 11mm;"></svg>
                         </div>
 
                         <!-- 2. ژمارەی پسوولە -->
-                        <div id="f-rcpt-number-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-number" data-name-ku="ژمارەی پسوولە" style="top: 16mm; left: 6mm; font-size: 16px;">
+                        <div id="f-rcpt-number-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-number" data-name-ku="ژمارەی پسوولە" style="top: 21mm; left: 14mm; font-size: 15px;">
                             {{ toKurdishDigits($linkedPledge->receipt_37a_number ?? $linkedPledge->barcode) }}
                         </div>
 
                         <!-- 3. بەرواری پسوولە -->
-                        <div id="f-rcpt-date-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-date" data-name-ku="بەرواری پسوولە" style="top: 25mm; left: 6mm; font-size: 13px;">
+                        <div id="f-rcpt-date-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-date" data-name-ku="بەرواری پسوولە" style="top: 32mm; left: 14mm; font-size: 13px;">
                             {{ $linkedPledge->paid_at ? $linkedPledge->paid_at->format('d / m / Y') : date('d / m / Y') }}
                         </div>
 
                         <!-- 4. ناوی سیانی هاووڵاتی -->
-                        <div id="f-rcpt-name-pledge" class="calibrated-field font-black" data-fid="f-rcpt-name" data-name-ku="ناوی سیانی هاووڵاتی" style="top: 44mm; right: 39mm; font-size: 15px;">
+                        <div id="f-rcpt-name-pledge" class="calibrated-field font-black" data-fid="f-rcpt-name" data-name-ku="ناوی سیانی هاووڵاتی" style="top: 54.5mm; right: 46mm; font-size: 14.5px;">
                             {{ $linkedPledge->visitor_name }}
                         </div>
 
                         <!-- 5. بڕی پارەی ڕەسم -->
-                        <div id="f-rcpt-rasm-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-rasm" data-name-ku="بڕی پارەی ڕەسم" style="top: 66mm; right: 14mm; font-size: 15px;">
+                        <div id="f-rcpt-rasm-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-rasm" data-name-ku="بڕی پارەی ڕەسم" style="top: 76mm; right: 10mm; min-width: 34mm; text-align: center; font-size: 15px;">
                             {{ toKurdishDigits(number_format($pledgeRasm)) }}
                         </div>
 
                         <!-- 6. وشەی (ڕەسم:) -->
-                        <div id="f-lbl-rasm-pledge" class="calibrated-field font-black" data-fid="f-lbl-rasm" data-name-ku="وشەی (ڕەسم:)" style="top: 66mm; right: 44mm; font-size: 13.5px;">
+                        <div id="f-lbl-rasm-pledge" class="calibrated-field font-black" data-fid="f-lbl-rasm" data-name-ku="وشەی (ڕەسم:)" style="top: 76mm; right: 50mm; font-size: 13.5px;">
                             ڕەسم:
                         </div>
 
                         <!-- 7. بڕی پارەی سزا (ئەگەر هەبێت) -->
                         @if($pledgeHasFine)
-                            <div id="f-rcpt-fine-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-fine" data-name-ku="بڕی پارەی سزا" style="top: 75mm; right: 14mm; font-size: 15px;">
+                            <div id="f-rcpt-fine-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-fine" data-name-ku="بڕی پارەی سزا" style="top: 86mm; right: 10mm; min-width: 34mm; text-align: center; font-size: 15px;">
                                 {{ toKurdishDigits(number_format($linkedPledge->pay_fine)) }}
                             </div>
-                            <div id="f-lbl-fine-pledge" class="calibrated-field font-black" data-fid="f-lbl-fine" data-name-ku="وشەی (سزا:)" style="top: 75mm; right: 44mm; font-size: 13.5px;">
+                            <div id="f-lbl-fine-pledge" class="calibrated-field font-black" data-fid="f-lbl-fine" data-name-ku="وشەی (سزا:)" style="top: 86mm; right: 50mm; font-size: 13.5px;">
                                 سزا:
                             </div>
                         @endif
 
                         <!-- 8. بڕی پارەی پوول -->
-                        <div id="f-rcpt-stamp-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-stamp" data-name-ku="بڕی پارەی پوول" style="top: {{ $pledgeHasFine ? '84mm' : '75mm' }}; right: 14mm; font-size: 15px;">
+                        <div id="f-rcpt-stamp-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-stamp" data-name-ku="بڕی پارەی پوول" style="top: {{ $pledgeHasFine ? '96mm' : '86mm' }}; right: 10mm; min-width: 34mm; text-align: center; font-size: 15px;">
                             {{ toKurdishDigits(number_format($linkedPledge->pay_stamp)) }}
                         </div>
 
                         <!-- 9. وشەی (پوول:) -->
-                        <div id="f-lbl-stamp-pledge" class="calibrated-field font-black" data-fid="f-lbl-stamp" data-name-ku="وشەی (پوول:)" style="top: {{ $pledgeHasFine ? '84mm' : '75mm' }}; right: 44mm; font-size: 13.5px;">
+                        <div id="f-lbl-stamp-pledge" class="calibrated-field font-black" data-fid="f-lbl-stamp" data-name-ku="وشەی (پوول:)" style="top: {{ $pledgeHasFine ? '96mm' : '86mm' }}; right: 50mm; font-size: 13.5px;">
                             پوول:
                         </div>
 
                         <!-- 10. بڕی پارەی فۆڕم -->
-                        <div id="f-rcpt-form-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-form" data-name-ku="بڕی پارەی فۆڕم" style="top: {{ $pledgeHasFine ? '93mm' : '84mm' }}; right: 14mm; font-size: 15px;">
+                        <div id="f-rcpt-form-pledge" class="calibrated-field font-mono font-black" data-fid="f-rcpt-form" data-name-ku="بڕی پارەی فۆڕم" style="top: {{ $pledgeHasFine ? '106mm' : '96mm' }}; right: 10mm; min-width: 34mm; text-align: center; font-size: 15px;">
                             {{ toKurdishDigits(number_format($linkedPledge->pay_form)) }}
                         </div>
 
                         <!-- 11. وشەی (فۆڕم:) -->
-                        <div id="f-lbl-form-pledge" class="calibrated-field font-black" data-fid="f-lbl-form" data-name-ku="وشەی (فۆڕم:)" style="top: {{ $pledgeHasFine ? '93mm' : '84mm' }}; right: 44mm; font-size: 13.5px;">
+                        <div id="f-lbl-form-pledge" class="calibrated-field font-black" data-fid="f-lbl-form" data-name-ku="وشەی (فۆڕم:)" style="top: {{ $pledgeHasFine ? '106mm' : '96mm' }}; right: 50mm; font-size: 13.5px;">
                             فۆڕم:
                         </div>
 
                         <!-- 12. ووردەکاری: جۆری مامەڵە -->
-                        <div id="f-dtl-txtype-pledge" class="calibrated-field font-black" data-fid="f-dtl-txtype" data-name-ku="ووردەکاری: جۆری مامەڵە" style="top: 66mm; right: 63mm; font-size: 13.5px;">
+                        <div id="f-dtl-txtype-pledge" class="calibrated-field font-black" data-fid="f-dtl-txtype" data-name-ku="ووردەکاری: جۆری مامەڵە" style="top: 76mm; right: 66mm; font-size: 13.5px;">
                             جۆری مامەڵە: <span>{{ $linkedPledge->transactionType->name_kurdish ?? 'بەڵێننامە' }}</span>
                             <span class="mr-1 text-xs font-bold">(پاشکۆی دەفتەر: {{ toKurdishDigits($transaction->barcode) }})</span>
                         </div>
 
                         <!-- 13. ووردەکاری: جۆری ئۆتۆمبێل -->
-                        <div id="f-dtl-carmake-pledge" class="calibrated-field font-bold" data-fid="f-dtl-carmake" data-name-ku="ووردەکاری: جۆری ئۆتۆمبێل" style="top: 75mm; right: 63mm; font-size: 13.5px;">
+                        <div id="f-dtl-carmake-pledge" class="calibrated-field font-bold" data-fid="f-dtl-carmake" data-name-ku="ووردەکاری: جۆری ئۆتۆمبێل" style="top: {{ $pledgeHasFine ? '118mm' : '108mm' }}; right: 50mm; font-size: 13.5px;">
                             جۆری ئۆتۆمبێل: <span>{{ $linkedPledge->carMake->name_kurdish ?? '-' }}</span>
                         </div>
 
                         <!-- 14. ووردەکاری: ژمارەی تابلۆ -->
-                        <div id="f-dtl-plate-pledge" class="calibrated-field font-black" data-fid="f-dtl-plate" data-name-ku="ووردەکاری: ژمارەی تابلۆ" style="top: 84mm; right: 63mm; font-size: 13.5px;">
+                        <div id="f-dtl-plate-pledge" class="calibrated-field font-black" data-fid="f-dtl-plate" data-name-ku="ووردەکاری: ژمارەی تابلۆ" style="top: {{ $pledgeHasFine ? '128mm' : '118mm' }}; right: 50mm; font-size: 13.5px;">
                             ژمارە و تابلۆ: <span class="font-mono text-sm">{{ toKurdishDigits($linkedPledge->plate_number) }}</span>
                             @if($linkedPledge->plateType)
-                                <span class="text-xs font-bold">({{ $linkedPledge->plateType->name_kurdish }})</span>
+                                <span class="text-xs font-bold">({{ $linkedPledge->plateType->clean_kurdish_name ?? $linkedPledge->plateType->name_kurdish }})</span>
                             @endif
                         </div>
 
                         <!-- 15. ووردەکاری: ژمارەی شاسی -->
                         @if($linkedPledge->chassis_number)
-                            <div id="f-dtl-chassis-pledge" class="calibrated-field font-bold font-mono" data-fid="f-dtl-chassis" data-name-ku="ووردەکاری: ژمارەی شاسی" style="top: 93mm; right: 63mm; font-size: 12px;">
+                            <div id="f-dtl-chassis-pledge" class="calibrated-field font-bold font-mono" data-fid="f-dtl-chassis" data-name-ku="ووردەکاری: ژمارەی شاسی" style="top: {{ $pledgeHasFine ? '138mm' : '128mm' }}; right: 50mm; font-size: 12.5px;">
                                 ژمارەی شاسی: <span>{{ $linkedPledge->chassis_number }}</span>
                             </div>
                         @endif
 
                         <!-- 16. کۆی گشتی پارە (بە ژمارە و بە وشەی کوردی) -->
-                        <div id="f-rcpt-total-pledge" class="calibrated-field font-black" data-fid="f-rcpt-total" data-name-ku="کۆی گشتی پارە (ژمارە و وشە)" style="top: 179mm; right: 20mm; font-size: 14px;">
+                        <div id="f-rcpt-total-pledge" class="calibrated-field font-black" data-fid="f-rcpt-total" data-name-ku="کۆی گشتی پارە (ژمارە و وشە)" style="top: 185mm; right: 26mm; font-size: 13.5px;">
                             <strong class="font-mono text-base ml-2">{{ toKurdishDigits(number_format($linkedPledge->total_pay)) }}</strong>
                             ({{ numberToKurdishWords($linkedPledge->total_pay) }} دیناری عێراقی)
                         </div>
 
                         <!-- 17. خەزنەدار / پارەوەربگر -->
-                        <div id="f-sign-cashier-pledge" class="calibrated-field text-center font-black" data-fid="f-sign-cashier" data-name-ku="ئیمزای خەزنەدار و بەروار" style="top: 203mm; right: 6mm; min-width: 44mm; font-size: 13px;">
+                        <div id="f-sign-cashier-pledge" class="calibrated-field text-center font-black" data-fid="f-sign-cashier" data-name-ku="ئیمزای خەزنەدار و بەروار" style="top: 211mm; right: 8mm; min-width: 40mm; font-size: 12.5px;">
                             <div>{{ $linkedPledge->paid_by ?? auth()->user()?->name ?? 'کارمەندی خەزنە' }}</div>
                             <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ $linkedPledge->paid_at ? $linkedPledge->paid_at->format('d-m-Y') : date('d-m-Y') }}</div>
                         </div>
 
                         <!-- 18. ووردبینی / وردبین -->
-                        <div id="f-sign-auditor-pledge" class="calibrated-field text-center font-black" data-fid="f-sign-auditor" data-name-ku="ئیمزای وردبین و بەروار" style="top: 203mm; right: 58mm; min-width: 44mm; font-size: 13px;">
+                        <div id="f-sign-auditor-pledge" class="calibrated-field text-center font-black" data-fid="f-sign-auditor" data-name-ku="ئیمزای وردبین و بەروار" style="top: 211mm; right: 60mm; min-width: 40mm; font-size: 12.5px;">
                             <div>{{ $linkedPledge->audited_by ?? 'کارمەندی وردبین' }}</div>
                             <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ $linkedPledge->audited_at ? $linkedPledge->audited_at->format('d-m-Y') : date('d-m-Y') }}</div>
                         </div>
 
                         <!-- 19. لێپرسراو / خەملێنەر -->
-                        <div id="f-sign-estimator-pledge" class="calibrated-field text-center font-black" data-fid="f-sign-estimator" data-name-ku="ئیمزای خەمڵێنەر و بەروار" style="top: 203mm; right: 110mm; min-width: 44mm; font-size: 13px;">
+                        <div id="f-sign-estimator-pledge" class="calibrated-field text-center font-black" data-fid="f-sign-estimator" data-name-ku="ئیمزای خەمڵێنەر و بەروار" style="top: 211mm; right: 112mm; min-width: 40mm; font-size: 12.5px;">
                             <div>{{ $linkedPledge->inspected_by ?? 'ئەندازیاری کەشف' }}</div>
                             <div class="text-[10px] font-mono text-gray-700 mt-0.5">{{ $linkedPledge->inspected_at ? $linkedPledge->inspected_at->format('d-m-Y') : date('d-m-Y') }}</div>
                         </div>
