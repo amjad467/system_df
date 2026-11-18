@@ -72,6 +72,7 @@ docker exec tourist-app mkdir -p /var/www/storage/framework/cache/data \
 docker exec tourist-app chmod -R 777 /var/www/storage /var/www/bootstrap/cache /var/www/database
 docker exec tourist-app php artisan storage:link || true
 docker exec tourist-app php artisan migrate --force || true
+docker exec tourist-app php -r "require 'vendor/autoload.php'; \$app = require_once 'bootstrap/app.php'; \$app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap(); try { if (!Illuminate\Support\Facades\Schema::hasColumn('directors', 'is_active')) { Illuminate\Support\Facades\DB::statement('ALTER TABLE directors ADD COLUMN is_active INTEGER NOT NULL DEFAULT 0'); echo 'is_active column successfully added to directors table.' . PHP_EOL; } } catch (Throwable \$e) { echo \$e->getMessage(); }" || true
 docker exec tourist-app php artisan view:clear || true
 docker exec tourist-app php artisan route:clear || true
 docker exec tourist-app php artisan config:clear || true

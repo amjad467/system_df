@@ -14,6 +14,12 @@ class Director extends Model
 
     public static function getActiveDirector(): ?self
     {
-        return static::where('is_active', true)->first() ?? static::first();
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('directors', 'is_active')) {
+                return static::where('is_active', true)->first() ?? static::first();
+            }
+        } catch (\Throwable $e) {}
+
+        return static::first();
     }
 }

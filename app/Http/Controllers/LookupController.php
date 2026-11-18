@@ -48,18 +48,46 @@ class LookupController extends Controller
     }
 
     // 2. Directors
+    private function ensureDirectorActiveColumn(): void
+    {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('directors') && !\Illuminate\Support\Facades\Schema::hasColumn('directors', 'is_active')) {
+                try {
+                    \Illuminate\Support\Facades\DB::statement('ALTER TABLE directors ADD COLUMN is_active INTEGER NOT NULL DEFAULT 0');
+                } catch (\Throwable $e2) {
+                    \Illuminate\Support\Facades\Schema::table('directors', function ($table) {
+                        $table->boolean('is_active')->default(false);
+                    });
+                }
+                $target = Director::where('name', 'like', '%قادر%')->first() ?? Director::first();
+                if ($target) {
+                    $target->update(['is_active' => true]);
+                }
+            }
+        } catch (\Throwable $e) {}
+    }
+
     public function storeDirector(Request $request)
     {
+        $this->ensureDirectorActiveColumn();
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:directors,name',
         ], [
             'name.unique' => 'ئەم ناوەی بەڕێوەبەر پێشتر تۆمارکراوە!'
         ]);
 
-        // If no director is active yet, make this one active
-        $hasActive = Director::where('is_active', true)->exists();
-        if (!$hasActive) {
-            $validated['is_active'] = true;
+        $hasCol = \Illuminate\Support\Facades\Schema::hasColumn('directors', 'is_active');
+        $makeActive = $request->boolean('is_active');
+
+        if ($hasCol) {
+            $hasActive = Director::where('is_active', true)->exists();
+            if ($makeActive || !$hasActive) {
+                Director::query()->update(['is_active' => false]);
+                $validated['is_active'] = true;
+            } else {
+                $validated['is_active'] = false;
+            }
         }
 
         $item = Director::create($validated);
@@ -76,8 +104,13 @@ class LookupController extends Controller
 
     public function setActiveDirector(Request $request, Director $director)
     {
-        Director::query()->update(['is_active' => false]);
-        $director->update(['is_active' => true]);
+        $this->ensureDirectorActiveColumn();
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('directors', 'is_active')) {
+            Director::query()->update(['is_active' => false]);
+            $director->update(['is_active' => true]);
+        }
+
         Cache::forget('all_directors');
         Cache::forget('active_director');
         AuditLogger::log('دیاریکردنی بەڕێوەبەری سەرەکی بۆ نووسراوەکان', Director::class, $director->id, $director->name);
@@ -91,13 +124,17 @@ class LookupController extends Controller
 
     public function setActiveDirectorDropdown(Request $request)
     {
+        $this->ensureDirectorActiveColumn();
+
         $validated = $request->validate([
             'director_id' => 'required|exists:directors,id',
         ]);
 
-        Director::query()->update(['is_active' => false]);
         $director = Director::findOrFail($validated['director_id']);
-        $director->update(['is_active' => true]);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('directors', 'is_active')) {
+            Director::query()->update(['is_active' => false]);
+            $director->update(['is_active' => true]);
+        }
 
         Cache::forget('all_directors');
         Cache::forget('active_director');
@@ -112,17 +149,33 @@ class LookupController extends Controller
 
     public function destroyDirector(Request $request, Director $director)
     {
+        $this->ensureDirectorActiveColumn();
+
         $name = $director->name;
+        $id = $director->id;
+        $wasActive = $director->is_active ?? false;
+
+        // Nullify references in transactions first to prevent foreign key errors
+        try {
+            \App\Models\Transaction::where('director_id', $id)->update(['director_id' => null]);
+        } catch (\Throwable $e) {}
+
         $director->delete();
+
         // Ensure at least one is active if available
-        if (!Director::where('is_active', true)->exists()) {
-            Director::first()?->update(['is_active' => true]);
-        }
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('directors', 'is_active')) {
+                if ($wasActive || !Director::where('is_active', true)->exists()) {
+                    Director::first()?->update(['is_active' => true]);
+                }
+            }
+        } catch (\Throwable $e) {}
+
         Cache::forget('all_directors');
         Cache::forget('active_director');
-        AuditLogger::log('سڕینەوەی بەڕێوەبەر', Director::class, $director->id, $name);
+        AuditLogger::log('سڕینەوەی بەڕێوەبەر', Director::class, $id, $name);
 
-        return redirect()->back()->with('success', "بەڕێوەبەر [{$name}] سڕایەوە.");
+        return redirect()->back()->with('success', "بەڕێوەبەر [{$name}] بە سەرکەوتوویی سڕایەوە.");
     }
 
     public function updateDirector(Request $request, Director $director)
