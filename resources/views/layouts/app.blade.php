@@ -265,12 +265,12 @@
     </div>
 
     <!-- Top Navigation Bar -->
-    <header class="bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800 backdrop-blur-md sticky top-0 z-40 transition-colors duration-200 shadow-md">
+    <header class="bg-slate-100/98 dark:bg-slate-900/95 border-b-2 border-slate-300/90 dark:border-slate-800 backdrop-blur-md sticky top-0 z-40 transition-colors duration-200 shadow-md shadow-slate-300/30 dark:shadow-none">
         <div class="max-w-[1680px] w-full mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-14 sm:h-16 gap-2">
                 <!-- Logo & Brand -->
                 <div class="flex items-center space-x-2 sm:space-x-3 space-x-reverse min-w-0 shrink-0">
-                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white border border-slate-200 dark:border-slate-700 shrink-0">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="lg:hidden p-2 rounded-xl bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-300 hover:text-black dark:hover:text-white border border-slate-300 dark:border-slate-700 shrink-0 shadow-sm">
                         <i class="fa-solid" :class="mobileMenuOpen ? 'fa-xmark' : 'fa-bars'"></i>
                     </button>
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 sm:gap-3 group">
@@ -281,7 +281,7 @@
                             <h1 class="text-xs sm:text-base lg:text-lg font-black text-slate-900 dark:text-white leading-tight truncate">
                                 بەڕێوەبەرایەتی گومرگی سلێمانی
                             </h1>
-                            <p class="text-[10px] sm:text-xs font-bold text-sky-600 dark:text-sky-400 truncate leading-tight">
+                            <p class="text-[10px] sm:text-xs font-bold text-sky-700 dark:text-sky-400 truncate leading-tight">
                                 سیستەمی ئەلیکترۆنی دەفتەری ئۆتۆمبێل
                             </p>
                         </div>
@@ -289,12 +289,12 @@
                 </div>
 
                 <!-- Live Clock & Date Display (Prominent & Real-time) -->
-                <div class="hidden 2xl:flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-100 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 shadow-inner shrink-0" title="بەروار و کاتی ڕاستەوخۆی کۆمپیوتەرەکەت">
+                <div class="hidden 2xl:flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-white dark:bg-slate-950/80 border border-slate-300 dark:border-slate-800 shadow-sm shrink-0" title="بەروار و کاتی ڕاستەوخۆی کۆمپیوتەرەکەت">
                     <i class="fa-regular fa-calendar-days text-sky-600 dark:text-sky-400 text-xs"></i>
-                    <span class="app-live-date text-xs font-mono font-bold text-slate-700 dark:text-slate-300">{{ now()->format('Y-m-d') }}</span>
+                    <span class="app-live-date text-xs font-mono font-bold text-slate-800 dark:text-slate-300">{{ now()->format('Y-m-d') }}</span>
                     <span class="text-slate-400 dark:text-slate-600 font-bold">•</span>
                     <i class="fa-regular fa-clock text-emerald-600 dark:text-emerald-400 text-xs"></i>
-                    <span class="app-live-clock text-xs font-mono font-black text-emerald-600 dark:text-emerald-400 tracking-wider">{{ now()->format('H:i:s') }}</span>
+                    <span class="app-live-clock text-xs font-mono font-black text-emerald-700 dark:text-emerald-400 tracking-wider">{{ now()->format('H:i:s') }}</span>
                 </div>
 
                 <!-- Fast Barcode Scanner Form (Desktop / Tablet - دیزاینی زۆر دیار و پرۆفشناڵ) -->
@@ -303,18 +303,18 @@
                     @csrf
                     <div class="relative flex items-center group">
                         <!-- Glowing Pulse Barcode Icon -->
-                        <div class="absolute right-3 pointer-events-none text-sky-500 dark:text-sky-400 flex items-center gap-1.5 z-10">
-                            <i class="fa-solid fa-barcode text-base group-focus-within:text-sky-400 transition-colors"></i>
+                        <div class="absolute right-3 pointer-events-none text-sky-600 dark:text-sky-400 flex items-center gap-1.5 z-10">
+                            <i class="fa-solid fa-barcode text-base group-focus-within:text-sky-500 transition-colors"></i>
                         </div>
 
                         <input type="text" name="barcode" id="globalDesktopBarcodeInput" placeholder="سکانی بارکۆد... (F2)" 
-                               class="w-48 sm:w-56 lg:w-64 xl:w-72 h-10 bg-slate-100 dark:bg-slate-950/95 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 rounded-2xl border-2 border-sky-500/50 hover:border-sky-400 focus:border-sky-400 pr-9 pl-14 py-1.5 focus:outline-none focus:ring-4 focus:ring-sky-500/20 transition-all font-mono font-black shadow-lg shadow-sky-500/10 tracking-wider"
+                               class="w-48 sm:w-56 lg:w-64 xl:w-72 h-10 bg-white dark:bg-slate-950/95 text-sm text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 rounded-2xl border-2 border-sky-500 hover:border-sky-600 focus:border-sky-600 pr-9 pl-14 py-1.5 focus:outline-none focus:ring-4 focus:ring-sky-500/20 transition-all font-mono font-black shadow-sm tracking-wider"
                                autocomplete="off"
                                title="تێکست بۆکسی لێدانی بارکۆد (یاخود کلیلی F2 داگرە)">
 
                         <!-- Left Shortcut Badge & Submit Arrow -->
                         <div class="absolute left-2 flex items-center gap-1 z-10">
-                            <kbd class="hidden sm:inline-block px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-sky-950 text-slate-700 dark:text-sky-300 border border-slate-300 dark:border-sky-500/40 font-mono text-[10px] font-black shadow-sm pointer-events-none">F2</kbd>
+                            <kbd class="hidden sm:inline-block px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-sky-950 text-slate-800 dark:text-sky-300 border border-slate-300 dark:border-sky-500/40 font-mono text-[10px] font-black shadow-sm pointer-events-none">F2</kbd>
                             <button type="submit" class="w-6 h-6 flex items-center justify-center rounded-lg bg-sky-600 hover:bg-sky-500 text-white transition text-[11px] shadow active:scale-95" title="گەڕان بەپێی بارکۆد">
                                 <i class="fa-solid fa-arrow-left"></i>
                             </button>
@@ -325,21 +325,21 @@
 
                 <!-- Navigation Links (Desktop - Single Line Non-Wrapping) -->
                 <nav class="hidden lg:flex items-center space-x-1.5 space-x-reverse min-w-0 shrink-0">
-                    <a href="{{ route('dashboard') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-black transition flex items-center gap-1.5 {{ request()->routeIs('dashboard') ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-800' }}">
-                        <i class="fa-solid fa-chart-pie text-xs opacity-90"></i>
+                    <a href="{{ route('dashboard') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-black transition flex items-center gap-1.5 {{ request()->routeIs('dashboard') ? 'bg-sky-100 text-sky-900 border border-sky-300 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30 shadow-sm' : 'text-slate-800 font-extrabold hover:text-sky-700 hover:bg-white hover:border-slate-300 border border-transparent shadow-none hover:shadow-sm dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 dark:hover:border-slate-700' }}">
+                        <i class="fa-solid fa-chart-pie text-xs opacity-90 text-sky-600 dark:text-sky-400"></i>
                         <span>داشبۆرد</span>
                     </a>
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
-                        <a href="{{ route('transactions.index') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('transactions.index') ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-800' }}">
-                            <i class="fa-solid fa-list-check text-xs opacity-80"></i>
+                        <a href="{{ route('transactions.index') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-extrabold transition flex items-center gap-1.5 {{ request()->routeIs('transactions.index') ? 'bg-sky-100 text-sky-900 border border-sky-300 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30 shadow-sm' : 'text-slate-800 font-extrabold hover:text-sky-700 hover:bg-white hover:border-slate-300 border border-transparent shadow-none hover:shadow-sm dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 dark:hover:border-slate-700' }}">
+                            <i class="fa-solid fa-list-check text-xs opacity-80 text-sky-600 dark:text-sky-400"></i>
                             <span>مامەڵەکان</span>
                         </a>
                     @endif
 
                     <!-- چاپی نوسراوەکان (Allowed via Permission) -->
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('prints.official_index')))
-                        <a href="{{ route('transactions.official_prints') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('transactions.official_prints') ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-800' }}">
-                            <i class="fa-solid fa-print text-xs opacity-80"></i>
+                        <a href="{{ route('transactions.official_prints') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-extrabold transition flex items-center gap-1.5 {{ request()->routeIs('transactions.official_prints') ? 'bg-sky-100 text-sky-900 border border-sky-300 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30 shadow-sm' : 'text-slate-800 font-extrabold hover:text-sky-700 hover:bg-white hover:border-slate-300 border border-transparent shadow-none hover:shadow-sm dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 dark:hover:border-slate-700' }}">
+                            <i class="fa-solid fa-print text-xs opacity-80 text-sky-600 dark:text-sky-400"></i>
                             <span>نوسراوەکان</span>
                         </a>
                     @endif
@@ -348,24 +348,24 @@
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('reports.accounting_66') || auth()->user()->hasPermission('reports.expired_booklets')))
                         <div class="relative" x-data="{ openReportsMenu: false }">
                             <button @click="openReportsMenu = !openReportsMenu" type="button" 
-                                    class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('reports.*') || request()->routeIs('transactions.expired_booklets') ? 'bg-sky-500/15 text-sky-400 border border-sky-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-800' }}">
-                                <i class="fa-solid fa-chart-line text-xs text-sky-400"></i>
+                                    class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-extrabold transition flex items-center gap-1.5 {{ request()->routeIs('reports.*') || request()->routeIs('transactions.expired_booklets') ? 'bg-sky-100 text-sky-900 border border-sky-300 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30 shadow-sm' : 'text-slate-800 font-extrabold hover:text-sky-700 hover:bg-white hover:border-slate-300 border border-transparent shadow-none hover:shadow-sm dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 dark:hover:border-slate-700' }}">
+                                <i class="fa-solid fa-chart-line text-xs text-sky-600 dark:text-sky-400"></i>
                                 <span>ڕاپۆرتەکان</span>
                                 <i class="fa-solid fa-chevron-down text-[8px] transition-transform duration-200" :class="openReportsMenu ? 'rotate-180' : ''"></i>
                             </button>
 
                             <div x-show="openReportsMenu" @click.away="openReportsMenu = false" x-cloak 
                                  x-transition.origin.top.right.duration.150ms
-                                 class="absolute right-0 mt-2 w-52 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-1.5 z-50 space-y-1">
+                                 class="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-1.5 z-50 space-y-1">
                                 @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('reports.accounting_66'))
-                                    <a href="{{ route('reports.accounting_66') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('reports.accounting_66*') ? 'bg-emerald-600 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                                        <i class="fa-solid fa-file-invoice-dollar w-4 text-center text-emerald-400"></i>
+                                    <a href="{{ route('reports.accounting_66') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('reports.accounting_66*') ? 'bg-emerald-600 text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white' }}">
+                                        <i class="fa-solid fa-file-invoice-dollar w-4 text-center text-emerald-600 dark:text-emerald-400"></i>
                                         <span>محاسبة ٦٦</span>
                                     </a>
                                 @endif
                                 @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('reports.expired_booklets'))
-                                    <a href="{{ route('transactions.expired_booklets') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('transactions.expired_booklets') ? 'bg-rose-600 text-white' : 'text-rose-300 hover:bg-rose-500/10' }}">
-                                        <i class="fa-solid fa-calendar-xmark w-4 text-center text-rose-400"></i>
+                                    <a href="{{ route('transactions.expired_booklets') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('transactions.expired_booklets') ? 'bg-rose-600 text-white' : 'text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10' }}">
+                                        <i class="fa-solid fa-calendar-xmark w-4 text-center text-rose-600 dark:text-rose-400"></i>
                                         <span>دەفتەرە بەسەرچووەکان</span>
                                     </a>
                                 @endif
@@ -377,45 +377,45 @@
                     @if(auth()->check() && auth()->user()->isAdmin())
                         <div class="relative" x-data="{ openAdminMenu: false }">
                             <button @click="openAdminMenu = !openAdminMenu" type="button" 
-                                    class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-bold transition flex items-center gap-1.5 {{ request()->routeIs('settings.*') || request()->routeIs('users.*') || request()->routeIs('logs.*') || request()->routeIs('transactions.trash') || request()->routeIs('security.*') ? 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-800' }}">
-                                <i class="fa-solid fa-gear text-indigo-400 text-xs"></i>
+                                    class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-extrabold transition flex items-center gap-1.5 {{ request()->routeIs('settings.*') || request()->routeIs('users.*') || request()->routeIs('logs.*') || request()->routeIs('transactions.trash') || request()->routeIs('security.*') ? 'bg-indigo-100 text-indigo-900 border border-indigo-300 dark:bg-indigo-500/15 dark:text-indigo-400 dark:border-indigo-500/30 shadow-sm' : 'text-slate-800 font-extrabold hover:text-indigo-700 hover:bg-white hover:border-slate-300 border border-transparent shadow-none hover:shadow-sm dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 dark:hover:border-slate-700' }}">
+                                <i class="fa-solid fa-gear text-indigo-600 dark:text-indigo-400 text-xs"></i>
                                 <span>کارگێڕی</span>
                                 <i class="fa-solid fa-chevron-down text-[8px] transition-transform duration-200" :class="openAdminMenu ? 'rotate-180' : ''"></i>
                             </button>
 
                             <div x-show="openAdminMenu" @click.away="openAdminMenu = false" x-cloak 
                                  x-transition.origin.top.right.duration.150ms
-                                 class="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 space-y-1">
-                                <a href="{{ route('settings.permissions') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.permissions*') ? 'bg-purple-600 text-white' : 'text-purple-300 hover:bg-purple-500/10' }}">
+                                 class="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-2 z-50 space-y-1">
+                                <a href="{{ route('settings.permissions') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.permissions*') ? 'bg-purple-600 text-white' : 'text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-500/10' }}">
                                     <i class="fa-solid fa-user-shield w-4 text-center"></i>
                                     <span>خشتەی پێرمشنەکان</span>
                                 </a>
-                                <a href="{{ route('users.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('users.index') ? 'bg-indigo-600 text-white' : 'text-indigo-300 hover:bg-indigo-500/10' }}">
+                                <a href="{{ route('users.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('users.index') ? 'bg-indigo-600 text-white' : 'text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10' }}">
                                     <i class="fa-solid fa-users-gear w-4 text-center"></i>
                                     <span>فەرمانبەران</span>
                                 </a>
-                                <a href="{{ route('settings.lookups', ['tab' => 'directors']) }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.lookups') && request('tab') == 'directors' ? 'bg-indigo-600 text-white' : 'text-indigo-300 hover:bg-indigo-500/10' }}">
+                                <a href="{{ route('settings.lookups', ['tab' => 'directors']) }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.lookups') && request('tab') == 'directors' ? 'bg-indigo-600 text-white' : 'text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10' }}">
                                     <i class="fa-solid fa-user-tie w-4 text-center"></i>
                                     <span>ڕێکخستنی بەڕێوەبەر</span>
                                 </a>
-                                <a href="{{ route('settings.lookups') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.lookups') && request('tab') != 'directors' ? 'bg-teal-600 text-white' : 'text-teal-300 hover:bg-teal-500/10' }}">
+                                <a href="{{ route('settings.lookups') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.lookups') && request('tab') != 'directors' ? 'bg-teal-600 text-white' : 'text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-500/10' }}">
                                     <i class="fa-solid fa-folder-tree w-4 text-center"></i>
                                     <span>پێناسەکان</span>
                                 </a>
-                                <a href="{{ route('settings.pricing') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.pricing') ? 'bg-amber-600 text-white' : 'text-amber-300 hover:bg-amber-500/10' }}">
+                                <a href="{{ route('settings.pricing') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.pricing') ? 'bg-amber-600 text-white' : 'text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-500/10' }}">
                                     <i class="fa-solid fa-sliders w-4 text-center"></i>
                                     <span>نرخەکان</span>
                                 </a>
-                                <div class="border-t border-slate-800 my-1"></div>
-                                <a href="{{ route('transactions.trash') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('transactions.trash') ? 'bg-rose-600 text-white' : 'text-rose-300 hover:bg-rose-500/10' }}">
+                                <div class="border-t border-slate-200 dark:border-slate-800 my-1"></div>
+                                <a href="{{ route('transactions.trash') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('transactions.trash') ? 'bg-rose-600 text-white' : 'text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10' }}">
                                     <i class="fa-solid fa-trash-can w-4 text-center"></i>
                                     <span>مامەڵە سڕاوەکان</span>
                                 </a>
-                                <a href="{{ route('logs.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('logs.index') ? 'bg-sky-600 text-white' : 'text-slate-300 hover:bg-slate-800' }}">
+                                <a href="{{ route('logs.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('logs.index') ? 'bg-sky-600 text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
                                     <i class="fa-solid fa-clock-rotate-left w-4 text-center"></i>
                                     <span>لۆگی سیستم</span>
                                 </a>
-                                <a href="{{ route('security.hub') }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('security.*') ? 'bg-red-600 text-white' : 'text-red-400 hover:bg-red-500/10' }}">
+                                <a href="{{ route('security.hub') }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('security.*') ? 'bg-red-600 text-white' : 'text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10' }}">
                                     <div class="flex items-center gap-2.5">
                                         <i class="fa-solid fa-shield-halved w-4 text-center"></i>
                                         <span>ئاسایش و مۆنیتەرینگ</span>
@@ -427,9 +427,9 @@
                                         </span>
                                     @endif
                                 </a>
-                                <div class="border-t border-slate-800 my-1"></div>
-                                <a href="{{ route('settings.backup.download') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition text-sky-300 hover:bg-sky-500/10" title="داگرتنی کۆپی یەدەگی داتابەیس">
-                                    <i class="fa-solid fa-database w-4 text-center text-sky-400"></i>
+                                <div class="border-t border-slate-200 dark:border-slate-800 my-1"></div>
+                                <a href="{{ route('settings.backup.download') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-500/10" title="داگرتنی کۆپی یەدەگی داتابەیس">
+                                    <i class="fa-solid fa-database w-4 text-center text-sky-600 dark:text-sky-400"></i>
                                     <span>باک ئەپی داتابەیس (Backup)</span>
                                 </a>
                             </div>
@@ -438,7 +438,7 @@
 
                     <!-- مامەڵەی نوێ (Compact & Clean Button) -->
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.create')))
-                        <a href="{{ route('transactions.create') }}" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition active:scale-95 shrink-0">
+                        <a href="{{ route('transactions.create') }}" class="px-3.5 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md shadow-emerald-600/30 flex items-center gap-1.5 transition active:scale-95 shrink-0">
                             <i class="fa-solid fa-plus-circle text-xs"></i>
                             <span>تۆماری نوێ</span>
                         </a>
@@ -450,7 +450,7 @@
                     <!-- Day / Night Mode Toggle Switch (مۆدی شەو و ڕۆژ بە دیزاینێکی شاهانە) -->
                     <button type="button" 
                             @click="toggleTheme()" 
-                            class="relative px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border transition-all duration-300 flex items-center gap-1.5 sm:gap-2 shadow-sm group active:scale-95 bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700 dark:bg-slate-800/90 dark:hover:bg-slate-750 dark:border-slate-700 dark:text-slate-200"
+                            class="relative px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-xl border transition-all duration-300 flex items-center gap-1.5 sm:gap-2 shadow-sm group active:scale-95 bg-white hover:bg-slate-50 border-slate-300 text-slate-800 dark:bg-slate-800/90 dark:hover:bg-slate-750 dark:border-slate-700 dark:text-slate-200"
                             :title="isDark ? 'گۆڕین بۆ مۆدی ڕۆژ (ڕووناک)' : 'گۆڕین بۆ مۆدی شەو (تاریک)'">
                         <div class="relative w-5 h-5 flex items-center justify-center">
                             <!-- Sun (shown when dark) -->
@@ -460,11 +460,11 @@
                             <i class="fa-solid fa-moon text-indigo-600 text-sm transition-all duration-300 transform group-hover:-rotate-45 group-hover:scale-110 drop-shadow-[0_0_8px_rgba(79,70,229,0.4)]"
                                x-show="!isDark" x-cloak></i>
                         </div>
-                        <span class="text-xs font-bold hidden sm:inline" x-text="isDark ? 'ڕۆژ' : 'شەو'"></span>
+                        <span class="text-xs font-black hidden sm:inline" x-text="isDark ? 'ڕۆژ' : 'شەو'"></span>
                     </button>
 
                     <!-- Mobile Barcode Quick Trigger -->
-                    <button type="button" @click="showMobileBarcodeModal = true" class="md:hidden p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-sky-600 dark:text-sky-400 border border-slate-200 dark:border-slate-700" title="سکانی خێرای بارکۆد">
+                    <button type="button" @click="showMobileBarcodeModal = true" class="md:hidden p-2 rounded-xl bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-400 border border-slate-300 dark:border-slate-700 shadow-sm" title="سکانی خێرای بارکۆد">
                         <i class="fa-solid fa-barcode text-sm"></i>
                     </button>
 
@@ -475,8 +475,8 @@
 
                         <!-- Notification Bell -->
                         <div class="relative" x-data="{ openNotifs: false }">
-                            <button @click="openNotifs = !openNotifs" type="button" class="relative p-2 rounded-xl bg-slate-800/90 text-slate-300 hover:text-white hover:bg-slate-750 transition border border-slate-700/80 shadow-sm" title="ئاگادارییەکان">
-                                <i class="fa-solid fa-bell text-sm text-sky-400"></i>
+                            <button @click="openNotifs = !openNotifs" type="button" class="relative p-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 dark:bg-slate-800/90 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-750 dark:border-slate-700/80 shadow-sm transition" title="ئاگادارییەکان">
+                                <i class="fa-solid fa-bell text-sm text-sky-600 dark:text-sky-400"></i>
                                 @if($unreadNotifications->count() > 0)
                                     <span class="absolute -top-1 -right-1 w-4 h-4 bg-rose-600 text-white rounded-full text-[9px] font-black flex items-center justify-center animate-pulse shadow">
                                         {{ $unreadNotifications->count() }}
@@ -486,17 +486,17 @@
 
                             <div x-show="openNotifs" @click.away="openNotifs = false" x-cloak 
                                  x-transition.origin.top.left.duration.150ms
-                                 class="absolute left-0 mt-2 w-72 sm:w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-3 z-50 space-y-2 text-right">
-                                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                                    <h4 class="text-xs font-bold text-sky-400 flex items-center gap-1.5">
+                                 class="absolute left-0 mt-2 w-72 sm:w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-3 z-50 space-y-2 text-right">
+                                <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+                                    <h4 class="text-xs font-bold text-sky-700 dark:text-sky-400 flex items-center gap-1.5">
                                         <i class="fa-solid fa-bell"></i>
                                         <span>ئاگادارییەکان</span>
-                                        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-sky-500/10 text-sky-400 font-mono font-bold">{{ $unreadNotifications->count() }} نوێ</span>
+                                        <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-sky-500/10 text-sky-700 dark:text-sky-400 font-mono font-bold">{{ $unreadNotifications->count() }} نوێ</span>
                                     </h4>
                                     @if($unreadNotifications->count() > 0)
                                         <form action="{{ route('notifications.mark_all_read') }}" method="POST">
                                             @csrf
-                                            <button type="submit" class="text-[10px] text-sky-400 hover:text-sky-300 font-bold hover:underline flex items-center gap-1">
+                                            <button type="submit" class="text-[10px] text-sky-700 dark:text-sky-400 hover:text-sky-800 font-bold hover:underline flex items-center gap-1">
                                                 <i class="fa-solid fa-check-double text-[9px]"></i>
                                                 <span>هەمووی وەک بینراو</span>
                                             </button>
@@ -505,10 +505,10 @@
                                 </div>
                                 <div class="max-h-60 overflow-y-auto space-y-1.5 touch-scroll">
                                     @forelse($unreadNotifications as $notif)
-                                        <a href="{{ route('notifications.read', $notif->id) }}" class="block p-2 bg-slate-800/80 hover:bg-slate-800 rounded-xl border border-slate-700/60 transition">
-                                            <span class="text-xs font-bold text-white block">{{ $notif->title }}</span>
-                                            <span class="text-[11px] text-slate-300 block mt-0.5">{{ $notif->message }}</span>
-                                            <span class="text-[9px] text-sky-400 font-mono block mt-1">{{ $notif->created_at->diffForHumans() }}</span>
+                                        <a href="{{ route('notifications.read', $notif->id) }}" class="block p-2 bg-slate-50 dark:bg-slate-800/80 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/60 transition">
+                                            <span class="text-xs font-bold text-slate-900 dark:text-white block">{{ $notif->title }}</span>
+                                            <span class="text-[11px] text-slate-600 dark:text-slate-300 block mt-0.5">{{ $notif->message }}</span>
+                                            <span class="text-[9px] text-sky-600 dark:text-sky-400 font-mono block mt-1">{{ $notif->created_at->diffForHumans() }}</span>
                                         </a>
                                     @empty
                                         <p class="text-xs text-slate-500 text-center py-3">هیچ ئاگادارییەکی نوێت نییە.</p>
@@ -520,50 +520,50 @@
                         <!-- Unified Executive User Profile Menu -->
                         <div class="relative" x-data="{ openUserDropdown: false }">
                             <button @click="openUserDropdown = !openUserDropdown" type="button"
-                                    class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-750 border border-slate-700/80 text-right transition shadow-sm active:scale-95"
+                                    class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-900 dark:bg-slate-800/90 dark:hover:bg-slate-750 dark:border-slate-700/80 dark:text-white text-right transition shadow-sm active:scale-95"
                                     title="پڕۆفایل و ڕێکخستنی ئەکاونت">
-                                <div class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center text-xs shrink-0 font-bold">
+                                <div class="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-700 dark:text-sky-400 flex items-center justify-center text-xs shrink-0 font-bold">
                                     <i class="fa-solid fa-user-gear"></i>
                                 </div>
                                 <div class="hidden sm:block min-w-0 pr-0.5 text-right leading-tight">
-                                    <span class="text-xs font-black text-white block truncate max-w-[120px]">{{ auth()->user()->clean_name }}</span>
-                                    <span class="text-[9px] text-sky-400 font-bold block truncate">{{ auth()->user()->clean_role_name }}</span>
+                                    <span class="text-xs font-black text-slate-900 dark:text-white block truncate max-w-[120px]">{{ auth()->user()->clean_name }}</span>
+                                    <span class="text-[9px] text-sky-700 dark:text-sky-400 font-bold block truncate">{{ auth()->user()->clean_role_name }}</span>
                                 </div>
-                                <i class="fa-solid fa-chevron-down text-[8px] text-slate-400 transition-transform duration-200" :class="openUserDropdown ? 'rotate-180' : ''"></i>
+                                <i class="fa-solid fa-chevron-down text-[8px] text-slate-500 dark:text-slate-400 transition-transform duration-200" :class="openUserDropdown ? 'rotate-180' : ''"></i>
                             </button>
 
                             <div x-show="openUserDropdown" @click.away="openUserDropdown = false" x-cloak 
                                  x-transition.origin.top.left.duration.150ms
-                                 class="absolute left-0 mt-2 w-60 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-50 space-y-1 text-right">
-                                <div class="px-3 py-2 border-b border-slate-800 mb-1">
-                                    <span class="text-xs font-bold text-white block">{{ auth()->user()->name }}</span>
-                                    <span class="text-[10px] text-sky-400 font-bold block">{{ auth()->user()->role_name_kurdish }}</span>
-                                    <span class="text-[9px] font-mono text-slate-400 block mt-0.5">{{ auth()->user()->email }}</span>
+                                 class="absolute left-0 mt-2 w-60 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-2 z-50 space-y-1 text-right">
+                                <div class="px-3 py-2 border-b border-slate-200 dark:border-slate-800 mb-1">
+                                    <span class="text-xs font-bold text-slate-900 dark:text-white block">{{ auth()->user()->name }}</span>
+                                    <span class="text-[10px] text-sky-700 dark:text-sky-400 font-bold block">{{ auth()->user()->role_name_kurdish }}</span>
+                                    <span class="text-[9px] font-mono text-slate-500 dark:text-slate-400 block mt-0.5">{{ auth()->user()->email }}</span>
                                 </div>
 
                                 <!-- Change Password -->
                                 <button type="button" @click="showMyPasswordModal = true; openUserDropdown = false;" 
-                                        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-300 hover:bg-amber-500/10 transition text-right">
-                                    <i class="fa-solid fa-key w-4 text-center text-amber-400"></i>
+                                        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition text-right">
+                                    <i class="fa-solid fa-key w-4 text-center text-amber-600 dark:text-amber-400"></i>
                                     <span>گۆڕینی وشەی نهێنی (پاسۆرد)</span>
                                 </button>
 
                                 <!-- PWA Install (Admin Only) -->
                                 @if(auth()->user()->isAdmin())
                                     <button type="button" x-show="!isInstalled" @click="promptInstall(); openUserDropdown = false;" 
-                                            class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-sky-300 hover:bg-sky-500/10 transition text-right">
-                                        <i class="fa-solid fa-cloud-arrow-down w-4 text-center text-sky-400"></i>
+                                            class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-500/10 transition text-right">
+                                        <i class="fa-solid fa-cloud-arrow-down w-4 text-center text-sky-600 dark:text-sky-400"></i>
                                         <span>داگرتنی سیستەم وەک ئەپ</span>
                                     </button>
                                 @endif
 
-                                <div class="border-t border-slate-800 my-1"></div>
+                                <div class="border-t border-slate-200 dark:border-slate-800 my-1"></div>
 
                                 <!-- Logout -->
                                 <form action="{{ route('logout') }}" method="POST" class="block">
                                     @csrf
-                                    <button type="submit" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-500/10 transition text-right">
-                                        <i class="fa-solid fa-power-off w-4 text-center text-rose-500"></i>
+                                    <button type="submit" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition text-right">
+                                        <i class="fa-solid fa-power-off w-4 text-center text-rose-600 dark:text-rose-500"></i>
                                         <span>چوونەدەرەوە لە سیستەم</span>
                                     </button>
                                 </form>
@@ -574,10 +574,10 @@
                         <form action="{{ route('logout') }}" method="POST" class="inline">
                             @csrf
                             <button type="submit" 
-                                    class="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 flex items-center gap-1.5 text-xs font-bold transition shadow-sm active:scale-95" 
+                                    class="px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 dark:bg-rose-500/15 dark:hover:bg-rose-500/25 dark:text-rose-300 dark:border-rose-500/40 flex items-center gap-1.5 text-xs font-bold transition shadow-sm active:scale-95" 
                                     title="چوونەدەرەوە لە سیستەم">
-                                <i class="fa-solid fa-power-off text-xs text-rose-400"></i>
-                                <span class="hidden xl:inline text-xs">چوونەدەرەوە</span>
+                                <i class="fa-solid fa-power-off text-xs text-rose-600 dark:text-rose-400"></i>
+                                <span class="hidden xl:inline text-xs font-black">چوونەدەرەوە</span>
                             </button>
                         </form>
                     @endauth
