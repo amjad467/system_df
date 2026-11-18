@@ -342,16 +342,45 @@
                            class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-sky-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono font-bold tracking-widest uppercase transition">
 
                     <!-- Active Booklet Warning Alert (Req 1) -->
-                    <div x-show="hasActiveBooklet && typeId == 1" x-cloak class="p-2.5 bg-rose-500/15 border-2 border-rose-500/80 rounded-xl text-rose-700 dark:text-rose-300 space-y-1 shadow-sm">
+                    <div x-show="hasActiveBooklet && typeId == 1" x-cloak class="p-3 bg-rose-500/15 border-2 border-rose-500/80 rounded-xl text-rose-700 dark:text-rose-300 space-y-2 shadow-sm">
                         <div class="flex items-center justify-between font-black text-xs">
                             <span class="flex items-center gap-1.5">
-                                <i class="fa-solid fa-triangle-exclamation text-rose-500 text-sm"></i>
+                                <i class="fa-solid fa-triangle-exclamation text-rose-500 text-sm animate-pulse"></i>
                                 <span>تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە!</span>
                             </span>
                             <span class="text-[10px] bg-rose-600 text-white px-2 py-0.5 rounded-md font-mono" x-text="activeBooklet ? activeBooklet.barcode : ''"></span>
                         </div>
                         <p class="text-[11px] font-medium leading-relaxed">
-                            ئەم شاسییە خاوەنی مامەڵەی دەرهێنانی دەفتەری پێشووە کە هێشتا پووچەڵ نەکراوەتەوە. ناتوانیت دەرهێنانی نوێ بکەیت پێش پووچەڵکردنەوە.
+                            ئەم شاسییە خاوەنی مامەڵەی دەرهێنانی پێشووە کە هێشتا پووچەڵ نەکراوەتەوە. ناتوانیت <strong class="underline">دەرهێنانی نوێ</strong> بکەیت پێش پووچەڵکردنەوە، بەڵام دەتوانیت مامەڵەی <strong class="text-sky-600 dark:text-sky-400">پووچەڵکردنەوە</strong>، <strong class="text-emerald-600 dark:text-emerald-400">تازەکردنەوە</strong> یان جۆرەکانی تر ئەنجام بدەیت:
+                        </p>
+                        <!-- Fast Action Shortcuts -->
+                        <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-rose-300/40 dark:border-rose-700/40">
+                            <button type="button" @click="typeId = 5; calculateFees();" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+                                <i class="fa-solid fa-ban"></i>
+                                <span>گۆڕین بۆ مامەڵەی پووچەڵکردنەوە</span>
+                            </button>
+                            <button type="button" @click="typeId = 2; calculateFees();" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+                                <i class="fa-solid fa-rotate"></i>
+                                <span>گۆڕین بۆ مامەڵەی تازەکردنەوە</span>
+                            </button>
+                            <a :href="'/transactions/' + (activeBooklet ? activeBooklet.id : '')" target="_blank" class="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-lg text-[11px] font-bold transition flex items-center gap-1 shadow-sm">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                <span>بینینی دەفتەری پێشوو</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Allowed Transaction Badge for Other Types (Renewal/Cancellation) -->
+                    <div x-show="hasActiveBooklet && typeId != 1" x-cloak class="p-2.5 bg-emerald-500/15 border border-emerald-500/50 rounded-xl text-emerald-800 dark:text-emerald-200 space-y-1 shadow-sm">
+                        <div class="flex items-center justify-between font-bold text-xs">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-check text-emerald-500 text-sm"></i>
+                                <span>ئەم شاسییە خاوەنی دەفتەری پێشووە بە بارکۆدی <span class="font-mono font-bold" x-text="activeBooklet ? activeBooklet.barcode : ''"></span></span>
+                            </span>
+                            <span class="text-[10px] bg-emerald-600 text-white px-2 py-0.5 rounded-md font-bold" x-text="'مامەڵەی ' + getTypeName() + ' ڕێگەپێدراوە'"></span>
+                        </div>
+                        <p class="text-[11px] leading-relaxed opacity-90">
+                            زانیارییەکانی دەفتەری پێشوو هێنرانەوە و پەیوەستکران؛ دەتوانیت مامەڵەی <span class="font-bold underline" x-text="getTypeName()"></span> بە سەرکەوتوویی تەواو بکەیت.
                         </p>
                     </div>
 
@@ -1022,7 +1051,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
                     this.activeBooklet = (data && data.active_booklet) ? data.active_booklet : null;
 
                     if (this.hasActiveBooklet && this.typeId == 1) {
-                        alert('تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە!\n\nئەم شاسییە خاوەنی دەفتەری پێشووی چالاکە بە بارکۆدی: ' + (this.activeBooklet ? this.activeBooklet.barcode : '') + '\nناتوانیت دووبارە دەرهێنان بکەیت هەتاوەکو پووچەڵ نەکرێتەوە.');
+                        alert('تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە!\n\nئەم شاسییە خاوەنی دەفتەری پێشووی چالاکە بە بارکۆدی: ' + (this.activeBooklet ? this.activeBooklet.barcode : '') + '\nناتوانیت دووبارە دەرهێنان بکەیت هەتاوەکو دەفتەری پێشوو پووچەڵ نەکرێتەوە، بەڵام دەتوانیت مامەڵەی پووچەڵکردنەوە، تازەکردنەوە، یان جۆرەکانی تر هەڵبژێریت.');
                     }
 
                     if (data && data.found && data.record) {
@@ -1149,8 +1178,8 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
 
             // Requirement 1: Check active booklet duplicate blocking
             if (this.typeId == 1 && this.hasActiveBooklet) {
-                this.validationError = 'تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە! ناتوانیت مامەڵەی دەرهێنانی نوێ تۆمار بکەیت پێش ئەوەی دەفتەری پێشوو پووچەڵ بکرێتەوە.';
-                alert('تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە!\n\nئەم شاسییە خاوەنی دەفتەری پێشووی چالاکە بە بارکۆدی: ' + (this.activeBooklet ? this.activeBooklet.barcode : '') + '\nناتوانیت دووبارە دەرهێنان بکەیت هەتاوەکو دەفتەری پێشوو پووچەڵ نەکرێتەوە.');
+                this.validationError = 'تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە! ناتوانیت مامەڵەی دەرهێنانی نوێ تۆمار بکەیت، بەڵام دەتوانیت جۆری مامەڵەکە بگۆڕیت بۆ پووچەڵکردنەوە، تازەکردنەوە، یان جۆرەکانی تر.';
+                alert('تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە!\n\nئەم شاسییە خاوەنی دەفتەری پێشووی چالاکە بە بارکۆدی: ' + (this.activeBooklet ? this.activeBooklet.barcode : '') + '\nناتوانیت دووبارە دەرهێنان بکەیت هەتاوەکو دەفتەری پێشوو پووچەڵ نەکرێتەوە، بەڵام دەتوانیت مامەڵەی پووچەڵکردنەوە، تازەکردنەوە، یان جۆرەکانی تر هەڵبژێریت.');
                 const el = document.getElementById('input_chassisNumber');
                 if (el) {
                     el.scrollIntoView({ behavior: 'smooth', block: 'center' });

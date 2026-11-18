@@ -370,7 +370,12 @@ class TransactionController extends Controller
                   ->orWhere('chassis_number', $chassis);
             })
             ->where('transaction_type_id', 1)
-            ->where('is_cancelled', false)
+            ->where(function($q) {
+                $q->whereNull('cancelled_at');
+                if (\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'is_cancelled')) {
+                    $q->where('is_cancelled', false);
+                }
+            })
             ->latest('id')
             ->first();
 
@@ -554,7 +559,12 @@ class TransactionController extends Controller
                       ->orWhere('chassis_number', $chassis);
                 })
                 ->where('transaction_type_id', 1)
-                ->where('is_cancelled', false)
+                ->where(function($q) {
+                    $q->whereNull('cancelled_at');
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'is_cancelled')) {
+                        $q->where('is_cancelled', false);
+                    }
+                })
                 ->latest('id')
                 ->first();
 
@@ -570,7 +580,7 @@ class TransactionController extends Controller
                     if (!$isCancelledByLater) {
                         return redirect()->back()
                             ->withInput()
-                            ->with('error', "تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە! ئەم شاسییە خاوەنی دەفتەری پێشووە بە بارکۆدی [{$activeBooklet->barcode}]. ناتوانیت دەرهێنانی نوێ ئەنجام بدەیت هەتاوەکو دەفتەری پێشوو پووچەڵ نەکرێتەوە.");
+                            ->with('error', "تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە! ئەم شاسییە خاوەنی دەفتەری پێشووە بە بارکۆدی [{$activeBooklet->barcode}]. ناتوانیت دەرهێنانی نوێ ئەنجام بدەیت هەتاوەکو دەفتەری پێشوو پووچەڵ نەکرێتەوە، بەڵام دەتوانیت مامەڵەی پووچەڵکردنەوە، تازەکردنەوە، یان جۆرەکانی تر ئەنجام بدەیت.");
                     }
                 }
             }
@@ -1795,6 +1805,13 @@ class TransactionController extends Controller
                     'transaction_id' => $transaction->id,
                 ]
             );
+        }
+
+        // Ensure is_cancelled column exists on transactions table prior to update
+        if (!\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'is_cancelled')) {
+            try {
+                \Illuminate\Support\Facades\DB::statement('ALTER TABLE transactions ADD COLUMN is_cancelled INTEGER NOT NULL DEFAULT 0');
+            } catch (\Throwable $e) {}
         }
 
         $transaction->update([

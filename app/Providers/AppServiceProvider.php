@@ -44,5 +44,25 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Throwable $e) {
             // Silently continue if database is not ready during boot
         }
+
+        // Auto-heal 'is_cancelled' column on transactions table if missing in SQLite/PostgreSQL
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('transactions') && !\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'is_cancelled')) {
+                try {
+                    \Illuminate\Support\Facades\DB::statement('ALTER TABLE transactions ADD COLUMN is_cancelled INTEGER NOT NULL DEFAULT 0');
+                } catch (\Throwable $e2) {
+                    \Illuminate\Support\Facades\Schema::table('transactions', function ($table) {
+                        $table->boolean('is_cancelled')->default(false);
+                    });
+                }
+
+                // Sync existing cancelled rows
+                \Illuminate\Support\Facades\DB::table('transactions')
+                    ->whereNotNull('cancelled_at')
+                    ->update(['is_cancelled' => 1]);
+            }
+        } catch (\Throwable $e) {
+            // Silently continue if database is not ready during boot
+        }
     }
 }
