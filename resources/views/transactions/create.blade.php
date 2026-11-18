@@ -30,7 +30,154 @@
             'name_english' => $c->name_english ?? '',
         ];
     })->values();
+
+    $typeStyles = [
+        1 => [
+            'icon' => 'fa-book-bookmark',
+            'label' => 'دەرهێنانی دەفتەر',
+            'sub' => 'نوێ + بەڵێننامە',
+            'day_inactive' => 'bg-emerald-50/90 hover:bg-emerald-100 text-emerald-950 border-emerald-300 hover:border-emerald-500 shadow-sm shadow-emerald-200/50',
+            'dark_inactive' => 'dark:bg-emerald-950/25 dark:hover:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800/60',
+            'active' => 'bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 text-white border-emerald-400 shadow-lg shadow-emerald-600/35 ring-2 ring-emerald-400',
+            'icon_color' => 'text-emerald-600 dark:text-emerald-400',
+            'badge' => 'bg-emerald-200/80 text-emerald-900 dark:bg-emerald-900/80 dark:text-emerald-200',
+        ],
+        2 => [
+            'icon' => 'fa-rotate-right',
+            'label' => 'تازەکردنەوەی دەفتەر',
+            'sub' => 'نوێکردنەوە',
+            'day_inactive' => 'bg-sky-50/90 hover:bg-sky-100 text-sky-950 border-sky-300 hover:border-sky-500 shadow-sm shadow-sky-200/50',
+            'dark_inactive' => 'dark:bg-sky-950/25 dark:hover:bg-sky-900/40 dark:text-sky-300 dark:border-sky-800/60',
+            'active' => 'bg-gradient-to-br from-sky-600 via-blue-600 to-sky-700 text-white border-sky-400 shadow-lg shadow-sky-600/35 ring-2 ring-sky-400',
+            'icon_color' => 'text-sky-600 dark:text-sky-400',
+            'badge' => 'bg-sky-200/80 text-sky-900 dark:bg-sky-900/80 dark:text-sky-200',
+        ],
+        3 => [
+            'icon' => 'fa-signature',
+            'label' => 'ناوگۆڕینی دەفتەر',
+            'sub' => 'خاوەندارییەتی',
+            'day_inactive' => 'bg-indigo-50/90 hover:bg-indigo-100 text-indigo-950 border-indigo-300 hover:border-indigo-500 shadow-sm shadow-indigo-200/50',
+            'dark_inactive' => 'dark:bg-indigo-950/25 dark:hover:bg-indigo-900/40 dark:text-indigo-300 dark:border-indigo-800/60',
+            'active' => 'bg-gradient-to-br from-indigo-600 via-violet-600 to-indigo-700 text-white border-indigo-400 shadow-lg shadow-indigo-600/35 ring-2 ring-indigo-400',
+            'icon_color' => 'text-indigo-600 dark:text-indigo-400',
+            'badge' => 'bg-indigo-200/80 text-indigo-900 dark:bg-indigo-900/80 dark:text-indigo-200',
+        ],
+        4 => [
+            'icon' => 'fa-id-card-clip',
+            'label' => 'دەفتەر گۆڕین',
+            'sub' => 'گۆڕینی بەرگ',
+            'day_inactive' => 'bg-amber-50/90 hover:bg-amber-100 text-amber-950 border-amber-300 hover:border-amber-500 shadow-sm shadow-amber-200/50',
+            'dark_inactive' => 'dark:bg-amber-950/25 dark:hover:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800/60',
+            'active' => 'bg-gradient-to-br from-amber-500 via-orange-600 to-amber-700 text-white border-amber-400 shadow-lg shadow-amber-500/35 ring-2 ring-amber-400',
+            'icon_color' => 'text-amber-600 dark:text-amber-400',
+            'badge' => 'bg-amber-200/80 text-amber-900 dark:bg-amber-900/80 dark:text-amber-200',
+        ],
+        5 => [
+            'icon' => 'fa-ban',
+            'label' => 'پووچەڵکردنەوە',
+            'sub' => 'هەڵوەشاندنەوە',
+            'day_inactive' => 'bg-rose-50/90 hover:bg-rose-100 text-rose-950 border-rose-300 hover:border-rose-500 shadow-sm shadow-rose-200/50',
+            'dark_inactive' => 'dark:bg-rose-950/25 dark:hover:bg-rose-900/40 dark:text-rose-300 dark:border-rose-800/60',
+            'active' => 'bg-gradient-to-br from-rose-600 via-red-600 to-rose-700 text-white border-rose-400 shadow-lg shadow-rose-600/35 ring-2 ring-rose-400',
+            'icon_color' => 'text-rose-600 dark:text-rose-400',
+            'badge' => 'bg-rose-200/80 text-rose-900 dark:bg-rose-900/80 dark:text-rose-200',
+        ],
+        6 => [
+            'icon' => 'fa-handshake-angle',
+            'label' => 'بەڵێننامە',
+            'sub' => 'یاسایی و گومرگی',
+            'day_inactive' => 'bg-purple-50/90 hover:bg-purple-100 text-purple-950 border-purple-300 hover:border-purple-500 shadow-sm shadow-purple-200/50',
+            'dark_inactive' => 'dark:bg-purple-950/25 dark:hover:bg-purple-900/40 dark:text-purple-300 dark:border-purple-800/60',
+            'active' => 'bg-gradient-to-br from-purple-600 via-fuchsia-600 to-purple-700 text-white border-purple-400 shadow-lg shadow-purple-600/35 ring-2 ring-purple-400',
+            'icon_color' => 'text-purple-600 dark:text-purple-400',
+            'badge' => 'bg-purple-200/80 text-purple-900 dark:bg-purple-900/80 dark:text-purple-200',
+        ],
+        7 => [
+            'icon' => 'fa-arrows-rotate',
+            'label' => 'ناو و دەفتەرگۆڕین',
+            'sub' => 'گۆڕینی هەردووکیان',
+            'day_inactive' => 'bg-violet-50/90 hover:bg-violet-100 text-violet-950 border-violet-300 hover:border-violet-500 shadow-sm shadow-violet-200/50',
+            'dark_inactive' => 'dark:bg-violet-950/25 dark:hover:bg-violet-900/40 dark:text-violet-300 dark:border-violet-800/60',
+            'active' => 'bg-gradient-to-br from-violet-600 via-pink-600 to-violet-700 text-white border-violet-400 shadow-lg shadow-violet-600/35 ring-2 ring-violet-400',
+            'icon_color' => 'text-violet-600 dark:text-violet-400',
+            'badge' => 'bg-violet-200/80 text-violet-900 dark:bg-violet-900/80 dark:text-violet-200',
+        ],
+        8 => [
+            'icon' => 'fa-magnifying-glass-location',
+            'label' => 'پشکنین',
+            'sub' => 'کەشف و ڕاپۆرت',
+            'day_inactive' => 'bg-teal-50/90 hover:bg-teal-100 text-teal-950 border-teal-300 hover:border-teal-500 shadow-sm shadow-teal-200/50',
+            'dark_inactive' => 'dark:bg-teal-950/25 dark:hover:bg-teal-900/40 dark:text-teal-300 dark:border-teal-800/60',
+            'active' => 'bg-gradient-to-br from-teal-600 via-cyan-600 to-teal-700 text-white border-teal-400 shadow-lg shadow-teal-600/35 ring-2 ring-teal-400',
+            'icon_color' => 'text-teal-600 dark:text-teal-400',
+            'badge' => 'bg-teal-200/80 text-teal-900 dark:bg-teal-900/80 dark:text-teal-200',
+        ],
+    ];
 @endphp
+
+<style>
+/* ========================================================
+   Interactive Field Micro-Animations & Color Glow (Req 1)
+   ======================================================== */
+#mainTransactionForm input:not([type="hidden"]),
+#mainTransactionForm select,
+#mainTransactionForm textarea,
+.modal-interactive input {
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                box-shadow 0.22s ease, 
+                border-color 0.2s ease, 
+                background-color 0.2s ease;
+    will-change: transform, box-shadow;
+}
+
+/* Day Mode Hover: smooth upward lift, subtle border glow, gentle sky/slate illumination */
+#mainTransactionForm input:not([type="hidden"]):hover,
+#mainTransactionForm select:hover,
+#mainTransactionForm textarea:hover,
+.modal-interactive input:hover {
+    transform: translateY(-2px) scale(1.008);
+    border-color: #0284c7 !important; /* sky-600 */
+    background-color: #f0f9ff !important; /* light sky tint */
+    box-shadow: 0 6px 16px -2px rgba(2, 132, 199, 0.2), 0 2px 6px -2px rgba(2, 132, 199, 0.12);
+    z-index: 10;
+}
+
+/* Day Mode Focus */
+#mainTransactionForm input:not([type="hidden"]):focus,
+#mainTransactionForm select:focus,
+#mainTransactionForm textarea:focus,
+.modal-interactive input:focus {
+    transform: translateY(-2.5px) scale(1.01);
+    border-color: #0284c7 !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 8px 22px -3px rgba(2, 132, 199, 0.28), 0 0 0 3px rgba(14, 165, 233, 0.25) !important;
+    z-index: 20;
+}
+
+/* Dark Mode Hover */
+.dark #mainTransactionForm input:not([type="hidden"]):hover,
+.dark #mainTransactionForm select:hover,
+.dark #mainTransactionForm textarea:hover,
+.dark .modal-interactive input:hover {
+    transform: translateY(-2px) scale(1.008);
+    border-color: #38bdf8 !important; /* sky-400 */
+    background-color: #0f172a !important; /* slate-900 */
+    box-shadow: 0 6px 18px -2px rgba(56, 189, 248, 0.25), 0 2px 6px -2px rgba(56, 189, 248, 0.15);
+    z-index: 10;
+}
+
+/* Dark Mode Focus */
+.dark #mainTransactionForm input:not([type="hidden"]):focus,
+.dark #mainTransactionForm select:focus,
+.dark #mainTransactionForm textarea:focus,
+.dark .modal-interactive input:focus {
+    transform: translateY(-2.5px) scale(1.01);
+    border-color: #38bdf8 !important;
+    background-color: #090d16 !important;
+    box-shadow: 0 8px 22px -3px rgba(56, 189, 248, 0.35), 0 0 0 3px rgba(56, 189, 248, 0.25) !important;
+    z-index: 20;
+}
+</style>
 
 <div x-data="unifiedTransactionForm(
         {{ \Illuminate\Support\Js::from($fromTransaction) }}, 
@@ -85,15 +232,46 @@
             </div>
         </div>
 
-        <!-- Horizontal Scrollable/Grid Transaction Type Pills -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1.5">
+        <!-- Horizontal Grid Transaction Type Pills (Distinct Vibrant Day Mode Design) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
             @foreach($transactionTypes as $tt)
+                @php
+                    $style = $typeStyles[$tt->id] ?? [
+                        'icon' => 'fa-file-lines',
+                        'label' => $tt->name_kurdish,
+                        'sub' => '',
+                        'day_inactive' => 'bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-300',
+                        'dark_inactive' => 'dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-300 dark:border-slate-800',
+                        'active' => 'bg-sky-600 text-white border-sky-400 shadow-lg ring-2 ring-sky-400',
+                        'icon_color' => 'text-sky-500',
+                        'badge' => 'bg-slate-200 text-slate-800',
+                    ];
+                @endphp
                 <button type="button" 
                         @click="typeId = {{ $tt->id }}; calculateFees();" 
-                        :class="typeId == {{ $tt->id }} ? 'bg-sky-600 text-white border-sky-500 shadow-md ring-2 ring-sky-500/40 font-bold' : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-950/60 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800'" 
-                        class="p-2 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 cursor-pointer">
-                    <i class="fa-solid {{ $tt->id == 1 ? 'fa-book' : ($tt->id == 2 ? 'fa-rotate-right' : ($tt->id == 3 ? 'fa-pen-to-square' : ($tt->id == 4 ? 'fa-id-card' : ($tt->id == 5 ? 'fa-ban' : ($tt->id == 6 ? 'fa-handshake' : ($tt->id == 7 ? 'fa-arrows-rotate' : 'fa-magnifying-glass')))))) }} text-xs"></i>
-                    <span class="text-[11px] leading-tight truncate w-full">{{ $tt->name_kurdish }}</span>
+                        :class="typeId == {{ $tt->id }} 
+                            ? '{{ $style['active'] }} scale-[1.03] font-black' 
+                            : '{{ $style['day_inactive'] }} {{ $style['dark_inactive'] }} hover:scale-[1.02] font-bold'" 
+                        class="p-2.5 rounded-2xl border text-center transition-all duration-200 flex flex-col items-center justify-between gap-1.5 cursor-pointer min-h-[72px] relative group overflow-hidden shadow-sm">
+                    
+                    <div class="flex items-center justify-center w-7 h-7 rounded-xl transition shadow-xs"
+                         :class="typeId == {{ $tt->id }} ? 'bg-white/20 text-white' : '{{ $style['badge'] }}'">
+                        <i class="fa-solid {{ $style['icon'] }} text-xs" :class="typeId == {{ $tt->id }} ? 'text-white' : '{{ $style['icon_color'] }}'"></i>
+                    </div>
+
+                    <div class="w-full">
+                        <span class="text-[11px] leading-tight block truncate w-full" :class="typeId == {{ $tt->id }} ? 'text-white' : ''">
+                            {{ $style['label'] }}
+                        </span>
+                        @if(!empty($style['sub']))
+                            <span class="text-[9px] block opacity-80 truncate pt-0.5" :class="typeId == {{ $tt->id }} ? 'text-white/90' : 'text-slate-500 dark:text-slate-400'">
+                                {{ $style['sub'] }}
+                            </span>
+                        @endif
+                    </div>
+
+                    <!-- Active glowing indicator -->
+                    <div x-show="typeId == {{ $tt->id }}" x-cloak class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
                 </button>
             @endforeach
         </div>
@@ -557,7 +735,7 @@
 
     <!-- INLINE MODAL: Quick Add & Search Car Make (Req 2B) -->
     <div x-show="showCarMakeModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div class="modal-interactive bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-car text-sky-500"></i>
@@ -616,7 +794,7 @@
 
     <!-- INLINE MODAL: Quick Add Car Color (Req 2A) -->
     <div x-show="showCarColorModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+        <div class="modal-interactive bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-palette text-amber-500"></i>
