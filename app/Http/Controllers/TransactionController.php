@@ -617,11 +617,12 @@ class TransactionController extends Controller
 
     public function expiredBookletsReport(Request $request)
     {
-        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'booklet') {
-            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی دەفتەرە بەسەرچووەکان تەنها بۆ بەشی دەفتەر و ئەدمینە!');
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'archiver' && auth()->user()->role !== 'booklet' && !auth()->user()->hasPermission('reports.expired_booklets')) {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی دەفتەرە بەسەرچووەکان تەنها بۆ ئەدمین، ئەرشیف و بەشی دەفتەرە!');
         }
 
         $status = $request->get('status', 'expired'); // 'expired', 'expiring_soon', 'all'
+        $noticeStatus = $request->get('notice_status', 'all'); // 'all', 'unnotified', 'notified', 'attended', 'unattended'
         $search = $request->get('search');
         $year = $request->get('year');
         $yearType = $request->get('year_type', 'end_date');
@@ -629,7 +630,7 @@ class TransactionController extends Controller
         // Booklet types: 1: New Issue, 2: Renewal, 3: Name Change, 4: Booklet Replacement, 7: Both
         $bookletTypeIds = [1, 2, 3, 4, 7];
 
-        $baseQuery = Transaction::with(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor'])
+        $baseQuery = Transaction::with(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'latestBookletNotice'])
             ->whereIn('transaction_type_id', $bookletTypeIds)
             ->whereNotNull('end_date')
             ->whereNull('cancelled_at');
@@ -661,6 +662,23 @@ class TransactionController extends Controller
         $expiringSoonCount = (clone $baseQuery)->where('end_date', '>=', $now)->where('end_date', '<=', $soon)->count();
         $totalCount = $expiredCount + $expiringSoonCount;
 
+        // Notice counts across the current set
+        $unnotifiedCount = (clone $baseQuery)->whereDoesntHave('bookletNotices')->count();
+        $notifiedCount = (clone $baseQuery)->whereHas('bookletNotices')->count();
+        $attendedNoticesCount = (clone $baseQuery)->whereHas('bookletNotices', fn($q) => $q->where('status', 'attended')->orWhereNotNull('attended_at'))->count();
+        $unattendedNoticesCount = (clone $baseQuery)->whereHas('bookletNotices', fn($q) => $q->where('status', 'sent')->whereNull('attended_at'))->count();
+
+        // Apply Notice Filter if requested
+        if ($noticeStatus === 'unnotified') {
+            $baseQuery->whereDoesntHave('bookletNotices');
+        } elseif ($noticeStatus === 'notified') {
+            $baseQuery->whereHas('bookletNotices');
+        } elseif ($noticeStatus === 'attended') {
+            $baseQuery->whereHas('bookletNotices', fn($q) => $q->where('status', 'attended')->orWhereNotNull('attended_at'));
+        } elseif ($noticeStatus === 'unattended') {
+            $baseQuery->whereHas('bookletNotices', fn($q) => $q->where('status', 'sent')->whereNull('attended_at'));
+        }
+
         $query = clone $baseQuery;
 
         if ($status === 'expiring_soon') {
@@ -676,9 +694,14 @@ class TransactionController extends Controller
         return view('transactions.expired_booklets', compact(
             'transactions',
             'status',
+            'noticeStatus',
             'expiredCount',
             'expiringSoonCount',
             'totalCount',
+            'unnotifiedCount',
+            'notifiedCount',
+            'attendedNoticesCount',
+            'unattendedNoticesCount',
             'search',
             'year',
             'yearType'
@@ -915,6 +938,26 @@ class TransactionController extends Controller
 
             AuditLogger::log('دروستکردنی مامەڵەی نوێ', Transaction::class, $tx->id, "بارکۆد: {$barcode} - ناوی هاووڵاتی: {$tx->visitor_name}", null, $transactionData);
             NotificationService::send(null, 'inspector', 'مامەڵەی نوێ دروستکرا', "مامەڵەیەکی نوێ بە بارکۆدی {$barcode} تومارکرا و ئامادەیە بۆ کەشف.", route('transactions.show', $tx->id));
+
+            // Auto-detect attendance from Expired Booklet Notices:
+            if ($tx->chassis_number || $tx->plate_number) {
+                \App\Models\BookletNotice::where('status', 'sent')
+                    ->whereNull('attended_at')
+                    ->where(function($q) use ($tx) {
+                        if ($tx->chassis_number) {
+                            $q->where('chassis_number', $tx->chassis_number);
+                        }
+                        if ($tx->plate_number) {
+                            $q->orWhere('plate_number', $tx->plate_number);
+                        }
+                    })
+                    ->update([
+                        'status' => 'attended',
+                        'attended_at' => now(),
+                        'attended_transaction_id' => $tx->id,
+                        'attended_type' => $tx->transactionType?->name_kurdish ?? 'مامەڵەی نوێ',
+                    ]);
+            }
 
             // Automatic Dual Creation: If Type 1 (New Booklet Issue / دەرهێنانی دەفتەر), auto-create linked Pledge Form (بەڵێننامە)
             if ((int)$request->transaction_type_id === 1) {

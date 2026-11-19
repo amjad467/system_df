@@ -345,7 +345,7 @@
                     @endif
 
                     <!-- Reports Dropdown: محاسبة ٦٦ & دەفتەرە بەسەرچووەکان (Consolidated to save horizontal space) -->
-                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('reports.accounting_66') || auth()->user()->hasPermission('reports.expired_booklets')))
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('reports.accounting_66') || auth()->user()->hasPermission('reports.expired_booklets')))
                         <div class="relative" x-data="{ openReportsMenu: false }">
                             <button @click="openReportsMenu = !openReportsMenu" type="button" 
                                     class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-extrabold transition flex items-center gap-1.5 {{ request()->routeIs('reports.*') || request()->routeIs('transactions.expired_booklets') ? 'bg-sky-100 text-sky-900 border border-sky-300 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30 shadow-sm' : 'text-slate-800 font-extrabold hover:text-sky-700 hover:bg-white hover:border-slate-300 border border-transparent shadow-none hover:shadow-sm dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 dark:hover:border-slate-700' }}">
@@ -363,7 +363,7 @@
                                         <span>محاسبة ٦٦</span>
                                     </a>
                                 @endif
-                                @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('reports.expired_booklets'))
+                                @if(auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('reports.expired_booklets'))
                                     <a href="{{ route('transactions.expired_booklets') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('transactions.expired_booklets') ? 'bg-rose-600 text-white' : 'text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10' }}">
                                         <i class="fa-solid fa-calendar-xmark w-4 text-center text-rose-600 dark:text-rose-400"></i>
                                         <span>دەفتەرە بەسەرچووەکان</span>
@@ -666,8 +666,8 @@
                         </a>
                     @endif
 
-                    <!-- دەفتەرە بەسەرچووەکان (Allowed via Permission) -->
-                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('reports.expired_booklets')))
+                    <!-- دەفتەرە بەسەرچووەکان (Allowed via Permission & Archiver/Admin) -->
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('reports.expired_booklets')))
                         <a href="{{ route('transactions.expired_booklets') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-300 hover:bg-rose-600 hover:text-white flex items-center justify-center">
                             <i class="fa-solid fa-calendar-xmark ml-1.5 text-rose-500"></i> بەسەرچووەکان
                         </a>

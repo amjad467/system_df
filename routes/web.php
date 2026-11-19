@@ -9,6 +9,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AccountingReportController;
+use App\Http\Controllers\BookletNoticeController;
 
 // Auth Routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -49,6 +50,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions/official-prints', [TransactionController::class, 'officialPrintIndex'])->name('transactions.official_prints');
     Route::get('/transactions/trash/bin', [TransactionController::class, 'trashIndex'])->name('transactions.trash');
     Route::get('/transactions/reports/expired-booklets', [TransactionController::class, 'expiredBookletsReport'])->name('transactions.expired_booklets');
+    Route::get('/transactions/reports/expired-booklets/batches', [BookletNoticeController::class, 'index'])->name('booklet_notices.index');
+    Route::post('/transactions/reports/expired-booklets/batches', [BookletNoticeController::class, 'storeBatch'])->name('booklet_notices.store_batch');
+    Route::get('/transactions/reports/expired-booklets/select-unnotified', [BookletNoticeController::class, 'selectUnnotified'])->name('booklet_notices.select_unnotified');
+    Route::get('/transactions/reports/expired-booklets/batches/{batch}/print-no-shows', [BookletNoticeController::class, 'printNoShows'])->name('booklet_notices.print_no_shows');
+    Route::post('/transactions/reports/expired-booklets/sync-attendance', [BookletNoticeController::class, 'syncAttendance'])->name('booklet_notices.sync');
     Route::get('/reports/unreturned-traffic-letters', [TransactionController::class, 'unreturnedTrafficLettersReport'])->name('reports.unreturned_mrur');
     Route::post('/transactions/{transaction}/update-traffic-letter', [TransactionController::class, 'updateTrafficLetter'])->name('transactions.update_traffic_letter');
     Route::get('/reports/accounting-66', [AccountingReportController::class, 'index'])->name('reports.accounting_66');

@@ -49,6 +49,7 @@ class PermissionService
                 'reports.accounting_66' => 'بینین و چاپی ڕاپۆرتی ڕۆژانەی محاسبة ٦٦',
                 'reports.accounting_export' => 'داگرتنی داتای محاسبة ٦٦ وەک CSV/Excel',
                 'reports.expired_booklets' => 'بینینی لیستی دەفتەرە بەسەرچووەکان',
+                'reports.expired_booklets_notices' => 'ئاگادارکردنەوە و ئاماری دەفتەرە بەسەرچووەکان (واتسئەپ و ڤایبەر)',
             ]
         ],
         'system' => [
@@ -102,9 +103,12 @@ class PermissionService
             'prints.booklet',
             'prints.official_index',
             'reports.expired_booklets',
+            'reports.expired_booklets_notices',
         ],
         'archiver' => [
             'transactions.submit',
+            'reports.expired_booklets',
+            'reports.expired_booklets_notices',
         ],
     ];
 

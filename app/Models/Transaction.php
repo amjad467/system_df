@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Transaction extends Model
 {
@@ -102,6 +103,16 @@ class Transaction extends Model
     public function carColor(): BelongsTo
     {
         return $this->belongsTo(CarColor::class, 'car_color_id');
+    }
+
+    public function bookletNotices(): HasMany
+    {
+        return $this->hasMany(BookletNotice::class, 'transaction_id');
+    }
+
+    public function latestBookletNotice(): HasOne
+    {
+        return $this->hasOne(BookletNotice::class, 'transaction_id')->latestOfMany();
     }
 
     public function canBeEditedByDataEntry(): bool
