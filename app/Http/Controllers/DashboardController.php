@@ -123,7 +123,10 @@ class DashboardController extends Controller
                     COUNT(CASE WHEN (is_paid = true OR is_paid = 1) AND (is_booklet_completed = true OR is_booklet_completed = 1 OR transaction_type_id IN (5,6,8)) AND (is_submitted = false OR is_submitted = 0 OR is_submitted IS NULL) AND cancelled_at IS NULL THEN 1 END) as pending_submit,
                     COUNT(CASE WHEN (is_booklet_completed = true OR is_booklet_completed = 1) AND cancelled_at IS NULL THEN 1 END) as completed_booklets,
                     COUNT(CASE WHEN (is_booklet_completed = true OR is_booklet_completed = 1) AND end_date IS NOT NULL AND end_date < '{$todayStr}' AND cancelled_at IS NULL THEN 1 END) as expired_booklets,
-                    COUNT(CASE WHEN (is_returned = true OR is_returned = 1) THEN 1 END) as returned_count
+                    COUNT(CASE WHEN (is_returned = true OR is_returned = 1) THEN 1 END) as returned_count,
+                    COUNT(CASE WHEN (no_nusraw_mrur IS NULL OR no_nusraw_mrur = '0' OR no_nusraw_mrur = '') THEN 1 END) as unreturned_mrur,
+                    COUNT(CASE WHEN (is_booklet_completed = true OR is_booklet_completed = 1) AND end_date >= '{$todayStr}' AND cancelled_at IS NULL THEN 1 END) as unexpired_booklets,
+                    COUNT(CASE WHEN cancelled_at IS NOT NULL OR transaction_type_id = 5 THEN 1 END) as cancelled_booklets
                 ")->first();
 
             return [
@@ -142,6 +145,9 @@ class DashboardController extends Controller
                 'totalTransactions'  => (int)($stats->total_transactions ?? 0),
                 'expiredBooklets'    => (int)($stats->expired_booklets ?? 0),
                 'returnedCount'      => (int)($stats->returned_count ?? 0),
+                'unreturnedMrur'     => (int)($stats->unreturned_mrur ?? 0),
+                'unexpiredBooklets'  => (int)($stats->unexpired_booklets ?? 0),
+                'cancelledBooklets'  => (int)($stats->cancelled_booklets ?? 0),
             ];
         });
 
@@ -160,6 +166,9 @@ class DashboardController extends Controller
         $totalTransactions    = $pipelineData['totalTransactions'];
         $expiredBookletsCount = $pipelineData['expiredBooklets'];
         $returnedCount        = $pipelineData['returnedCount'];
+        $unreturnedMrurCount   = $pipelineData['unreturnedMrur'];
+        $unexpiredBookletsCount = $pipelineData['unexpiredBooklets'];
+        $cancelledBookletsCount = $pipelineData['cancelledBooklets'];
 
         $returnedTransactions = $returnedCount > 0
             ? Transaction::where('is_returned', true)->latest()->take(10)->get()
@@ -323,6 +332,9 @@ class DashboardController extends Controller
             'pendingSubmit',
             'completedBooklets',
             'expiredBookletsCount',
+            'unreturnedMrurCount',
+            'unexpiredBookletsCount',
+            'cancelledBookletsCount',
             'returnedTransactions',
             'returnedCount',
             'pendingInspectionList',

@@ -713,13 +713,25 @@ class TransactionController extends Controller
         $search = $request->get('search');
         $directorateId = $request->get('directorate_id');
         $year = $request->get('year');
+        $status = $request->get('status', 'unreturned'); // 'unreturned', 'returned', 'all'
+        $boxNumber = $request->get('box_number');
 
-        $query = Transaction::with(['trafficDirectorate', 'transactionType', 'carMake', 'carColor', 'plateType'])
-            ->where(function($q) {
+        $query = Transaction::with(['trafficDirectorate', 'transactionType', 'carMake', 'carColor', 'plateType']);
+
+        if ($status === 'returned') {
+            $query->whereNotNull('no_nusraw_mrur')
+                  ->where('no_nusraw_mrur', '!=', '0')
+                  ->where('no_nusraw_mrur', '!=', '');
+        } elseif ($status === 'all') {
+            // No restriction on traffic letter
+        } else {
+            // Default: unreturned (0, null, or empty)
+            $query->where(function($q) {
                 $q->whereNull('no_nusraw_mrur')
                   ->orWhere('no_nusraw_mrur', '0')
                   ->orWhere('no_nusraw_mrur', '');
             });
+        }
 
         if ($directorateId) {
             $query->where('traffic_directorate_id', $directorateId);
@@ -727,6 +739,13 @@ class TransactionController extends Controller
 
         if ($year) {
             $query->whereYear('transaction_date', $year);
+        }
+
+        if ($boxNumber !== null && $boxNumber !== '') {
+            $query->where(function($q) use ($boxNumber) {
+                $q->where('NO_boxfile', (int)$boxNumber)
+                  ->orWhere('NO_boxfile_puchal', (int)$boxNumber);
+            });
         }
 
         if ($search) {
@@ -737,15 +756,40 @@ class TransactionController extends Controller
                   ->orWhere('phone_number', 'like', "%{$search}%")
                   ->orWhere('chassis_number', 'like', "%{$search}%")
                   ->orWhere('no_nusraw_gumrg', 'like', "%{$search}%")
-                  ->orWhere('booklet_number', 'like', "%{$search}%");
+                  ->orWhere('booklet_number', 'like', "%{$search}%")
+                  ->orWhere('no_nusraw_mrur', 'like', "%{$search}%")
+                  ->orWhere('NO_boxfile', 'like', "%{$search}%")
+                  ->orWhere('NO_boxfile_puchal', 'like', "%{$search}%");
             });
         }
 
-        $totalUnreturned = (clone $query)->count();
+        $totalFiltered = (clone $query)->count();
         $transactions = $query->latest('id')->paginate(30)->withQueryString();
         $directorates = TrafficDirectorate::all();
 
-        return view('transactions.reports.unreturned_mrur', compact('transactions', 'totalUnreturned', 'directorates', 'search', 'directorateId', 'year'));
+        $unreturnedCount = Transaction::where(function($q) {
+            $q->whereNull('no_nusraw_mrur')
+              ->orWhere('no_nusraw_mrur', '0')
+              ->orWhere('no_nusraw_mrur', '');
+        })->count();
+
+        $returnedCount = Transaction::whereNotNull('no_nusraw_mrur')
+            ->where('no_nusraw_mrur', '!=', '0')
+            ->where('no_nusraw_mrur', '!=', '')
+            ->count();
+
+        return view('transactions.reports.unreturned_mrur', compact(
+            'transactions',
+            'totalFiltered',
+            'unreturnedCount',
+            'returnedCount',
+            'directorates',
+            'search',
+            'directorateId',
+            'year',
+            'status',
+            'boxNumber'
+        ));
     }
 
     public function updateTrafficLetter(Request $request, Transaction $transaction)
@@ -753,11 +797,28 @@ class TransactionController extends Controller
         $validated = $request->validate([
             'no_nusraw_mrur' => 'required|string|max:100',
             'date_nusraw_mrur' => 'nullable|date',
+            'NO_boxfile' => 'nullable|integer|min:0',
         ]);
 
-        $transaction->update([
+        $updateData = [
             'no_nusraw_mrur' => trim($validated['no_nusraw_mrur']),
             'date_nusraw_mrur' => $validated['date_nusraw_mrur'] ?? now()->toDateString(),
+        ];
+
+        if ($request->has('NO_boxfile') && $request->NO_boxfile !== null && $request->NO_boxfile !== '') {
+            $updateData['NO_boxfile'] = (int)$validated['NO_boxfile'];
+        }
+
+        $transaction->update($updateData);
+
+        // Clear dashboard cache
+        \Illuminate\Support\Facades\Cache::forget('dashboard_pipeline_metrics_' . today()->toDateString());
+
+        \App\Models\ActivityLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'update_traffic_letter',
+            'description' => "ژمارەی نووسراوی هاتوچۆ بۆ مامەڵەی [{$transaction->barcode}] تۆمارکرا بۆ [{$transaction->no_nusraw_mrur}]" . ($transaction->NO_boxfile ? " (بۆکس: {$transaction->NO_boxfile})" : ""),
+            'ip_address' => $request->ip(),
         ]);
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -765,6 +826,7 @@ class TransactionController extends Controller
                 'success' => true,
                 'message' => 'ژمارەی نووسراوی هاتوچۆ بە سەرکەوتوویی تۆمارکرا.',
                 'no_nusraw_mrur' => $transaction->no_nusraw_mrur,
+                'NO_boxfile' => $transaction->NO_boxfile,
             ]);
         }
 

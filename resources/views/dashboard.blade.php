@@ -193,22 +193,22 @@
     <!-- ========================================================================= -->
     <!-- 3. TOP KPI CARDS: ALL-TIME (FOR ADMIN & ARCHIVER) VS. STRICTLY TODAY (FOR ALL OTHERS) -->
     <!-- ========================================================================= -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
         @if($showAllTimeCards)
             <!-- ========================================================================= -->
             <!-- 1. ADMIN & ARCHIVER VIEW: ALL-TIME METRICS & TOTALS                      -->
             <!-- ========================================================================= -->
 
             <!-- Card 1: Total Transactions -->
-            <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl hover:border-sky-500/40 transition group">
+            <div class="bg-slate-900/90 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xl hover:border-sky-500/40 transition group">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-slate-400">کۆی مامەڵە تۆمارکراوەکان</span>
-                    <div class="w-11 h-11 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-sky-500/20 transition shadow-sm">
-                        <i class="fa-solid fa-folder-tree text-lg"></i>
+                    <span class="text-xs font-bold text-slate-400">کۆی دەفتەر و مامەڵەکان</span>
+                    <div class="w-10 h-10 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-sky-500/20 transition shadow-sm">
+                        <i class="fa-solid fa-folder-tree text-base"></i>
                     </div>
                 </div>
-                <div class="mt-3 flex items-baseline justify-between">
-                    <div class="text-2xl sm:text-3xl font-black text-white font-mono tracking-tight">
+                <div class="mt-2.5 flex items-baseline justify-between">
+                    <div class="text-xl sm:text-2xl font-black text-white font-mono tracking-tight">
                         {{ number_format($totalTransactions) }}
                     </div>
                     @if($todayDataEntryCount > 0)
@@ -220,22 +220,108 @@
                     @endif
                 </div>
                 <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                    <span>تەواوکراوی گشتی:</span>
-                    <span class="text-sky-300 font-mono font-bold">{{ number_format($completedBooklets) }} دەفتەر</span>
+                    <span>دەرکراو:</span>
+                    <span class="text-sky-300 font-mono font-bold">{{ number_format($completedBooklets) }}</span>
                 </div>
             </div>
 
-            <!-- Card 2: Financial Revenue (Admin) or Total Archived (Archiver) -->
+            <!-- Card 2: Active / Unexpired Booklets -->
+            <div class="bg-slate-900/90 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xl hover:border-emerald-500/40 transition group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-400">دەفتەری بەسەرنەچوو</span>
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-500/20 transition shadow-sm">
+                        <i class="fa-solid fa-circle-check text-base"></i>
+                    </div>
+                </div>
+                <div class="mt-2.5 flex items-baseline justify-between">
+                    <div class="text-xl sm:text-2xl font-black text-emerald-400 font-mono tracking-tight">
+                        {{ number_format($unexpiredBookletsCount) }}
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        کارا
+                    </span>
+                </div>
+                <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>دۆخ:</span>
+                    <span class="text-emerald-300 font-bold">مۆڵەتپێدراو</span>
+                </div>
+            </div>
+
+            <!-- Card 3: Expired Booklets -->
+            <div class="bg-slate-900/90 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xl hover:border-rose-500/40 transition group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-400">دەفتەری بەسەرچوو</span>
+                    <div class="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-rose-500/20 transition shadow-sm">
+                        <i class="fa-solid fa-clock-rotate-left text-base"></i>
+                    </div>
+                </div>
+                <div class="mt-2.5 flex items-baseline justify-between">
+                    <div class="text-xl sm:text-2xl font-black text-rose-400 font-mono tracking-tight">
+                        {{ number_format($expiredBookletsCount) }}
+                    </div>
+                    <a href="{{ route('transactions.expired_booklets') }}" class="text-[10px] font-extrabold text-sky-400 hover:underline">
+                        بینین &larr;
+                    </a>
+                </div>
+                <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>پێویست بە:</span>
+                    <span class="text-rose-400 font-bold">تازەکردنەوە</span>
+                </div>
+            </div>
+
+            <!-- Card 4: Unreturned Traffic Letters (نووسراوی بێ مرور) -->
+            <div class="bg-slate-900/90 border border-amber-500/30 p-4 sm:p-5 rounded-2xl shadow-xl hover:border-amber-500/60 transition group relative overflow-hidden">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-amber-400">نوسراوی بێ مرور</span>
+                    <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-amber-500/20 transition shadow-sm">
+                        <i class="fa-solid fa-file-circle-question text-base"></i>
+                    </div>
+                </div>
+                <div class="mt-2.5 flex items-baseline justify-between">
+                    <div class="text-xl sm:text-2xl font-black text-amber-400 font-mono tracking-tight">
+                        {{ number_format($unreturnedMrurCount) }}
+                    </div>
+                    <a href="{{ route('reports.unreturned_mrur') }}" class="text-[10px] font-extrabold text-amber-300 hover:text-white underline flex items-center gap-1">
+                        <span>لیست &larr;</span>
+                    </a>
+                </div>
+                <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>هاتوچۆ:</span>
+                    <span class="text-amber-300 font-bold">مرور سفر (نەگەڕاوە)</span>
+                </div>
+            </div>
+
+            <!-- Card 5: Cancelled Booklets (پووچەڵکراوەکان) -->
+            <div class="bg-slate-900/90 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xl hover:border-purple-500/40 transition group">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-400">پووچەڵکراوەکان</span>
+                    <div class="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-purple-500/20 transition shadow-sm">
+                        <i class="fa-solid fa-ban text-base"></i>
+                    </div>
+                </div>
+                <div class="mt-2.5 flex items-baseline justify-between">
+                    <div class="text-xl sm:text-2xl font-black text-purple-400 font-mono tracking-tight">
+                        {{ number_format($cancelledBookletsCount) }}
+                    </div>
+                    <span class="text-[10px] text-slate-500 font-bold">دەفتەری پووچەڵ</span>
+                </div>
+                <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>دۆخ:</span>
+                    <span class="text-purple-300 font-bold">پووچەڵکراو</span>
+                </div>
+            </div>
+
+            <!-- Card 6: Financial Revenue (Admin) or Total Archived (Archiver) -->
             @if(auth()->user()->isAdmin())
-                <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl hover:border-emerald-500/40 transition group">
+                <div class="bg-slate-900/90 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xl hover:border-emerald-500/40 transition group">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-400">کۆی داهاتی دارایی (IQD)</span>
-                        <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-500/20 transition shadow-sm">
-                            <i class="fa-solid fa-coins text-lg"></i>
+                        <span class="text-xs font-bold text-slate-400">کۆی داهاتی دارایی</span>
+                        <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-500/20 transition shadow-sm">
+                            <i class="fa-solid fa-coins text-base"></i>
                         </div>
                     </div>
-                    <div class="mt-3 flex items-baseline justify-between">
-                        <div class="text-2xl sm:text-3xl font-black text-emerald-400 font-mono tracking-tight">
+                    <div class="mt-2.5 flex items-baseline justify-between">
+                        <div class="text-xl sm:text-2xl font-black text-emerald-400 font-mono tracking-tight">
                             {{ number_format($totalIncome) }}
                             <span class="text-xs font-normal text-emerald-300/80">د.ع</span>
                         </div>
@@ -246,21 +332,21 @@
                         @endif
                     </div>
                     <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                        <span>وەرگیراوی وەسڵی ۳۷/أ:</span>
-                        <span class="text-emerald-300 font-bold">{{ $todayPaidCount }} مامەڵەی ئەمڕۆ</span>
+                        <span>وەسڵی ۳۷/أ:</span>
+                        <span class="text-emerald-300 font-bold">{{ $todayPaidCount }} ئەمڕۆ</span>
                     </div>
                 </div>
             @else
-                <!-- Archiver Card 2 (NO MONEY) -->
-                <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl hover:border-teal-500/40 transition group">
+                <!-- Archiver Card 6 (NO MONEY) -->
+                <div class="bg-slate-900/90 border border-slate-800 p-4 sm:p-5 rounded-2xl shadow-xl hover:border-teal-500/40 transition group">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-400">کۆی مامەڵە ئەرشیفکراوەکان</span>
-                        <div class="w-11 h-11 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-teal-500/20 transition shadow-sm">
-                            <i class="fa-solid fa-box-archive text-lg"></i>
+                        <span class="text-xs font-bold text-slate-400">کۆی ئەرشیفکراوەکان</span>
+                        <div class="w-10 h-10 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-teal-500/20 transition shadow-sm">
+                            <i class="fa-solid fa-box-archive text-base"></i>
                         </div>
                     </div>
-                    <div class="mt-3 flex items-baseline justify-between">
-                        <div class="text-2xl sm:text-3xl font-black text-teal-400 font-mono tracking-tight">
+                    <div class="mt-2.5 flex items-baseline justify-between">
+                        <div class="text-xl sm:text-2xl font-black text-teal-400 font-mono tracking-tight">
                             {{ number_format($archiverTotalCount) }}
                         </div>
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/20 text-teal-300 border border-teal-500/30">
@@ -268,58 +354,11 @@
                         </span>
                     </div>
                     <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                        <span>سەپمیتکراو بە فەرمی:</span>
+                        <span>سەپمیتکراو:</span>
                         <span class="text-teal-300 font-bold">بۆکس فایل</span>
                     </div>
                 </div>
             @endif
-
-            <!-- Card 3: Completed Booklets -->
-            <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl hover:border-indigo-500/40 transition group">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-slate-400">دەفتەری تەواوکراو و دەرکراو</span>
-                    <div class="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-indigo-500/20 transition shadow-sm">
-                        <i class="fa-solid fa-passport text-lg"></i>
-                    </div>
-                </div>
-                <div class="mt-3 flex items-baseline justify-between">
-                    <div class="text-2xl sm:text-3xl font-black text-indigo-300 font-mono tracking-tight">
-                        {{ number_format($completedBooklets) }}
-                    </div>
-                    @php
-                        $completionRate = $totalTransactions > 0 ? round(($completedBooklets / $totalTransactions) * 100) : 0;
-                    @endphp
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-mono">
-                        {{ $completionRate }}% ڕێژە
-                    </span>
-                </div>
-                <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                    <span>چاپکراوی ئەمڕۆ:</span>
-                    <span class="text-indigo-300 font-bold font-mono">{{ $todayBookletsCount }} دەفتەر</span>
-                </div>
-            </div>
-
-            <!-- Card 4: Expired / Alerts -->
-            <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl hover:border-amber-500/40 transition group">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-slate-400">دەفتەرە بەسەرچووەکان</span>
-                    <div class="w-11 h-11 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center group-hover:scale-110 group-hover:bg-rose-500/20 transition shadow-sm">
-                        <i class="fa-solid fa-clock-rotate-left text-lg"></i>
-                    </div>
-                </div>
-                <div class="mt-3 flex items-baseline justify-between">
-                    <div class="text-2xl sm:text-3xl font-black text-rose-400 font-mono tracking-tight">
-                        {{ number_format($expiredBookletsCount) }}
-                    </div>
-                    <a href="{{ route('transactions.expired_booklets') }}" class="text-[10px] font-extrabold text-sky-400 hover:underline">
-                        بینینی هەمووی &larr;
-                    </a>
-                </div>
-                <div class="mt-2 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                    <span>پێویست بە تازەکردنەوە:</span>
-                    <span class="text-amber-400 font-bold">بەسەرچوون</span>
-                </div>
-            </div>
 
         @else
             <!-- ========================================================================= -->
