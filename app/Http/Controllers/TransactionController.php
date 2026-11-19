@@ -834,7 +834,7 @@ class TransactionController extends Controller
     }
 
     /**
-     * Report of citizens who own multiple vehicles with registered booklets.
+     * Report of citizens who own multiple vehicles with registered booklets (Excluding Cancelled).
      */
     public function citizensMultipleCarsReport(Request $request)
     {
@@ -846,58 +846,135 @@ class TransactionController extends Controller
         $search = trim($request->get('search', ''));
         $minCars = max(2, (int)$request->get('min_cars', 2));
         $groupBy = in_array($request->get('group_by'), ['both', 'name', 'phone']) ? $request->get('group_by') : 'both';
-        $sortBy = in_array($request->get('sort'), ['cars_desc', 'booklets_desc', 'name_asc']) ? $request->get('sort') : 'cars_desc';
+        $status = $request->get('status', 'all'); // 'all', 'active', 'expired', 'only_active', 'only_expired'
+        $sortBy = in_array($request->get('sort'), ['cars_desc', 'active_desc', 'expired_desc', 'booklets_desc', 'name_asc']) ? $request->get('sort') : 'cars_desc';
         $perPage = max(10, min(100, (int)$request->get('per_page', 25)));
+        $today = now()->toDateString();
 
-        // Base query
-        $query = DB::table('transactions')
-            ->whereNull('deleted_at');
-
+        // 1. First subquery: aggregate by plate_number to get latest status per car (strictly excluding cancellations)
         if ($groupBy === 'name') {
-            $query->select(
-                'visitor_name',
-                DB::raw('MIN(phone_number) as phone_number'),
-                DB::raw("GROUP_CONCAT(DISTINCT phone_number) as all_phones"),
-                DB::raw('COUNT(DISTINCT plate_number) as car_count'),
-                DB::raw('COUNT(id) as total_booklets'),
-                DB::raw("GROUP_CONCAT(DISTINCT plate_number) as plates_list")
-            )
-            ->whereNotNull('visitor_name')
-            ->where('visitor_name', '!=', '')
-            ->groupBy('visitor_name');
+            $plateSub = DB::table('transactions')
+                ->select(
+                    'visitor_name',
+                    'plate_number',
+                    DB::raw("MIN(phone_number) as phone_number"),
+                    DB::raw("GROUP_CONCAT(DISTINCT phone_number) as all_phones"),
+                    DB::raw("MAX(end_date) as max_end_date"),
+                    DB::raw("COUNT(id) as plate_booklets")
+                )
+                ->whereNull('deleted_at')
+                ->where(function ($q) {
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                })
+                ->whereNull('cancelled_at')
+                ->where('transaction_type_id', '!=', 5)
+                ->whereNotNull('visitor_name')
+                ->where('visitor_name', '!=', '')
+                ->groupBy('visitor_name', 'plate_number');
+
+            $query = DB::table(DB::raw("({$plateSub->toSql()}) as plates"))
+                ->mergeBindings($plateSub)
+                ->select(
+                    'visitor_name',
+                    DB::raw("MIN(phone_number) as phone_number"),
+                    DB::raw("GROUP_CONCAT(DISTINCT all_phones) as all_phones"),
+                    DB::raw('COUNT(plate_number) as car_count'),
+                    DB::raw('SUM(plate_booklets) as total_booklets'),
+                    DB::raw("SUM(CASE WHEN max_end_date >= '{$today}' THEN 1 ELSE 0 END) as active_cars"),
+                    DB::raw("SUM(CASE WHEN max_end_date < '{$today}' OR max_end_date IS NULL THEN 1 ELSE 0 END) as expired_cars"),
+                    DB::raw("GROUP_CONCAT(plate_number) as plates_list")
+                )
+                ->groupBy('visitor_name');
         } elseif ($groupBy === 'phone') {
-            $query->select(
-                'phone_number',
-                DB::raw('MIN(visitor_name) as visitor_name'),
-                DB::raw("GROUP_CONCAT(DISTINCT visitor_name) as all_names"),
-                DB::raw('COUNT(DISTINCT plate_number) as car_count'),
-                DB::raw('COUNT(id) as total_booklets'),
-                DB::raw("GROUP_CONCAT(DISTINCT plate_number) as plates_list")
-            )
-            ->whereNotNull('phone_number')
-            ->where('phone_number', '!=', '')
-            ->where('phone_number', '!=', '0')
-            ->groupBy('phone_number');
+            $plateSub = DB::table('transactions')
+                ->select(
+                    'phone_number',
+                    'plate_number',
+                    DB::raw("MIN(visitor_name) as visitor_name"),
+                    DB::raw("GROUP_CONCAT(DISTINCT visitor_name) as all_names"),
+                    DB::raw("MAX(end_date) as max_end_date"),
+                    DB::raw("COUNT(id) as plate_booklets")
+                )
+                ->whereNull('deleted_at')
+                ->where(function ($q) {
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                })
+                ->whereNull('cancelled_at')
+                ->where('transaction_type_id', '!=', 5)
+                ->whereNotNull('phone_number')
+                ->where('phone_number', '!=', '')
+                ->where('phone_number', '!=', '0')
+                ->groupBy('phone_number', 'plate_number');
+
+            $query = DB::table(DB::raw("({$plateSub->toSql()}) as plates"))
+                ->mergeBindings($plateSub)
+                ->select(
+                    'phone_number',
+                    DB::raw("MIN(visitor_name) as visitor_name"),
+                    DB::raw("GROUP_CONCAT(DISTINCT all_names) as all_names"),
+                    DB::raw('COUNT(plate_number) as car_count'),
+                    DB::raw('SUM(plate_booklets) as total_booklets'),
+                    DB::raw("SUM(CASE WHEN max_end_date >= '{$today}' THEN 1 ELSE 0 END) as active_cars"),
+                    DB::raw("SUM(CASE WHEN max_end_date < '{$today}' OR max_end_date IS NULL THEN 1 ELSE 0 END) as expired_cars"),
+                    DB::raw("GROUP_CONCAT(plate_number) as plates_list")
+                )
+                ->groupBy('phone_number');
         } else {
             // Default: both (visitor_name & phone_number)
-            $query->select(
-                'visitor_name',
-                'phone_number',
-                DB::raw('COUNT(DISTINCT plate_number) as car_count'),
-                DB::raw('COUNT(id) as total_booklets'),
-                DB::raw("GROUP_CONCAT(DISTINCT plate_number) as plates_list")
-            )
-            ->whereNotNull('visitor_name')
-            ->where('visitor_name', '!=', '')
-            ->groupBy('visitor_name', 'phone_number');
+            $plateSub = DB::table('transactions')
+                ->select(
+                    'visitor_name',
+                    'phone_number',
+                    'plate_number',
+                    DB::raw("MAX(end_date) as max_end_date"),
+                    DB::raw("COUNT(id) as plate_booklets")
+                )
+                ->whereNull('deleted_at')
+                ->where(function ($q) {
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                })
+                ->whereNull('cancelled_at')
+                ->where('transaction_type_id', '!=', 5)
+                ->whereNotNull('visitor_name')
+                ->where('visitor_name', '!=', '')
+                ->groupBy('visitor_name', 'phone_number', 'plate_number');
+
+            $query = DB::table(DB::raw("({$plateSub->toSql()}) as plates"))
+                ->mergeBindings($plateSub)
+                ->select(
+                    'visitor_name',
+                    'phone_number',
+                    DB::raw('COUNT(plate_number) as car_count'),
+                    DB::raw('SUM(plate_booklets) as total_booklets'),
+                    DB::raw("SUM(CASE WHEN max_end_date >= '{$today}' THEN 1 ELSE 0 END) as active_cars"),
+                    DB::raw("SUM(CASE WHEN max_end_date < '{$today}' OR max_end_date IS NULL THEN 1 ELSE 0 END) as expired_cars"),
+                    DB::raw("GROUP_CONCAT(plate_number) as plates_list")
+                )
+                ->groupBy('visitor_name', 'phone_number');
         }
 
-        $query->havingRaw('COUNT(DISTINCT plate_number) >= ?', [$minCars]);
+        $query->havingRaw('COUNT(plate_number) >= ?', [$minCars]);
 
-        // Search filtering
+        // Status Filtering (active / expired)
+        if ($status === 'active') {
+            $query->havingRaw("SUM(CASE WHEN max_end_date >= '{$today}' THEN 1 ELSE 0 END) > 0");
+        } elseif ($status === 'expired') {
+            $query->havingRaw("SUM(CASE WHEN max_end_date < '{$today}' OR max_end_date IS NULL THEN 1 ELSE 0 END) > 0");
+        } elseif ($status === 'only_active') {
+            $query->havingRaw("SUM(CASE WHEN max_end_date < '{$today}' OR max_end_date IS NULL THEN 1 ELSE 0 END) = 0");
+        } elseif ($status === 'only_expired') {
+            $query->havingRaw("SUM(CASE WHEN max_end_date >= '{$today}' THEN 1 ELSE 0 END) = 0");
+        }
+
+        // Search filtering (searching in non-cancelled transactions)
         if ($search !== '') {
             $matchingCitizens = DB::table('transactions')
                 ->whereNull('deleted_at')
+                ->where(function ($q) {
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                })
+                ->whereNull('cancelled_at')
+                ->where('transaction_type_id', '!=', 5)
                 ->where(function ($q) use ($search) {
                     $q->where('visitor_name', 'like', "%{$search}%")
                       ->orWhere('phone_number', 'like', "%{$search}%")
@@ -916,21 +993,27 @@ class TransactionController extends Controller
         }
 
         // Sorting
-        if ($sortBy === 'booklets_desc') {
+        if ($sortBy === 'active_desc') {
+            $query->orderByDesc('active_cars')->orderByDesc('car_count');
+        } elseif ($sortBy === 'expired_desc') {
+            $query->orderByDesc('expired_cars')->orderByDesc('car_count');
+        } elseif ($sortBy === 'booklets_desc') {
             $query->orderByDesc('total_booklets')->orderByDesc('car_count');
         } elseif ($sortBy === 'name_asc') {
             $query->orderBy('visitor_name', 'asc');
         } else {
-            $query->orderByDesc('car_count')->orderByDesc('total_booklets');
+            $query->orderByDesc('car_count')->orderByDesc('active_cars');
         }
 
-        // KPI aggregates from subquery
+        // KPI aggregates BEFORE pagination
         $subQuery = (clone $query);
         $kpis = DB::table(DB::raw("({$subQuery->toSql()}) as sub"))
             ->mergeBindings($subQuery)
             ->select(
                 DB::raw('COUNT(*) as total_citizens'),
                 DB::raw('COALESCE(SUM(car_count), 0) as total_cars'),
+                DB::raw('COALESCE(SUM(active_cars), 0) as total_active_cars'),
+                DB::raw('COALESCE(SUM(expired_cars), 0) as total_expired_cars'),
                 DB::raw('COALESCE(SUM(total_booklets), 0) as total_booklets'),
                 DB::raw('COALESCE(MAX(car_count), 0) as max_cars')
             )
@@ -944,13 +1027,14 @@ class TransactionController extends Controller
             'search',
             'minCars',
             'groupBy',
+            'status',
             'sortBy',
             'perPage'
         ));
     }
 
     /**
-     * API for fetching vehicle and booklet details for a specific citizen.
+     * API for fetching vehicle and booklet details for a specific citizen (strictly excluding cancelled).
      */
     public function citizenCarsDetailsApi(Request $request)
     {
@@ -962,7 +1046,12 @@ class TransactionController extends Controller
         }
 
         $query = Transaction::with(['carMake', 'carColor', 'plateType', 'transactionType'])
-            ->whereNull('deleted_at');
+            ->whereNull('deleted_at')
+            ->where(function ($q) {
+                $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+            })
+            ->whereNull('cancelled_at')
+            ->where('transaction_type_id', '!=', 5);
 
         if ($name && $phone) {
             $query->where('visitor_name', $name)->where('phone_number', $phone);
@@ -972,14 +1061,27 @@ class TransactionController extends Controller
             $query->where('phone_number', $phone);
         }
 
-        $transactions = $query->orderByDesc('id')->get();
+        $transactions = $query->orderByDesc('end_date')->orderByDesc('id')->get();
 
+        $today = now()->startOfDay();
         $distinctPlates = $transactions->pluck('plate_number')->filter()->unique()->values();
 
-        $formatted = $transactions->map(function ($tx) {
-            $isExpired = false;
-            if ($tx->end_date && $tx->end_date->isPast() && !$tx->is_cancelled) {
-                $isExpired = true;
+        // Calculate latest status per distinct plate
+        $plateStatus = [];
+        foreach ($transactions as $t) {
+            if (!isset($plateStatus[$t->plate_number])) {
+                $isActive = $t->end_date && $t->end_date->gte($today);
+                $plateStatus[$t->plate_number] = $isActive ? 'active' : 'expired';
+            }
+        }
+
+        $activeCarsCount = count(array_filter($plateStatus, fn($s) => $s === 'active'));
+        $expiredCarsCount = count(array_filter($plateStatus, fn($s) => $s === 'expired'));
+
+        $formatted = $transactions->map(function ($tx) use ($today) {
+            $isExpired = true;
+            if ($tx->end_date && $tx->end_date->gte($today)) {
+                $isExpired = false;
             }
             return [
                 'id' => $tx->id,
@@ -995,7 +1097,7 @@ class TransactionController extends Controller
                 'transaction_date' => $tx->transaction_date ? $tx->transaction_date->format('Y-m-d') : null,
                 'start_date' => $tx->start_date ? $tx->start_date->format('Y-m-d') : null,
                 'end_date' => $tx->end_date ? $tx->end_date->format('Y-m-d') : null,
-                'is_cancelled' => (bool)$tx->is_cancelled,
+                'is_cancelled' => false,
                 'is_expired' => $isExpired,
                 'box_number' => $tx->NO_boxfile,
                 'show_url' => route('transactions.show', $tx->id),
@@ -1007,6 +1109,8 @@ class TransactionController extends Controller
             'visitor_name' => $name ?: ($transactions->first()->visitor_name ?? ''),
             'phone_number' => $phone ?: ($transactions->first()->phone_number ?? ''),
             'distinct_cars_count' => $distinctPlates->count(),
+            'active_cars_count' => $activeCarsCount,
+            'expired_cars_count' => $expiredCarsCount,
             'total_booklets_count' => $transactions->count(),
             'distinct_plates' => $distinctPlates,
             'transactions' => $formatted,
@@ -1014,7 +1118,7 @@ class TransactionController extends Controller
     }
 
     /**
-     * Export multiple-car citizens report to CSV with UTF-8 BOM.
+     * Export multiple-car citizens report to CSV with UTF-8 BOM (excluding cancelled).
      */
     public function exportCitizensMultipleCarsCsv(Request $request)
     {
@@ -1026,54 +1130,130 @@ class TransactionController extends Controller
         $search = trim($request->get('search', ''));
         $minCars = max(2, (int)$request->get('min_cars', 2));
         $groupBy = in_array($request->get('group_by'), ['both', 'name', 'phone']) ? $request->get('group_by') : 'both';
-        $sortBy = in_array($request->get('sort'), ['cars_desc', 'booklets_desc', 'name_asc']) ? $request->get('sort') : 'cars_desc';
-
-        $query = DB::table('transactions')
-            ->whereNull('deleted_at');
+        $status = $request->get('status', 'all');
+        $sortBy = in_array($request->get('sort'), ['cars_desc', 'active_desc', 'expired_desc', 'booklets_desc', 'name_asc']) ? $request->get('sort') : 'cars_desc';
+        $today = now()->toDateString();
 
         if ($groupBy === 'name') {
-            $query->select(
-                'visitor_name',
-                DB::raw('MIN(phone_number) as phone_number'),
-                DB::raw("GROUP_CONCAT(DISTINCT phone_number) as all_phones"),
-                DB::raw('COUNT(DISTINCT plate_number) as car_count'),
-                DB::raw('COUNT(id) as total_booklets'),
-                DB::raw("GROUP_CONCAT(DISTINCT plate_number) as plates_list")
-            )
-            ->whereNotNull('visitor_name')
-            ->where('visitor_name', '!=', '')
-            ->groupBy('visitor_name');
+            $plateSub = DB::table('transactions')
+                ->select(
+                    'visitor_name',
+                    'plate_number',
+                    DB::raw("MIN(phone_number) as phone_number"),
+                    DB::raw("GROUP_CONCAT(DISTINCT phone_number) as all_phones"),
+                    DB::raw("MAX(end_date) as max_end_date"),
+                    DB::raw("COUNT(id) as plate_booklets")
+                )
+                ->whereNull('deleted_at')
+                ->where(function ($q) {
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                })
+                ->whereNull('cancelled_at')
+                ->where('transaction_type_id', '!=', 5)
+                ->whereNotNull('visitor_name')
+                ->where('visitor_name', '!=', '')
+                ->groupBy('visitor_name', 'plate_number');
+
+            $query = DB::table(DB::raw("({$plateSub->toSql()}) as plates"))
+                ->mergeBindings($plateSub)
+                ->select(
+                    'visitor_name',
+                    DB::raw("MIN(phone_number) as phone_number"),
+                    DB::raw("GROUP_CONCAT(DISTINCT all_phones) as all_phones"),
+                    DB::raw('COUNT(plate_number) as car_count'),
+                    DB::raw('SUM(plate_booklets) as total_booklets'),
+                    DB::raw("SUM(CASE WHEN max_end_date >= '{$today}' THEN 1 ELSE 0 END) as active_cars"),
+                    DB::raw("SUM(CASE WHEN max_end_date < '{$today}' OR max_end_date IS NULL THEN 1 ELSE 0 END) as expired_cars"),
+                    DB::raw("GROUP_CONCAT(plate_number) as plates_list")
+                )
+                ->groupBy('visitor_name');
         } elseif ($groupBy === 'phone') {
-            $query->select(
-                'phone_number',
-                DB::raw('MIN(visitor_name) as visitor_name'),
-                DB::raw("GROUP_CONCAT(DISTINCT visitor_name) as all_names"),
-                DB::raw('COUNT(DISTINCT plate_number) as car_count'),
-                DB::raw('COUNT(id) as total_booklets'),
-                DB::raw("GROUP_CONCAT(DISTINCT plate_number) as plates_list")
-            )
-            ->whereNotNull('phone_number')
-            ->where('phone_number', '!=', '')
-            ->where('phone_number', '!=', '0')
-            ->groupBy('phone_number');
+            $plateSub = DB::table('transactions')
+                ->select(
+                    'phone_number',
+                    'plate_number',
+                    DB::raw("MIN(visitor_name) as visitor_name"),
+                    DB::raw("GROUP_CONCAT(DISTINCT visitor_name) as all_names"),
+                    DB::raw("MAX(end_date) as max_end_date"),
+                    DB::raw("COUNT(id) as plate_booklets")
+                )
+                ->whereNull('deleted_at')
+                ->where(function ($q) {
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                })
+                ->whereNull('cancelled_at')
+                ->where('transaction_type_id', '!=', 5)
+                ->whereNotNull('phone_number')
+                ->where('phone_number', '!=', '')
+                ->where('phone_number', '!=', '0')
+                ->groupBy('phone_number', 'plate_number');
+
+            $query = DB::table(DB::raw("({$plateSub->toSql()}) as plates"))
+                ->mergeBindings($plateSub)
+                ->select(
+                    'phone_number',
+                    DB::raw("MIN(visitor_name) as visitor_name"),
+                    DB::raw("GROUP_CONCAT(DISTINCT all_names) as all_names"),
+                    DB::raw('COUNT(plate_number) as car_count'),
+                    DB::raw('SUM(plate_booklets) as total_booklets'),
+                    DB::raw("SUM(CASE WHEN max_end_date >= '{$today}' THEN 1 ELSE 0 END) as active_cars"),
+                    DB::raw("SUM(CASE WHEN max_end_date < '{$today}' OR max_end_date IS NULL THEN 1 ELSE 0 END) as expired_cars"),
+                    DB::raw("GROUP_CONCAT(plate_number) as plates_list")
+                )
+                ->groupBy('phone_number');
         } else {
-            $query->select(
-                'visitor_name',
-                'phone_number',
-                DB::raw('COUNT(DISTINCT plate_number) as car_count'),
-                DB::raw('COUNT(id) as total_booklets'),
-                DB::raw("GROUP_CONCAT(DISTINCT plate_number) as plates_list")
-            )
-            ->whereNotNull('visitor_name')
-            ->where('visitor_name', '!=', '')
-            ->groupBy('visitor_name', 'phone_number');
+            $plateSub = DB::table('transactions')
+                ->select(
+                    'visitor_name',
+                    'phone_number',
+                    'plate_number',
+                    DB::raw("MAX(end_date) as max_end_date"),
+                    DB::raw("COUNT(id) as plate_booklets")
+                )
+                ->whereNull('deleted_at')
+                ->where(function ($q) {
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                })
+                ->whereNull('cancelled_at')
+                ->where('transaction_type_id', '!=', 5)
+                ->whereNotNull('visitor_name')
+                ->where('visitor_name', '!=', '')
+                ->groupBy('visitor_name', 'phone_number', 'plate_number');
+
+            $query = DB::table(DB::raw("({$plateSub->toSql()}) as plates"))
+                ->mergeBindings($plateSub)
+                ->select(
+                    'visitor_name',
+                    'phone_number',
+                    DB::raw('COUNT(plate_number) as car_count'),
+                    DB::raw('SUM(plate_booklets) as total_booklets'),
+                    DB::raw("SUM(CASE WHEN max_end_date >= '{$today}' THEN 1 ELSE 0 END) as active_cars"),
+                    DB::raw("SUM(CASE WHEN max_end_date < '{$today}' OR max_end_date IS NULL THEN 1 ELSE 0 END) as expired_cars"),
+                    DB::raw("GROUP_CONCAT(plate_number) as plates_list")
+                )
+                ->groupBy('visitor_name', 'phone_number');
         }
 
-        $query->havingRaw('COUNT(DISTINCT plate_number) >= ?', [$minCars]);
+        $query->havingRaw('COUNT(plate_number) >= ?', [$minCars]);
+
+        if ($status === 'active') {
+            $query->havingRaw("SUM(CASE WHEN max_end_date >= '{$today}' THEN 1 ELSE 0 END) > 0");
+        } elseif ($status === 'expired') {
+            $query->havingRaw("SUM(CASE WHEN max_end_date < '{$today}' OR max_end_date IS NULL THEN 1 ELSE 0 END) > 0");
+        } elseif ($status === 'only_active') {
+            $query->havingRaw("SUM(CASE WHEN max_end_date < '{$today}' OR max_end_date IS NULL THEN 1 ELSE 0 END) = 0");
+        } elseif ($status === 'only_expired') {
+            $query->havingRaw("SUM(CASE WHEN max_end_date >= '{$today}' THEN 1 ELSE 0 END) = 0");
+        }
 
         if ($search !== '') {
             $matchingCitizens = DB::table('transactions')
                 ->whereNull('deleted_at')
+                ->where(function ($q) {
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                })
+                ->whereNull('cancelled_at')
+                ->where('transaction_type_id', '!=', 5)
                 ->where(function ($q) use ($search) {
                     $q->where('visitor_name', 'like', "%{$search}%")
                       ->orWhere('phone_number', 'like', "%{$search}%")
@@ -1091,17 +1271,21 @@ class TransactionController extends Controller
             }
         }
 
-        if ($sortBy === 'booklets_desc') {
+        if ($sortBy === 'active_desc') {
+            $query->orderByDesc('active_cars')->orderByDesc('car_count');
+        } elseif ($sortBy === 'expired_desc') {
+            $query->orderByDesc('expired_cars')->orderByDesc('car_count');
+        } elseif ($sortBy === 'booklets_desc') {
             $query->orderByDesc('total_booklets')->orderByDesc('car_count');
         } elseif ($sortBy === 'name_asc') {
             $query->orderBy('visitor_name', 'asc');
         } else {
-            $query->orderByDesc('car_count')->orderByDesc('total_booklets');
+            $query->orderByDesc('car_count')->orderByDesc('active_cars');
         }
 
         $rows = $query->get();
 
-        $filename = 'citizens_multiple_cars_' . date('Y_m_d_His') . '.csv';
+        $filename = 'citizens_multiple_cars_active_expired_' . date('Y_m_d_His') . '.csv';
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
@@ -1110,7 +1294,7 @@ class TransactionController extends Controller
         $callback = function () use ($rows) {
             $handle = fopen('php://output', 'w');
             fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM
-            fputcsv($handle, ['ڕاپۆرتی ئەو هاوڵاتیانەی زیاتر لە یەک ئۆتۆمبێلیان بەناوەوەیە - بەڕێوەبەرایەتی گشتی گومرگ']);
+            fputcsv($handle, ['ڕاپۆرتی ئەو هاوڵاتیانەی زیاتر لە یەک ئۆتۆمبێلیان هەیە (کارا و بەسەرچوو - بێ پووچەڵکراو)']);
             fputcsv($handle, ['بەرواری دەرهێنان: ' . now()->format('Y-m-d H:i')]);
             fputcsv($handle, ['کۆی هاووڵاتیان: ' . count($rows)]);
             fputcsv($handle, []);
@@ -1118,7 +1302,9 @@ class TransactionController extends Controller
                 '#',
                 'ناوی هاووڵاتی',
                 'ژمارەی مۆبایل',
-                'ژمارەی ئۆتۆمبێلەکان',
+                'کۆی ئۆتۆمبێلەکان',
+                'ئۆتۆمبێلی کارا',
+                'ئۆتۆمبێلی بەسەرچوو',
                 'کۆی دەفتەرەکان',
                 'تابلۆی ئۆتۆمبێلەکان',
             ]);
@@ -1130,6 +1316,8 @@ class TransactionController extends Controller
                     $row->visitor_name ?? ($row->all_names ?? ''),
                     $row->phone_number ?? ($row->all_phones ?? ''),
                     $row->car_count,
+                    $row->active_cars,
+                    $row->expired_cars,
                     $row->total_booklets,
                     $row->plates_list,
                 ]);
