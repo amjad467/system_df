@@ -461,6 +461,8 @@ class TransactionController extends Controller
 
         $status = $request->get('status', 'expired'); // 'expired', 'expiring_soon', 'all'
         $search = $request->get('search');
+        $year = $request->get('year');
+        $yearType = $request->get('year_type', 'end_date');
 
         // Booklet types: 1: New Issue, 2: Renewal, 3: Name Change, 4: Booklet Replacement, 7: Both
         $bookletTypeIds = [1, 2, 3, 4, 7];
@@ -469,6 +471,14 @@ class TransactionController extends Controller
             ->whereIn('transaction_type_id', $bookletTypeIds)
             ->whereNotNull('end_date')
             ->whereNull('cancelled_at');
+
+        if ($year) {
+            if ($yearType === 'transaction_date') {
+                $baseQuery->whereYear('transaction_date', $year);
+            } else {
+                $baseQuery->whereYear('end_date', $year);
+            }
+        }
 
         if ($search) {
             $baseQuery->where(function($q) use ($search) {
@@ -507,7 +517,9 @@ class TransactionController extends Controller
             'expiredCount',
             'expiringSoonCount',
             'totalCount',
-            'search'
+            'search',
+            'year',
+            'yearType'
         ));
     }
 

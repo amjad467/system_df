@@ -77,40 +77,55 @@
     </div>
 
     <!-- Search and Filter Bar -->
-    <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-4 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-4">
         <!-- Status Tabs -->
-        <div class="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-            <a href="{{ route('transactions.expired_booklets', ['status' => 'expired', 'search' => request('search')]) }}" 
+        <div class="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
+            <a href="{{ route('transactions.expired_booklets', ['status' => 'expired', 'search' => request('search'), 'year' => request('year'), 'year_type' => request('year_type')]) }}" 
                class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap {{ $status === 'expired' ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30' : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-700' }}">
                 <i class="fa-solid fa-circle-exclamation text-xs"></i> بەسەرچووەکان ({{ $expiredCount }})
             </a>
-            <a href="{{ route('transactions.expired_booklets', ['status' => 'expiring_soon', 'search' => request('search')]) }}" 
+            <a href="{{ route('transactions.expired_booklets', ['status' => 'expiring_soon', 'search' => request('search'), 'year' => request('year'), 'year_type' => request('year_type')]) }}" 
                class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap {{ $status === 'expiring_soon' ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30' : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-700' }}">
                 <i class="fa-solid fa-clock text-xs"></i> لە ٣٠ ڕۆژدا ({{ $expiringSoonCount }})
             </a>
-            <a href="{{ route('transactions.expired_booklets', ['status' => 'all', 'search' => request('search')]) }}" 
+            <a href="{{ route('transactions.expired_booklets', ['status' => 'all', 'search' => request('search'), 'year' => request('year'), 'year_type' => request('year_type')]) }}" 
                class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap {{ $status === 'all' ? 'bg-sky-600 text-white shadow-lg shadow-sky-600/30' : 'bg-slate-900 text-slate-300 hover:text-white border border-slate-700' }}">
                 <i class="fa-solid fa-layer-group text-xs"></i> هەمووی ({{ $totalCount }})
             </a>
         </div>
 
-        <!-- Search Input -->
-        <form action="{{ route('transactions.expired_booklets') }}" method="GET" class="w-full md:w-80 flex items-center gap-2">
+        <!-- Filter Form (Search + Year + Year Type) -->
+        <form action="{{ route('transactions.expired_booklets') }}" method="GET" class="w-full lg:w-auto flex flex-wrap items-center gap-2">
             <input type="hidden" name="status" value="{{ $status }}">
-            <div class="relative w-full">
+
+            <!-- Year select -->
+            <select name="year" onchange="this.form.submit()" class="bg-slate-900 text-xs text-slate-200 rounded-xl border border-slate-700 px-3 py-2.5 focus:border-sky-500 focus:outline-none">
+                <option value="">هەموو ساڵەکان</option>
+                @foreach(['2026', '2025', '2024', '2023'] as $y)
+                    <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>ساڵی {{ $y }}</option>
+                @endforeach
+            </select>
+
+            <!-- Year Type Toggle -->
+            <select name="year_type" onchange="this.form.submit()" class="bg-slate-900 text-xs text-slate-200 rounded-xl border border-slate-700 px-3 py-2.5 focus:border-sky-500 focus:outline-none">
+                <option value="end_date" {{ request('year_type', 'end_date') == 'end_date' ? 'selected' : '' }}>بەپێی بەرواری کۆتا (بەسەرچوون)</option>
+                <option value="transaction_date" {{ request('year_type') == 'transaction_date' ? 'selected' : '' }}>بەپێی بەرواری سەرەتا (دەرهێنان)</option>
+            </select>
+
+            <div class="relative flex-1 sm:w-64">
                 <input type="text" name="search" value="{{ request('search') }}" 
                        placeholder="گەڕان (تابلۆ، هاووڵاتی، شاسی، دەفتەر)..." 
                        class="w-full bg-slate-900 text-xs text-slate-100 placeholder-slate-500 rounded-xl border border-slate-700 pr-9 pl-3 py-2.5 focus:border-sky-500 focus:outline-none">
                 <i class="fa-solid fa-magnifying-glass absolute right-3 top-3 text-xs text-slate-400"></i>
             </div>
-            @if(request('search'))
+            
+            <button type="submit" class="px-3.5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow transition">
+                بگەڕێ
+            </button>
+            @if(request('search') || request('year'))
                 <a href="{{ route('transactions.expired_booklets', ['status' => $status]) }}" class="px-3 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold rounded-xl transition">
                     پاککردنەوە
                 </a>
-            @else
-                <button type="submit" class="px-3.5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow transition">
-                    بگەڕێ
-                </button>
             @endif
         </form>
     </div>
