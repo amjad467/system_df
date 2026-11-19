@@ -6,23 +6,23 @@
     <!-- ========================================================================= -->
     <!-- 1. WORKSTATION HEADER, FAST SCANNER & OPERATIONAL SUMMARY -->
     <!-- ========================================================================= -->
-    <div class="relative overflow-hidden bg-slate-900/90 p-4 sm:p-5 rounded-3xl border border-slate-800 shadow-xl backdrop-blur-md">
+    <div class="relative overflow-hidden bg-slate-900/90 p-4 sm:p-4.5 rounded-3xl border border-slate-800 shadow-xl backdrop-blur-md space-y-3">
         <!-- Subtle Ambient Glow -->
         <div class="absolute -top-12 -left-12 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -bottom-12 -right-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <!-- Right Side (RTL): Dignified Greeting & View Switcher -->
-            <div class="space-y-1.5 min-w-0">
-                <div class="flex items-center gap-2.5 flex-wrap">
-                    <h1 class="text-base sm:text-2xl font-black text-white leading-tight">
+            <div class="space-y-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <h1 class="text-base sm:text-xl font-black text-white leading-tight">
                         بەخێربێیت، <span class="text-sky-300">{{ auth()->user()->clean_name }}</span>
                     </h1>
-                    <span class="text-xs sm:text-sm px-2.5 py-0.5 rounded-xl bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold">
+                    <span class="text-[11px] sm:text-xs px-2.5 py-0.5 rounded-xl bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold">
                         {{ auth()->user()->clean_role_name }}
                     </span>
                 </div>
-                <p class="text-xs text-slate-400">
+                <p class="text-[11px] sm:text-xs text-slate-400">
                     @if(auth()->user()->isAdmin())
                         داشبۆردی سەرپەرشتیاری و چاودێری گشتی مامەڵەکانی دەفتەری ئۆتۆمبێل
                     @else
@@ -32,20 +32,20 @@
 
                 <!-- Admin Segmented View Switcher -->
                 @if(auth()->user()->isAdmin())
-                    <div class="inline-flex items-center p-1 rounded-xl bg-slate-950 border border-slate-800 text-xs shadow-inner mt-1">
-                        <a href="{{ route('dashboard') }}" class="px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 {{ !request()->has('view') ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">
+                    <div class="inline-flex items-center p-0.5 rounded-xl bg-slate-950 border border-slate-800 text-xs shadow-inner mt-0.5">
+                        <a href="{{ route('dashboard') }}" class="px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1.5 {{ !request()->has('view') ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">
                             <i class="fa-solid fa-gauge-high text-xs"></i>
                             <span>دیمەنی گشتی</span>
                         </a>
-                        <a href="{{ route('dashboard', ['view' => 'cashier']) }}" class="px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 {{ request('view') === 'cashier' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">
+                        <a href="{{ route('dashboard', ['view' => 'cashier']) }}" class="px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1.5 {{ request('view') === 'cashier' ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">
                             <i class="fa-solid fa-cash-register text-xs"></i>
                             <span>قاسە و ژمێریاری</span>
                         </a>
-                        <a href="{{ route('dashboard', ['view' => 'archiver']) }}" class="px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 {{ request('view') === 'archiver' ? 'bg-teal-600 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">
+                        <a href="{{ route('dashboard', ['view' => 'archiver']) }}" class="px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1.5 {{ request('view') === 'archiver' ? 'bg-teal-600 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">
                             <i class="fa-solid fa-box-archive text-xs"></i>
                             <span>ئەرشیف</span>
                         </a>
-                        <a href="{{ route('dashboard', ['view' => 'data_entry']) }}" class="px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+                        <a href="{{ route('dashboard', ['view' => 'data_entry']) }}" class="px-2.5 py-1 rounded-lg font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
                             <i class="fa-solid fa-keyboard text-xs"></i>
                             <span>داتائەنتەری</span>
                         </a>
@@ -54,10 +54,10 @@
             </div>
 
             <!-- Left Side (RTL): Today's Active Volume Summary Pill & New Action -->
-            <div class="flex items-center gap-3 shrink-0">
+            <div class="flex items-center gap-2.5 shrink-0">
                 <!-- Non-Admin Today Summary Pill -->
                 @if(!auth()->user()->isAdmin())
-                    <div class="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs shadow-inner">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs shadow-inner">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                         <span class="text-slate-400">چالاکیی ئەمڕۆت:</span>
                         <span class="font-mono font-black text-emerald-400 text-sm">
@@ -80,7 +80,7 @@
 
                 @if(auth()->user()->isAdmin() || in_array(auth()->user()->role, ['data_entry', 'inspector', 'booklet']))
                     <a href="{{ route('transactions.create') }}" 
-                       class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg transition flex items-center gap-2 active:scale-95" title="تۆمارکردنی مامەڵەی نوێ (Alt+N)">
+                       class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg transition flex items-center gap-2 active:scale-95" title="تۆمارکردنی مامەڵەی نوێ (Alt+N)">
                         <i class="fa-solid fa-plus text-xs"></i>
                         <span>تۆمارکردنی مامەڵەی نوێ</span>
                     </a>
@@ -88,33 +88,33 @@
             </div>
         </div>
 
-        <!-- Integrated Barcode Search & Fast Scanner -->
-        <div class="relative z-10 pt-3 border-t border-slate-800/80">
-            <form action="{{ route('transactions.scan') }}" method="POST" class="max-w-2xl mx-auto relative group">
+        <!-- Integrated Barcode Search & Fast Scanner (Prominent, High, & Sleek) -->
+        <div class="relative z-10 pt-2 border-t border-slate-800/80">
+            <form action="{{ route('transactions.scan') }}" method="POST" class="max-w-3xl mx-auto relative group">
                 @csrf
-                <div class="relative flex items-center bg-slate-950 rounded-2xl border border-sky-500/50 hover:border-sky-400 focus-within:border-sky-300 focus-within:ring-2 focus-within:ring-sky-500/30 transition shadow-lg">
+                <div class="relative flex items-center bg-slate-950 rounded-2xl border-2 border-sky-500/60 hover:border-sky-400 focus-within:border-sky-300 focus-within:ring-4 focus-within:ring-sky-500/25 transition shadow-2xl">
                     <!-- Scanner Icon -->
-                    <div class="absolute right-3.5 text-sky-400 pointer-events-none">
-                        <i class="fa-solid fa-barcode text-lg"></i>
+                    <div class="absolute right-4 text-sky-400 pointer-events-none">
+                        <i class="fa-solid fa-barcode text-xl"></i>
                     </div>
 
                     <input type="text" 
                            name="barcode" 
                            id="dashBarcodeInput" 
                            placeholder="بارکۆدی ١٠ ڕەقەمی بنووسە یان سکانی بکە... (F2)" 
-                           class="w-full bg-transparent text-white placeholder-slate-500 text-sm font-mono font-black pr-12 pl-28 py-2.5 sm:py-3 focus:outline-none text-right tracking-wider"
+                           class="w-full bg-transparent text-white placeholder-slate-500 text-base sm:text-lg font-mono font-black pr-14 pl-32 py-3.5 sm:py-4 focus:outline-none text-right tracking-wider"
                            autocomplete="off"
                            autofocus
                            title="لێرە بارکۆد لێبدە یان بە ئامێری سکانەر لێیبدە (F2)">
 
                     <!-- Left Action Buttons -->
-                    <div class="absolute left-2 flex items-center gap-1.5">
-                        <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-bold text-slate-400 bg-slate-800 border border-slate-700 rounded-md" title="داگرتنی F2 بۆ فۆکەس">
+                    <div class="absolute left-2.5 flex items-center gap-2">
+                        <kbd class="hidden sm:inline-flex items-center px-2 py-1 text-xs font-mono font-bold text-slate-400 bg-slate-800/90 border border-slate-700 rounded-lg shadow-sm" title="داگرتنی F2 بۆ فۆکەس">
                             F2
                         </kbd>
                         <button type="submit" 
-                                class="px-4 py-1.5 sm:py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center gap-1.5 active:scale-95 cursor-pointer">
-                            <i class="fa-solid fa-arrow-left text-[11px]"></i>
+                                class="px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-sky-500/30 transition flex items-center gap-2 active:scale-95 cursor-pointer">
+                            <i class="fa-solid fa-arrow-left text-xs"></i>
                             <span>گەڕان</span>
                         </button>
                     </div>
