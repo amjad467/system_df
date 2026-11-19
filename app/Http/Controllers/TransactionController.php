@@ -124,10 +124,14 @@ class TransactionController extends Controller
                 $q->where('transaction_type_id', $request->transaction_type_id);
             }
 
-            // ٤. گەڕانی دەقی خێرا
+            // ٤. گەڕانی دەقی خێرا (بە هەردوو شێوازی ئاسایی و بێ سپەیس/پێشگر)
             if ($request->filled('search')) {
                 $search = trim($request->search);
-                $q->where(function($sq) use ($search) {
+                $digitMap = ['۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9','٠'=>'0','١'=>'1','٢'=>'2','٣'=>'3','٤'=>'4','٥'=>'5','٦'=>'6','٧'=>'7','٨'=>'8','٩'=>'9'];
+                $cleanedSearch = strtr(preg_replace('/[\s\-\_\/]+/', '', $search), $digitMap);
+                $cleanSearchUpper = strtoupper($cleanedSearch);
+
+                $q->where(function($sq) use ($search, $cleanedSearch, $cleanSearchUpper) {
                     $sq->where('barcode', 'like', "%{$search}%")
                       ->orWhere('visitor_name', 'like', "%{$search}%")
                       ->orWhere('visitor_name_eng', 'like', "%{$search}%")
@@ -141,6 +145,13 @@ class TransactionController extends Controller
                       ->orWhere('salana_number', 'like', "%{$search}%")
                       ->orWhere('no_nusraw_mrur', 'like', "%{$search}%")
                       ->orWhere('no_nusraw_gumrg', 'like', "%{$search}%");
+
+                    if (!empty($cleanSearchUpper) && $cleanSearchUpper !== $search) {
+                        $sq->orWhere('plate_number', 'like', "%{$cleanSearchUpper}%")
+                          ->orWhere('chassis_number', 'like', "%{$cleanSearchUpper}%")
+                          ->orWhere('booklet_number', 'like', "%{$cleanSearchUpper}%")
+                          ->orWhere('phone_number', 'like', "%{$cleanedSearch}%");
+                    }
                 });
             }
         };
@@ -352,6 +363,15 @@ class TransactionController extends Controller
     public function lookupPreviousApi(Request $request)
     {
         $chassis = trim($request->get('chassis_number', ''));
+        $plate = trim($request->get('plate_number', ''));
+        $booklet = trim($request->get('booklet_number', ''));
+        $phone = trim($request->get('phone_number', ''));
+        $query = trim($request->get('query', ''));
+
+        $record = null;
+        $searchField = null;
+
+        // ١. گەڕان بەپێی ژمارەی شاسی (Chassis VIN)
         if (!empty($chassis) && strlen($chassis) >= 3) {
             $chassisClean = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $chassis));
             $record = Transaction::with(['transactionType', 'plateType', 'carMake', 'carColor', 'trafficDirectorate'])
@@ -364,30 +384,117 @@ class TransactionController extends Controller
                 })
                 ->latest('id')
                 ->first();
+            if ($record) $searchField = 'chassis';
+        }
 
-            // Check if there is an active booklet (Type 1) for this chassis that hasn't been cancelled
-            $activeBooklet = Transaction::where(function($q) use ($chassis, $chassisClean) {
-                $q->whereRaw("UPPER(REPLACE(REPLACE(chassis_number, ' ', ''), '-', '')) = ?", [$chassisClean])
-                  ->orWhere('chassis_number', $chassis);
-            })
-            ->where('transaction_type_id', 1)
-            ->where(function($q) {
-                $q->whereNull('cancelled_at');
-                if (\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'is_cancelled')) {
-                    $q->where('is_cancelled', false);
-                }
-            })
-            ->latest('id')
-            ->first();
+        // ٢. گەڕان بەپێی ژمارەی تابلۆی ئۆتۆمبێل (Plate Number)
+        if (!$record && !empty($plate) && strlen($plate) >= 3) {
+            $cleanPlate = strtoupper(preg_replace('/[\s\-\_\/]+/', '', $plate));
+            $cleanPlate = strtr($cleanPlate, [
+                '٠'=>'0', '١'=>'1', '٢'=>'2', '٣'=>'3', '٤'=>'4',
+                '٥'=>'5', '٦'=>'6', '٧'=>'7', '٨'=>'8', '٩'=>'9',
+                '۰'=>'0', '۱'=>'1', '۲'=>'2', '۳'=>'3', '۴'=>'4',
+                '۵'=>'5', '۶'=>'6', '۷'=>'7', '۸'=>'8', '۹'=>'9',
+            ]);
+            $record = Transaction::with(['transactionType', 'plateType', 'carMake', 'carColor', 'trafficDirectorate'])
+                ->where(function($q) use ($plate, $cleanPlate) {
+                    $q->whereRaw("UPPER(REPLACE(plate_number, ' ', '')) = ?", [$cleanPlate])
+                      ->orWhere('plate_number', $plate)
+                      ->orWhere('plate_number', 'like', "%{$cleanPlate}%");
+                })
+                ->latest('id')
+                ->first();
+            if ($record) $searchField = 'plate';
+        }
+
+        // ٣. گەڕان بەپێی ژمارەی دەفتەر (Booklet Number)
+        if (!$record && !empty($booklet) && strlen($booklet) >= 3) {
+            $cleanBooklet = preg_replace('/[\s\-]+/', '', $booklet);
+            $cleanBooklet = strtr($cleanBooklet, [
+                '٠'=>'0', '١'=>'1', '٢'=>'2', '٣'=>'3', '٤'=>'4',
+                '٥'=>'5', '٦'=>'6', '٧'=>'7', '٨'=>'8', '٩'=>'9',
+                '۰'=>'0', '۱'=>'1', '۲'=>'2', '۳'=>'3', '۴'=>'4',
+                '۵'=>'5', '۶'=>'6', '۷'=>'7', '۸'=>'8', '۹'=>'9',
+            ]);
+            $record = Transaction::with(['transactionType', 'plateType', 'carMake', 'carColor', 'trafficDirectorate'])
+                ->where('booklet_number', $cleanBooklet)
+                ->orWhere('booklet_number', $booklet)
+                ->latest('id')
+                ->first();
+            if ($record) $searchField = 'booklet';
+        }
+
+        // ٤. گەڕان بەپێی ژمارەی مۆبایل (Phone Number)
+        if (!$record && !empty($phone) && strlen($phone) >= 6) {
+            $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+            $cleanPhone = strtr($cleanPhone, [
+                '٠'=>'0', '١'=>'1', '٢'=>'2', '٣'=>'3', '٤'=>'4',
+                '٥'=>'5', '٦'=>'6', '٧'=>'7', '٨'=>'8', '٩'=>'9',
+                '۰'=>'0', '۱'=>'1', '۲'=>'2', '۳'=>'3', '۴'=>'4',
+                '۵'=>'5', '۶'=>'6', '۷'=>'7', '۸'=>'8', '۹'=>'9',
+            ]);
+            $record = Transaction::with(['transactionType', 'plateType', 'carMake', 'carColor', 'trafficDirectorate'])
+                ->where(function($q) use ($phone, $cleanPhone) {
+                    $q->whereRaw("REPLACE(REPLACE(phone_number, ' ', ''), '-', '') like ?", ["%{$cleanPhone}%"])
+                      ->orWhere('phone_number', 'like', "%{$phone}%");
+                })
+                ->latest('id')
+                ->first();
+            if ($record) $searchField = 'phone';
+        }
+
+        // ٥. گەڕانی گشتی فرە-فێڵد (لە سەرجەم ٤ فێڵدەکەدا بە جارێک)
+        if (!$record && !empty($query) && strlen($query) >= 2) {
+            $cleanQuery = strtoupper(preg_replace('/[\s\-\_\/]+/', '', $query));
+            $cleanQuery = strtr($cleanQuery, [
+                '٠'=>'0', '١'=>'1', '٢'=>'2', '٣'=>'3', '٤'=>'4',
+                '٥'=>'5', '٦'=>'6', '٧'=>'7', '٨'=>'8', '٩'=>'9',
+                '۰'=>'0', '۱'=>'1', '۲'=>'2', '۳'=>'3', '۴'=>'4',
+                '۵'=>'5', '۶'=>'6', '۷'=>'7', '۸'=>'8', '۹'=>'9',
+            ]);
+
+            $record = Transaction::with(['transactionType', 'plateType', 'carMake', 'carColor', 'trafficDirectorate'])
+                ->where(function($q) use ($query, $cleanQuery) {
+                    $q->where('chassis_number', 'like', "%{$cleanQuery}%")
+                      ->orWhere('plate_number', 'like', "%{$cleanQuery}%")
+                      ->orWhere('booklet_number', 'like', "%{$cleanQuery}%")
+                      ->orWhere('phone_number', 'like', "%{$cleanQuery}%")
+                      ->orWhere('barcode', $query)
+                      ->orWhere('visitor_name', 'like', "%{$query}%");
+                })
+                ->latest('id')
+                ->first();
+            if ($record) $searchField = 'query';
+        }
+
+        if ($record) {
+            // پشکنینی دەفتەری پووچەڵنەکراوەی پێشوو (Active Uncancelled Booklet)
+            $activeBooklet = null;
+            if (!empty($record->chassis_number)) {
+                $chassisClean = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $record->chassis_number));
+                $activeBooklet = Transaction::where(function($q) use ($record, $chassisClean) {
+                    $q->whereRaw("UPPER(REPLACE(REPLACE(chassis_number, ' ', ''), '-', '')) = ?", [$chassisClean])
+                      ->orWhere('chassis_number', $record->chassis_number);
+                })
+                ->where('transaction_type_id', 1)
+                ->where(function($q) {
+                    $q->whereNull('cancelled_at');
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'is_cancelled')) {
+                        $q->where('is_cancelled', false);
+                    }
+                })
+                ->latest('id')
+                ->first();
+            }
 
             $hasActiveBooklet = false;
             $activeBookletData = null;
 
             if ($activeBooklet) {
-                // Check if there's any subsequent cancellation transaction (Type 5)
-                $isCancelledByLaterTx = Transaction::where(function($q) use ($chassis, $chassisClean) {
+                $chassisClean = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $record->chassis_number));
+                $isCancelledByLaterTx = Transaction::where(function($q) use ($record, $chassisClean) {
                     $q->whereRaw("UPPER(REPLACE(REPLACE(chassis_number, ' ', ''), '-', '')) = ?", [$chassisClean])
-                      ->orWhere('chassis_number', $chassis);
+                      ->orWhere('chassis_number', $record->chassis_number);
                 })
                 ->where('transaction_type_id', 5)
                 ->where('id', '>', $activeBooklet->id)
@@ -405,18 +512,16 @@ class TransactionController extends Controller
                 }
             }
 
-            $formatted = null;
-            if ($record) {
-                $formatted = $record->toArray();
-                $formatted['car_make_kurdish'] = $record->carMake?->name_kurdish ?? '';
-                $formatted['car_make_english'] = $record->carMake?->name_english ?? '';
-                $formatted['car_color_kurdish'] = $record->carColor?->name_kurdish ?? '';
-                $formatted['car_color_english'] = $record->carColor?->name_english ?? '';
-                $formatted['clean_plate_type'] = $record->plateType?->clean_kurdish_name ?? '';
-            }
+            $formatted = $record->toArray();
+            $formatted['car_make_kurdish'] = $record->carMake?->name_kurdish ?? '';
+            $formatted['car_make_english'] = $record->carMake?->name_english ?? '';
+            $formatted['car_color_kurdish'] = $record->carColor?->name_kurdish ?? '';
+            $formatted['car_color_english'] = $record->carColor?->name_english ?? '';
+            $formatted['clean_plate_type'] = $record->plateType?->clean_kurdish_name ?? '';
 
             return response()->json([
-                'found' => (bool)$record,
+                'found' => true,
+                'search_field' => $searchField,
                 'record' => $formatted,
                 'has_active_booklet' => $hasActiveBooklet,
                 'active_booklet' => $activeBookletData,
@@ -424,28 +529,14 @@ class TransactionController extends Controller
             ]);
         }
 
-        $query = trim($request->get('query', ''));
-        if (empty($query) || strlen($query) < 2) {
-            return response()->json([]);
-        }
-
-        $results = Transaction::with(['transactionType', 'plateType', 'carMake', 'carColor', 'trafficDirectorate'])
-            ->where(function($q) use ($query) {
-                $q->where('plate_number', 'like', "%{$query}%")
-                  ->orWhere('chassis_number', 'like', "%{$query}%")
-                  ->orWhere('barcode', 'like', "%{$query}%")
-                  ->orWhere('visitor_name', 'like', "%{$query}%")
-                  ->orWhere('second_driver_name', 'like', "%{$query}%")
-                  ->orWhere('phone_number', 'like', "%{$query}%")
-                  ->orWhere('passport_number', 'like', "%{$query}%")
-                  ->orWhere('salana_number', 'like', "%{$query}%")
-                  ->orWhere('booklet_number', 'like', "%{$query}%");
-            })
-            ->latest()
-            ->limit(10)
-            ->get();
-
-        return response()->json($results);
+        return response()->json([
+            'found' => false,
+            'search_field' => null,
+            'record' => null,
+            'has_active_booklet' => false,
+            'active_booklet' => null,
+            'active_booklet_warning' => null,
+        ]);
     }
 
     public function expiredBookletsReport(Request $request)
@@ -585,6 +676,32 @@ class TransactionController extends Controller
     {
         if (!auth()->user()->hasPermission('transactions.create')) {
             return redirect()->route('dashboard')->with('error', 'دەسەڵاتی تۆمارکردنی مامەڵەی نوێت نییە بەپێی پێرمشنەکان!');
+        }
+
+        // ڕێکخستنی زیرەکانەی ژمارەی تابلۆ: لابردنی هەموو سپەیس و دانانی پێشگری پارێزگاکان (21 بۆ سلێمانی، 22 بۆ هەولێر، 23 بۆ هەڵەبجە، 24 بۆ دهۆک)
+        if ($request->filled('plate_number')) {
+            $cleanPlate = preg_replace('/[\s\-\_\/]+/', '', trim($request->plate_number));
+            $cleanPlate = strtr($cleanPlate, [
+                '٠'=>'0', '١'=>'1', '٢'=>'2', '٣'=>'3', '٤'=>'4',
+                '٥'=>'5', '٦'=>'6', '٧'=>'7', '٨'=>'8', '٩'=>'9',
+                '۰'=>'0', '۱'=>'1', '۲'=>'2', '۳'=>'3', '۴'=>'4',
+                '۵'=>'5', '۶'=>'6', '۷'=>'7', '۸'=>'8', '۹'=>'9',
+            ]);
+            $cleanPlate = strtoupper($cleanPlate);
+
+            $prefixMap = [
+                2 => '21', // Sulaimaniyah
+                1 => '22', // Erbil
+                4 => '23', // Halabja
+                3 => '24', // Duhok
+            ];
+            $dirId = (int)$request->traffic_directorate_id;
+            if (isset($prefixMap[$dirId])) {
+                if (!preg_match('/^(21|22|23|24)/', $cleanPlate)) {
+                    $cleanPlate = $prefixMap[$dirId] . $cleanPlate;
+                }
+            }
+            $request->merge(['plate_number' => $cleanPlate]);
         }
 
         $validated = $request->validate([
@@ -832,6 +949,32 @@ class TransactionController extends Controller
         if (!$transaction->canBeEditedByUser($user)) {
             return redirect()->route('transactions.show', $transaction->id)
                 ->with('error', 'دەستکاریکردنی ئەم مامەڵەیە لەم قۆناغەدا قوفڵ کراوە چونکە قۆناغی دوای خۆی بۆ ئەنجامدراوە.');
+        }
+
+        // ڕێکخستنی زیرەکانەی ژمارەی تابلۆ: لابردنی هەموو سپەیس و دانانی پێشگری پارێزگاکان (21 بۆ سلێمانی، 22 بۆ هەولێر، 23 بۆ هەڵەبجە، 24 بۆ دهۆک)
+        if ($request->filled('plate_number')) {
+            $cleanPlate = preg_replace('/[\s\-\_\/]+/', '', trim($request->plate_number));
+            $cleanPlate = strtr($cleanPlate, [
+                '٠'=>'0', '١'=>'1', '٢'=>'2', '٣'=>'3', '٤'=>'4',
+                '٥'=>'5', '٦'=>'6', '٧'=>'7', '٨'=>'8', '٩'=>'9',
+                '۰'=>'0', '۱'=>'1', '۲'=>'2', '۳'=>'3', '۴'=>'4',
+                '۵'=>'5', '۶'=>'6', '۷'=>'7', '۸'=>'8', '۹'=>'9',
+            ]);
+            $cleanPlate = strtoupper($cleanPlate);
+
+            $prefixMap = [
+                2 => '21', // Sulaimaniyah
+                1 => '22', // Erbil
+                4 => '23', // Halabja
+                3 => '24', // Duhok
+            ];
+            $dirId = (int)$request->traffic_directorate_id;
+            if (isset($prefixMap[$dirId])) {
+                if (!preg_match('/^(21|22|23|24)/', $cleanPlate)) {
+                    $cleanPlate = $prefixMap[$dirId] . $cleanPlate;
+                }
+            }
+            $request->merge(['plate_number' => $cleanPlate]);
         }
 
         $validated = $request->validate([

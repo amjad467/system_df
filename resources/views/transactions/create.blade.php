@@ -313,6 +313,34 @@
                     <span class="text-[10px] text-slate-400 font-mono">VIN & Plate</span>
                 </div>
 
+                <!-- QUICK LEGACY DATA SEARCH (CHASSIS, PLATE, BOOKLET, PHONE) -->
+                <div class="p-2.5 bg-gradient-to-r from-sky-50 dark:from-sky-950/40 via-indigo-50 dark:via-indigo-950/40 to-slate-50 dark:to-slate-900 border border-sky-400/40 dark:border-sky-500/30 rounded-xl space-y-1.5 shadow-xs">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[11px] font-black text-sky-800 dark:text-sky-300 flex items-center gap-1">
+                            <i class="fa-solid fa-bolt text-amber-500"></i>
+                            <span>سێرچی خێرای داتای کۆن و پێشوو:</span>
+                        </label>
+                        <span class="text-[9px] text-slate-500 dark:text-slate-400 font-mono">شاسی • تابلۆ • دەفتەر • مۆبایل</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <div class="relative flex-1">
+                            <input type="text" 
+                                   x-model="legacySearchQuery" 
+                                   @keydown.enter.prevent="searchLegacyData(legacySearchQuery)"
+                                   placeholder="شاسی، تابلۆ (21A...)، دەفتەر یان مۆبایل..."
+                                   class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg pr-7 pl-2 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono font-bold focus:border-sky-500 focus:outline-none">
+                            <i class="fa-solid fa-magnifying-glass absolute right-2 top-2 text-slate-400 text-xs"></i>
+                        </div>
+                        <button type="button" 
+                                @click="searchLegacyData(legacySearchQuery)" 
+                                class="px-3 py-1.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1 whitespace-nowrap shadow-xs cursor-pointer active:scale-95">
+                            <i class="fa-solid fa-download text-[10px]"></i>
+                            <span>هێنانەوە</span>
+                        </button>
+                    </div>
+                    <div x-show="legacySearchMsg" x-cloak class="text-[10px] font-bold transition" :class="chassisFound ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'" x-text="legacySearchMsg"></div>
+                </div>
+
                 <!-- CHASSIS NUMBER (SPOTLIGHT WITH INSTANT LOOKUP) -->
                 <div class="p-2.5 bg-slate-50 dark:bg-slate-950/80 border-2 rounded-xl space-y-1.5 transition"
                      :class="missingField === 'chassisNumber' ? 'border-rose-500 ring-2 ring-rose-500/30' : (chassisFound ? 'border-emerald-500/60' : 'border-sky-500/40')">
@@ -410,9 +438,11 @@
                                id="input_plateNumber"
                                name="plate_number" 
                                x-model="plateNumber" 
-                               @input="onPlateInput($event.target.value)"
+                               @input="onPlateInput($event)"
+                               @blur="formatAndLookupPlate()"
+                               @keydown.enter.prevent="formatAndLookupPlate(); focusNext('plateTypeId')"
                                required 
-                               placeholder="مثلاً: 21 A 12345" 
+                               placeholder="مثلاً: 21A12345" 
                                dir="ltr"
                                :class="missingField === 'plateNumber' ? 'border-rose-500 ring-2 ring-rose-500/30' : 'border-slate-300 dark:border-slate-700'"
                                class="w-full bg-white dark:bg-slate-950 border focus:border-sky-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono font-bold tracking-wider transition">
@@ -605,6 +635,7 @@
                            id="input_phoneNumber"
                            name="phone_number" 
                            x-model="phoneNumber" 
+                           @blur="onPhoneBlur()"
                            required 
                            placeholder="0770 123 4567" 
                            dir="ltr" 
@@ -683,6 +714,7 @@
                     </div>
                     <select name="traffic_directorate_id" 
                             x-model="directorateId" 
+                            @change="onDirectorateChange()"
                             class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none">
                         @foreach($directorates as $dir)
                             <option value="{{ $dir->id }}">{{ $dir->name_kurdish }}</option>
@@ -906,6 +938,8 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
         hasActiveBooklet: false,
         activeBooklet: null,
         _chassisTimer: null,
+        legacySearchQuery: '',
+        legacySearchMsg: '',
 
         // Validation & Missing Field Indicator
         validationError: '',
@@ -945,30 +979,96 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             this.calculateFees();
         },
 
-        onPlateInput(val) {
-            if (!val) {
+        onPlateInput(e) {
+            let val = (e && e.target ? e.target.value : e) || '';
+            // لابردنی هەموو سپەیسێک بە شێوەی خۆکار لە کاتی تایپکردندا
+            let clean = String(val).replace(/\s+/g, '');
+            // گۆڕینی ژمارەی کوردی و عەرەبی بۆ ئینگلیزی و گەورەکردنی پیتەکان
+            clean = clean
+                .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+                .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+                .toUpperCase();
+
+            this.plateNumber = clean;
+            if (e && e.target && e.target.value !== clean) {
+                e.target.value = clean;
+            }
+
+            if (!clean) {
                 this.detectedDirectorateName = '';
                 return;
             }
-            // Normalize Kurdish/Arabic-Indic digits to ASCII (e.g. ٢١ -> 21)
-            const norm = String(val).trim()
-                .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
-                .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
 
-            if (norm.startsWith('21') && this.codeMap['21']) {
-                this.directorateId = this.codeMap['21'];
+            // ناسینەوەی خۆکاری پارێزگا بەپێی کۆدی دەستپێک
+            if (clean.startsWith('21')) {
+                if (this.codeMap['21']) this.directorateId = this.codeMap['21'];
                 this.detectedDirectorateName = 'هاتووچۆی سلێمانی (21)';
-            } else if (norm.startsWith('22') && this.codeMap['22']) {
-                this.directorateId = this.codeMap['22'];
+            } else if (clean.startsWith('22')) {
+                if (this.codeMap['22']) this.directorateId = this.codeMap['22'];
                 this.detectedDirectorateName = 'هاتووچۆی هەولێر (22)';
-            } else if (norm.startsWith('23') && this.codeMap['23']) {
-                this.directorateId = this.codeMap['23'];
+            } else if (clean.startsWith('23')) {
+                if (this.codeMap['23']) this.directorateId = this.codeMap['23'];
                 this.detectedDirectorateName = 'هاتووچۆی هەڵەبجە (23)';
-            } else if (norm.startsWith('24') && this.codeMap['24']) {
-                this.directorateId = this.codeMap['24'];
+            } else if (clean.startsWith('24')) {
+                if (this.codeMap['24']) this.directorateId = this.codeMap['24'];
                 this.detectedDirectorateName = 'هاتووچۆی دهۆک (24)';
             } else {
                 this.detectedDirectorateName = '';
+            }
+        },
+
+        formatAndLookupPlate() {
+            if (!this.plateNumber) return;
+            let clean = String(this.plateNumber).replace(/\s+/g, '').toUpperCase();
+            clean = clean
+                .replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d))
+                .replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+
+            // ئەگەر کۆدی پارێزگای پێوە نەبوو، بەپێی بەڕێوەبەرایەتییە هەڵبژێردراوەکە پێشگری بۆ دادەنێت
+            const dirMap = {
+                '2': '21', // Sulaimaniyah
+                '1': '22', // Erbil
+                '4': '23', // Halabja
+                '3': '24', // Duhok
+            };
+            const prefix = dirMap[String(this.directorateId)];
+            if (prefix && !clean.match(/^(21|22|23|24)/)) {
+                clean = prefix + clean;
+            }
+            this.plateNumber = clean;
+            this.onPlateInput(clean);
+
+            // گەڕان لە داتای پێشوو بەپێی تابلۆ
+            if (!this.chassisFound) {
+                this.searchLegacyData(this.plateNumber, 'plate_number');
+            }
+        },
+
+        onDirectorateChange() {
+            if (!this.plateNumber) return;
+            let clean = String(this.plateNumber).replace(/\s+/g, '').toUpperCase();
+            const dirMap = {
+                '2': '21', // Sulaimaniyah
+                '1': '22', // Erbil
+                '4': '23', // Halabja
+                '3': '24', // Duhok
+            };
+            const prefix = dirMap[String(this.directorateId)];
+            if (prefix) {
+                if (clean.match(/^(21|22|23|24)/)) {
+                    clean = prefix + clean.substring(2);
+                } else {
+                    clean = prefix + clean;
+                }
+                this.plateNumber = clean;
+                this.onPlateInput(clean);
+            }
+        },
+
+        onPhoneBlur() {
+            if (!this.phoneNumber) return;
+            if (!this.chassisFound && !this.visitorName) {
+                this.searchLegacyData(this.phoneNumber, 'phone_number');
             }
         },
 
@@ -1034,16 +1134,18 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
 
         lookupByChassis() {
             const clean = (this.chassisNumber || '').trim();
-            if (clean.length < 3) {
-                this.chassisFound = false;
-                this.chassisPreviousInfo = null;
-                this.hasActiveBooklet = false;
-                this.activeBooklet = null;
-                return;
-            }
+            if (clean.length < 3) return;
+            this.searchLegacyData(clean, 'chassis_number');
+        },
+
+        searchLegacyData(val, field = 'query') {
+            const clean = String(val || '').trim();
+            if (clean.length < 2) return;
 
             this.isCheckingChassis = true;
-            fetch(`/transactions/api/lookup-previous?chassis_number=${encodeURIComponent(clean)}`)
+            this.legacySearchMsg = 'پشکنینی داتای کۆن و پێشوو...';
+
+            fetch(`/transactions/api/lookup-previous?${field}=${encodeURIComponent(clean)}`)
                 .then(res => res.json())
                 .then(data => {
                     this.isCheckingChassis = false;
@@ -1057,19 +1159,27 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
                     if (data && data.found && data.record) {
                         this.chassisFound = true;
                         this.chassisPreviousInfo = data.record;
+                        this.legacySearchMsg = 'زانیاری پێشوو دۆزرایەوە بەپێی: ' + (data.search_field || field);
                         this.populateFromPrevious(data.record);
                     } else {
-                        this.chassisFound = false;
-                        this.chassisPreviousInfo = null;
+                        if (field === 'query') {
+                            this.legacySearchMsg = 'هیچ تۆمارێکی پێشوو نەدۆزرایەوە بەم زانیارییە.';
+                        } else {
+                            this.legacySearchMsg = '';
+                        }
                     }
                 })
                 .catch(() => {
                     this.isCheckingChassis = false;
+                    this.legacySearchMsg = '';
                 });
         },
 
         populateFromPrevious(record) {
             this.parentTransactionId = record.id;
+            if (record.chassis_number) {
+                this.chassisNumber = record.chassis_number;
+            }
             this.visitorName = record.visitor_name || '';
             this.visitorNameEng = record.visitor_name_eng || '';
             this.phoneNumber = record.phone_number || '';
@@ -1111,6 +1221,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             this.parentTransactionId = '';
             this.hasActiveBooklet = false;
             this.activeBooklet = null;
+            this.legacySearchMsg = '';
         },
 
         onKurdishInput(e, field) {
