@@ -83,8 +83,9 @@ class SettingsController extends Controller
         $transactionTypes = TransactionType::all();
         $directorates = \App\Models\TrafficDirectorate::all();
         $directors = \App\Models\Director::all();
+        $passportIssuePlaces = \App\Models\PassportIssuePlace::orderBy('name')->get();
 
-        return view('settings.lookups', compact('transactionTypes', 'directorates', 'directors'));
+        return view('settings.lookups', compact('transactionTypes', 'directorates', 'directors', 'passportIssuePlaces'));
     }
 
     /**

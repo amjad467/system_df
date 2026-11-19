@@ -356,7 +356,11 @@ class LookupController extends Controller
         Cache::forget('all_passport_issue_places');
         AuditLogger::log('زیادکردنی شوێنی دەرچوونی پاسپۆرت', \App\Models\PassportIssuePlace::class, $item->id, $item->name);
 
-        return response()->json(['success' => true, 'item' => $item]);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'item' => $item]);
+        }
+
+        return redirect()->back()->with('success', "شوێنی دەرچوونی نوێ [{$item->name}] بە سەرکەوتوویی زیادکرا.");
     }
 
     public function updatePassportIssuePlace(Request $request, \App\Models\PassportIssuePlace $passportIssuePlace)

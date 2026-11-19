@@ -31,6 +31,13 @@
         ];
     })->values();
 
+    $passportPlacesList = ($passportIssuePlaces ?? collect())->map(function($p) {
+        return [
+            'id' => $p->id,
+            'name' => $p->name,
+        ];
+    })->values();
+
     $typeStyles = [
         1 => [
             'icon' => 'fa-book-bookmark',
@@ -185,7 +192,8 @@
         {{ \Illuminate\Support\Js::from($txRates) }},
         {{ \Illuminate\Support\Js::from($makesList) }},
         {{ \Illuminate\Support\Js::from($colorsList) }},
-        {{ \Illuminate\Support\Js::from($directorateCodeMap) }}
+        {{ \Illuminate\Support\Js::from($directorateCodeMap) }},
+        {{ \Illuminate\Support\Js::from($passportPlacesList) }}
      )" 
      @keydown.window.alt.s.prevent="submitForm()"
      class="max-w-7xl mx-auto space-y-4 pb-12 text-slate-800 dark:text-slate-100">
@@ -656,12 +664,23 @@
                     </div>
 
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">شوێنی دەرچوون</label>
-                        <input type="text" 
-                               name="passport_issue_place" 
-                               x-model="passportIssuePlace" 
-                               placeholder="سلێمانی، هەولێر..." 
-                               class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300">شوێنی دەرچوون</label>
+                            <button type="button" 
+                                    @click="showPassportPlaceModal = true" 
+                                    class="text-[10px] text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-bold flex items-center gap-1 transition cursor-pointer">
+                                <i class="fa-solid fa-plus-circle"></i>
+                                <span>زیادکردن</span>
+                            </button>
+                        </div>
+                        <select name="passport_issue_place" 
+                                x-model="passportIssuePlace" 
+                                class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 focus:border-sky-500 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold transition focus:outline-none">
+                            <option value="">-- هەڵبژاردنی شوێن --</option>
+                            <template x-for="p in passportPlaces" :key="p.id">
+                                <option :value="p.name" :selected="passportIssuePlace == p.name" x-text="p.name"></option>
+                            </template>
+                        </select>
                     </div>
                 </div>
 
@@ -880,10 +899,86 @@
             </div>
         </div>
     </div>
+
+    <!-- INLINE MODAL: Manage & Add Passport Issue Place -->
+    <div x-show="showPassportPlaceModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="modal-interactive bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-map-location-dot text-sky-500"></i>
+                    <span>بەڕێوەبردن و زیادکردنی شوێنی دەرچوونی پاسپۆرت</span>
+                </h3>
+                <button type="button" @click="showPassportPlaceModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Existing Places List with Edit & Delete -->
+            <div class="overflow-y-auto flex-1 space-y-2 max-h-56 border border-slate-200 dark:border-slate-800 rounded-xl p-2">
+                <table class="w-full text-right text-xs">
+                    <thead class="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                        <tr>
+                            <th class="p-2">#</th>
+                            <th class="p-2">ناوی شوێن / پارێزگا</th>
+                            <th class="p-2 text-center">پاشەکەوت</th>
+                            <th class="p-2 text-center">سڕینەوە</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <template x-for="(place, idx) in passportPlaces" :key="place.id">
+                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                <td class="p-2 font-mono text-slate-400" x-text="idx + 1"></td>
+                                <td class="p-2">
+                                    <input type="text" 
+                                           :id="'place_input_create_' + place.id"
+                                           :value="place.name" 
+                                           class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded px-2.5 py-1 text-xs w-full text-slate-900 dark:text-white font-bold focus:border-sky-500 focus:outline-none">
+                                </td>
+                                <td class="p-2 text-center">
+                                    <button type="button" 
+                                            @click="updatePassportPlace(place.id, document.getElementById('place_input_create_' + place.id).value)" 
+                                            class="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-[11px] font-bold transition">
+                                        پاشەکەوت
+                                    </button>
+                                </td>
+                                <td class="p-2 text-center">
+                                    <button type="button" 
+                                            @click="deletePassportPlace(place.id, place.name)" 
+                                            class="px-2.5 py-1 bg-rose-600/80 hover:bg-rose-600 text-white rounded text-[11px] font-bold transition" 
+                                            title="سڕینەوە">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Form to Add New Place -->
+            <div class="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                <h4 class="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1">
+                    <i class="fa-solid fa-plus-circle"></i> زیادکردنی شوێنی نوێ
+                </h4>
+                <div class="flex gap-2">
+                    <input type="text" 
+                           x-model="newPassportPlaceName" 
+                           @keydown.enter.prevent="addPassportPlace()" 
+                           placeholder="ناوی شوێن بنووسە (مثلاً: زاخۆ، سۆران...)" 
+                           class="flex-1 bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-bold focus:border-sky-500 focus:outline-none">
+                    <button type="button" 
+                            @click="addPassportPlace()" 
+                            class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 whitespace-nowrap active:scale-95">
+                        <i class="fa-solid fa-plus"></i> زیادکردن
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, colorsList, dirCodeMap) {
+function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, colorsList, dirCodeMap, passportPlacesList) {
     return {
         typeId: targetTypeId || (initialTx ? initialTx.transaction_type_id : 1),
         parentTransactionId: initialTx ? initialTx.id : '',
@@ -896,7 +991,10 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
         visitorNameEng: initialTx ? (initialTx.visitor_name_eng || '') : '',
         phoneNumber: initialTx ? (initialTx.phone_number || '') : '',
         passportNumber: initialTx ? (initialTx.passport_number || '') : '',
-        passportIssuePlace: initialTx ? (initialTx.passport_issue_place || '') : '',
+        passportIssuePlace: initialTx ? (initialTx.passport_issue_place || '') : 'سلێمانی',
+        passportPlaces: passportPlacesList || [],
+        showPassportPlaceModal: false,
+        newPassportPlaceName: '',
         secondDriverName: initialTx ? (initialTx.second_driver_name || '') : '',
         secondDriverNameEng: initialTx ? (initialTx.second_driver_name_eng || '') : '',
 
@@ -1391,6 +1489,92 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
                 }
             })
             .catch(() => alert('هەڵەی پەیوەندی بە سێرڤەر بۆ زیادکردنی ڕەنگ.'));
+        },
+
+        addPassportPlace() {
+            const name = (this.newPassportPlaceName || '').trim();
+            if (!name) {
+                alert('تکایە ناوی شوێنی دەرچوون بنووسە!');
+                return;
+            }
+            fetch("{{ route('lookup.passport_issue_place') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({ name: name })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.item) {
+                    this.passportPlaces.push(data.item);
+                    this.passportIssuePlace = data.item.name;
+                    this.newPassportPlaceName = '';
+                    this.showPassportPlaceModal = false;
+                } else {
+                    alert(data.message || (data.errors ? Object.values(data.errors).flat().join("\n") : 'هەڵەیەک ڕوویدا لە زیادکردنی شوێن.'));
+                }
+            })
+            .catch(() => alert('هەڵەی پەیوەندی بە سێرڤەر بۆ زیادکردنی شوێنی پاسپۆرت.'));
+        },
+
+        updatePassportPlace(id, newName) {
+            const name = (newName || '').trim();
+            if (!name) {
+                alert('تکایە ناوی شوێن بنووسە!');
+                return;
+            }
+            fetch(`/lookup/passport-issue-place/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({ name: name })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const idx = this.passportPlaces.findIndex(p => p.id === id);
+                    if (idx !== -1) {
+                        const oldName = this.passportPlaces[idx].name;
+                        this.passportPlaces[idx].name = name;
+                        if (this.passportIssuePlace === oldName) {
+                            this.passportIssuePlace = name;
+                        }
+                    }
+                    alert('ناوی شوێن بە سەرکەوتوویی نوێکرایەوە.');
+                } else {
+                    alert(data.message || 'هەڵەیەک ڕوویدا لە دەستکاریکردنی شوێن.');
+                }
+            })
+            .catch(() => alert('هەڵەی پەیوەندی بە سێرڤەر.'));
+        },
+
+        deletePassportPlace(id, name) {
+            if (!confirm(`ئایا دڵنیایت لە سڕینەوەی [${name}]؟`)) return;
+            fetch(`/lookup/passport-issue-place/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    this.passportPlaces = this.passportPlaces.filter(p => p.id !== id);
+                    if (this.passportIssuePlace === name) {
+                        this.passportIssuePlace = '';
+                    }
+                } else {
+                    alert(data.message || 'نەتوانرا بسڕدرێتەوە.');
+                }
+            })
+            .catch(() => alert('هەڵەی پەیوەندی بە سێرڤەر.'));
         }
     };
 }
