@@ -101,7 +101,10 @@ class TransactionController extends Controller
                   ->orWhere('plate_number', 'like', "%{$search}%")
                   ->orWhere('chassis_number', 'like', "%{$search}%")
                   ->orWhere('receipt_37a_number', 'like', "%{$search}%")
-                  ->orWhere('booklet_number', 'like', "%{$search}%");
+                  ->orWhere('booklet_number', 'like', "%{$search}%")
+                  ->orWhere('salana_number', 'like', "%{$search}%")
+                  ->orWhere('no_nusraw_mrur', 'like', "%{$search}%")
+                  ->orWhere('no_nusraw_gumrg', 'like', "%{$search}%");
             });
         }
 
@@ -255,7 +258,10 @@ class TransactionController extends Controller
                   ->orWhere('plate_number', 'like', "%{$search}%")
                   ->orWhere('chassis_number', 'like', "%{$search}%")
                   ->orWhere('receipt_37a_number', 'like', "%{$search}%")
-                  ->orWhere('booklet_number', 'like', "%{$search}%");
+                  ->orWhere('booklet_number', 'like', "%{$search}%")
+                  ->orWhere('salana_number', 'like', "%{$search}%")
+                  ->orWhere('no_nusraw_mrur', 'like', "%{$search}%")
+                  ->orWhere('no_nusraw_gumrg', 'like', "%{$search}%");
             });
         }
 
@@ -503,6 +509,69 @@ class TransactionController extends Controller
             'totalCount',
             'search'
         ));
+    }
+
+    public function unreturnedTrafficLettersReport(Request $request)
+    {
+        $search = $request->get('search');
+        $directorateId = $request->get('directorate_id');
+        $year = $request->get('year');
+
+        $query = Transaction::with(['trafficDirectorate', 'transactionType', 'carMake', 'carColor', 'plateType'])
+            ->where(function($q) {
+                $q->whereNull('no_nusraw_mrur')
+                  ->orWhere('no_nusraw_mrur', '0')
+                  ->orWhere('no_nusraw_mrur', '');
+            });
+
+        if ($directorateId) {
+            $query->where('traffic_directorate_id', $directorateId);
+        }
+
+        if ($year) {
+            $query->whereYear('transaction_date', $year);
+        }
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('plate_number', 'like', "%{$search}%")
+                  ->orWhere('barcode', 'like', "%{$search}%")
+                  ->orWhere('visitor_name', 'like', "%{$search}%")
+                  ->orWhere('phone_number', 'like', "%{$search}%")
+                  ->orWhere('chassis_number', 'like', "%{$search}%")
+                  ->orWhere('no_nusraw_gumrg', 'like', "%{$search}%")
+                  ->orWhere('booklet_number', 'like', "%{$search}%");
+            });
+        }
+
+        $totalUnreturned = (clone $query)->count();
+        $transactions = $query->latest('id')->paginate(30)->withQueryString();
+        $directorates = TrafficDirectorate::all();
+
+        return view('transactions.reports.unreturned_mrur', compact('transactions', 'totalUnreturned', 'directorates', 'search', 'directorateId', 'year'));
+    }
+
+    public function updateTrafficLetter(Request $request, Transaction $transaction)
+    {
+        $validated = $request->validate([
+            'no_nusraw_mrur' => 'required|string|max:100',
+            'date_nusraw_mrur' => 'nullable|date',
+        ]);
+
+        $transaction->update([
+            'no_nusraw_mrur' => trim($validated['no_nusraw_mrur']),
+            'date_nusraw_mrur' => $validated['date_nusraw_mrur'] ?? now()->toDateString(),
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'ژمارەی نووسراوی هاتوچۆ بە سەرکەوتوویی تۆمارکرا.',
+                'no_nusraw_mrur' => $transaction->no_nusraw_mrur,
+            ]);
+        }
+
+        return redirect()->back()->with('success', "ژمارەی نووسراوی هاتوچۆ [{$transaction->no_nusraw_mrur}] بۆ مامەڵەی [{$transaction->barcode}] بە سەرکەوتوویی تۆمارکرا.");
     }
 
     public function store(Request $request)

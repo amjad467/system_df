@@ -49,6 +49,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/transactions/official-prints', [TransactionController::class, 'officialPrintIndex'])->name('transactions.official_prints');
     Route::get('/transactions/trash/bin', [TransactionController::class, 'trashIndex'])->name('transactions.trash');
     Route::get('/transactions/reports/expired-booklets', [TransactionController::class, 'expiredBookletsReport'])->name('transactions.expired_booklets');
+    Route::get('/reports/unreturned-traffic-letters', [TransactionController::class, 'unreturnedTrafficLettersReport'])->name('reports.unreturned_mrur');
+    Route::post('/transactions/{transaction}/update-traffic-letter', [TransactionController::class, 'updateTrafficLetter'])->name('transactions.update_traffic_letter');
     Route::get('/reports/accounting-66', [AccountingReportController::class, 'index'])->name('reports.accounting_66');
     Route::get('/reports/accounting-66/print', [AccountingReportController::class, 'print'])->name('reports.accounting_66.print');
     Route::get('/reports/accounting-66/export', [AccountingReportController::class, 'exportCsv'])->name('reports.accounting_66.export');

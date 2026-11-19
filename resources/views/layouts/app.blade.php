@@ -369,6 +369,15 @@
                                         <span>دەفتەرە بەسەرچووەکان</span>
                                     </a>
                                 @endif
+                                <a href="{{ route('reports.unreturned_mrur') }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('reports.unreturned_mrur*') ? 'bg-amber-500 text-slate-900' : 'text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10' }}">
+                                    <div class="flex items-center gap-2.5">
+                                        <i class="fa-solid fa-file-circle-question w-4 text-center text-amber-500"></i>
+                                        <span>نووسراوە بێ مرورەکان</span>
+                                    </div>
+                                    <span class="text-[10px] bg-amber-500/20 text-amber-600 dark:text-amber-300 px-1.5 py-0.5 rounded-md font-mono font-bold">
+                                        {{ \App\Models\Transaction::where(fn($q) => $q->whereNull('no_nusraw_mrur')->orWhere('no_nusraw_mrur', '0')->orWhere('no_nusraw_mrur', ''))->count() }}
+                                    </span>
+                                </a>
                             </div>
                         </div>
                     @endif
@@ -670,6 +679,11 @@
                             <i class="fa-solid fa-file-invoice-dollar ml-1.5 text-amber-500"></i> محاسبة ٦٦
                         </a>
                     @endif
+
+                    <!-- نووسراوە بێ مرورەکان -->
+                    <a href="{{ route('reports.unreturned_mrur') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-400 dark:border-amber-500/40 text-amber-600 dark:text-amber-300 hover:bg-amber-600 hover:text-white flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-file-circle-question text-amber-500"></i> بێ مرور ({{ \App\Models\Transaction::where(fn($q) => $q->whereNull('no_nusraw_mrur')->orWhere('no_nusraw_mrur', '0')->orWhere('no_nusraw_mrur', ''))->count() }})
+                    </a>
 
                     <!-- مامەڵەی نوێ (Allowed via Permission) -->
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.create')))

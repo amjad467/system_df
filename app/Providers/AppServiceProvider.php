@@ -47,19 +47,37 @@ class AppServiceProvider extends ServiceProvider
 
         // Auto-heal 'is_cancelled' column on transactions table if missing in SQLite/PostgreSQL
         try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('transactions') && !\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'is_cancelled')) {
-                try {
-                    \Illuminate\Support\Facades\DB::statement('ALTER TABLE transactions ADD COLUMN is_cancelled INTEGER NOT NULL DEFAULT 0');
-                } catch (\Throwable $e2) {
-                    \Illuminate\Support\Facades\Schema::table('transactions', function ($table) {
-                        $table->boolean('is_cancelled')->default(false);
-                    });
+            if (\Illuminate\Support\Facades\Schema::hasTable('transactions')) {
+                if (!\Illuminate\Support\Facades\Schema::hasColumn('transactions', 'is_cancelled')) {
+                    try {
+                        \Illuminate\Support\Facades\DB::statement('ALTER TABLE transactions ADD COLUMN is_cancelled INTEGER NOT NULL DEFAULT 0');
+                    } catch (\Throwable $e2) {
+                        \Illuminate\Support\Facades\Schema::table('transactions', function ($table) {
+                            $table->boolean('is_cancelled')->default(false);
+                        });
+                    }
+
+                    // Sync existing cancelled rows
+                    \Illuminate\Support\Facades\DB::table('transactions')
+                        ->whereNotNull('cancelled_at')
+                        ->update(['is_cancelled' => 1]);
                 }
 
-                // Sync existing cancelled rows
-                \Illuminate\Support\Facades\DB::table('transactions')
-                    ->whereNotNull('cancelled_at')
-                    ->update(['is_cancelled' => 1]);
+                // Auto-heal official letters columns if missing
+                $letterColumns = [
+                    'no_nusraw_mrur' => 'TEXT',
+                    'date_nusraw_mrur' => 'TEXT',
+                    'no_nusraw_gumrg' => 'TEXT',
+                    'date_nusraw_gumrg' => 'TEXT',
+                    'no_nusraw_balennama' => 'TEXT',
+                ];
+                foreach ($letterColumns as $col => $type) {
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn('transactions', $col)) {
+                        try {
+                            \Illuminate\Support\Facades\DB::statement("ALTER TABLE transactions ADD COLUMN {$col} {$type} NULL");
+                        } catch (\Throwable $eCol) {}
+                    }
+                }
             }
         } catch (\Throwable $e) {
             // Silently continue if database is not ready during boot
