@@ -298,7 +298,7 @@
                 </div>
 
                 <!-- Fast Barcode Scanner Form (Desktop / Tablet - دیزاینی زۆر دیار و پرۆفشناڵ) -->
-                @if(!request()->routeIs('dashboard'))
+                @if(!request()->routeIs('dashboard') && !request()->routeIs('transactions.index'))
                 <form action="{{ route('transactions.scan') }}" method="POST" class="hidden md:flex items-center relative shrink-0">
                     @csrf
                     <div class="relative flex items-center group">

@@ -55,7 +55,7 @@
 
     <!-- سەرپەڕە و کردارە سەرەکییەکان (Header & Actions) -->
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 bg-slate-900/80 border border-slate-800/80 p-3.5 sm:p-4 rounded-2xl shadow-lg backdrop-blur-md">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 shrink-0">
             <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20 shrink-0">
                 <i class="fa-solid fa-list-check text-lg"></i>
             </div>
@@ -67,7 +67,39 @@
             </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end">
+        <!-- شوێنی نوێی سکانی بارکۆد (Barcode Scanner in Header Banner) -->
+        <div class="w-full md:w-auto flex-1 max-w-md mx-auto md:mx-4">
+            <form action="{{ route('transactions.scan') }}" method="POST" class="relative group">
+                @csrf
+                <div class="relative flex items-center bg-slate-950 rounded-2xl border-2 border-sky-500/60 hover:border-sky-400 focus-within:border-sky-300 focus-within:ring-4 focus-within:ring-sky-500/25 transition shadow-xl">
+                    <div class="absolute right-3.5 text-sky-400 pointer-events-none">
+                        <i class="fa-solid fa-barcode text-lg"></i>
+                    </div>
+
+                    <input type="text" 
+                           name="barcode" 
+                           id="globalDesktopBarcodeInput" 
+                           placeholder="سکانی بارکۆد بکە... (F2)" 
+                           class="w-full bg-transparent text-white placeholder-slate-400 text-xs sm:text-sm font-mono font-black pr-11 pl-24 py-2 sm:py-2.5 focus:outline-none text-right tracking-wider"
+                           autocomplete="off"
+                           autofocus
+                           title="لێرە بارکۆد لێبدە یان بە ئامێری سکانەر لێیبدە (F2)">
+
+                    <div class="absolute left-2 flex items-center gap-1.5">
+                        <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-bold text-slate-400 bg-slate-800 border border-slate-700 rounded-md" title="داگرتنی F2 بۆ فۆکەس">
+                            F2
+                        </kbd>
+                        <button type="submit" 
+                                class="px-3.5 py-1.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-black text-xs rounded-xl shadow-md transition flex items-center gap-1 active:scale-95 cursor-pointer">
+                            <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                            <span>گەڕان</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end shrink-0">
             <!-- نیشاندەری باری بەروار و گەڕان -->
             @if($dateFilter === 'number_between')
                 <span class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shadow-sm">
