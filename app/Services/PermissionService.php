@@ -50,6 +50,7 @@ class PermissionService
                 'reports.accounting_export' => 'داگرتنی داتای محاسبة ٦٦ وەک CSV/Excel',
                 'reports.expired_booklets' => 'بینینی لیستی دەفتەرە بەسەرچووەکان',
                 'reports.expired_booklets_notices' => 'ئاگادارکردنەوە و ئاماری دەفتەرە بەسەرچووەکان (واتسئەپ و ڤایبەر)',
+                'reports.citizens_multiple_cars' => 'بینینی ڕاپۆرتی ئەو هاوڵاتیانەی خاوەنی چەندین ئۆتۆمبێلن',
             ]
         ],
         'system' => [
@@ -109,6 +110,7 @@ class PermissionService
             'transactions.submit',
             'reports.expired_booklets',
             'reports.expired_booklets_notices',
+            'reports.citizens_multiple_cars',
         ],
     ];
 

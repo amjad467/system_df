@@ -833,6 +833,313 @@ class TransactionController extends Controller
         return redirect()->back()->with('success', "ژمارەی نووسراوی هاتوچۆ [{$transaction->no_nusraw_mrur}] بۆ مامەڵەی [{$transaction->barcode}] بە سەرکەوتوویی تۆمارکرا.");
     }
 
+    /**
+     * Report of citizens who own multiple vehicles with registered booklets.
+     */
+    public function citizensMultipleCarsReport(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && $user->role !== 'archiver' && !$user->hasPermission('reports.citizens_multiple_cars')) {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی ئەم ڕاپۆرتە تەنها بۆ ئەدمین و ئەرشیفە!');
+        }
+
+        $search = trim($request->get('search', ''));
+        $minCars = max(2, (int)$request->get('min_cars', 2));
+        $groupBy = in_array($request->get('group_by'), ['both', 'name', 'phone']) ? $request->get('group_by') : 'both';
+        $sortBy = in_array($request->get('sort'), ['cars_desc', 'booklets_desc', 'name_asc']) ? $request->get('sort') : 'cars_desc';
+        $perPage = max(10, min(100, (int)$request->get('per_page', 25)));
+
+        // Base query
+        $query = DB::table('transactions')
+            ->whereNull('deleted_at');
+
+        if ($groupBy === 'name') {
+            $query->select(
+                'visitor_name',
+                DB::raw('MIN(phone_number) as phone_number'),
+                DB::raw("GROUP_CONCAT(DISTINCT phone_number) as all_phones"),
+                DB::raw('COUNT(DISTINCT plate_number) as car_count'),
+                DB::raw('COUNT(id) as total_booklets'),
+                DB::raw("GROUP_CONCAT(DISTINCT plate_number) as plates_list")
+            )
+            ->whereNotNull('visitor_name')
+            ->where('visitor_name', '!=', '')
+            ->groupBy('visitor_name');
+        } elseif ($groupBy === 'phone') {
+            $query->select(
+                'phone_number',
+                DB::raw('MIN(visitor_name) as visitor_name'),
+                DB::raw("GROUP_CONCAT(DISTINCT visitor_name) as all_names"),
+                DB::raw('COUNT(DISTINCT plate_number) as car_count'),
+                DB::raw('COUNT(id) as total_booklets'),
+                DB::raw("GROUP_CONCAT(DISTINCT plate_number) as plates_list")
+            )
+            ->whereNotNull('phone_number')
+            ->where('phone_number', '!=', '')
+            ->where('phone_number', '!=', '0')
+            ->groupBy('phone_number');
+        } else {
+            // Default: both (visitor_name & phone_number)
+            $query->select(
+                'visitor_name',
+                'phone_number',
+                DB::raw('COUNT(DISTINCT plate_number) as car_count'),
+                DB::raw('COUNT(id) as total_booklets'),
+                DB::raw("GROUP_CONCAT(DISTINCT plate_number) as plates_list")
+            )
+            ->whereNotNull('visitor_name')
+            ->where('visitor_name', '!=', '')
+            ->groupBy('visitor_name', 'phone_number');
+        }
+
+        $query->havingRaw('COUNT(DISTINCT plate_number) >= ?', [$minCars]);
+
+        // Search filtering
+        if ($search !== '') {
+            $matchingCitizens = DB::table('transactions')
+                ->whereNull('deleted_at')
+                ->where(function ($q) use ($search) {
+                    $q->where('visitor_name', 'like', "%{$search}%")
+                      ->orWhere('phone_number', 'like', "%{$search}%")
+                      ->orWhere('plate_number', 'like', "%{$search}%")
+                      ->orWhere('chassis_number', 'like', "%{$search}%")
+                      ->orWhere('booklet_number', 'like', "%{$search}%");
+                });
+
+            if ($groupBy === 'phone') {
+                $matchedPhones = $matchingCitizens->pluck('phone_number')->filter()->unique()->toArray();
+                $query->whereIn('phone_number', $matchedPhones);
+            } else {
+                $matchedNames = $matchingCitizens->pluck('visitor_name')->filter()->unique()->toArray();
+                $query->whereIn('visitor_name', $matchedNames);
+            }
+        }
+
+        // Sorting
+        if ($sortBy === 'booklets_desc') {
+            $query->orderByDesc('total_booklets')->orderByDesc('car_count');
+        } elseif ($sortBy === 'name_asc') {
+            $query->orderBy('visitor_name', 'asc');
+        } else {
+            $query->orderByDesc('car_count')->orderByDesc('total_booklets');
+        }
+
+        // KPI aggregates from subquery
+        $subQuery = (clone $query);
+        $kpis = DB::table(DB::raw("({$subQuery->toSql()}) as sub"))
+            ->mergeBindings($subQuery)
+            ->select(
+                DB::raw('COUNT(*) as total_citizens'),
+                DB::raw('COALESCE(SUM(car_count), 0) as total_cars'),
+                DB::raw('COALESCE(SUM(total_booklets), 0) as total_booklets'),
+                DB::raw('COALESCE(MAX(car_count), 0) as max_cars')
+            )
+            ->first();
+
+        $citizens = $query->paginate($perPage)->withQueryString();
+
+        return view('transactions.reports.citizens_multiple_cars', compact(
+            'citizens',
+            'kpis',
+            'search',
+            'minCars',
+            'groupBy',
+            'sortBy',
+            'perPage'
+        ));
+    }
+
+    /**
+     * API for fetching vehicle and booklet details for a specific citizen.
+     */
+    public function citizenCarsDetailsApi(Request $request)
+    {
+        $name = trim($request->get('name', ''));
+        $phone = trim($request->get('phone', ''));
+
+        if (!$name && !$phone) {
+            return response()->json(['success' => false, 'message' => 'ناوی هاووڵاتی یان ژمارەی مۆبایل پێویستە.'], 422);
+        }
+
+        $query = Transaction::with(['carMake', 'carColor', 'plateType', 'transactionType'])
+            ->whereNull('deleted_at');
+
+        if ($name && $phone) {
+            $query->where('visitor_name', $name)->where('phone_number', $phone);
+        } elseif ($name) {
+            $query->where('visitor_name', $name);
+        } else {
+            $query->where('phone_number', $phone);
+        }
+
+        $transactions = $query->orderByDesc('id')->get();
+
+        $distinctPlates = $transactions->pluck('plate_number')->filter()->unique()->values();
+
+        $formatted = $transactions->map(function ($tx) {
+            $isExpired = false;
+            if ($tx->end_date && $tx->end_date->isPast() && !$tx->is_cancelled) {
+                $isExpired = true;
+            }
+            return [
+                'id' => $tx->id,
+                'barcode' => $tx->barcode,
+                'plate_number' => $tx->plate_number,
+                'plate_type' => $tx->plateType->name_kurdish ?? 'تایبەت',
+                'car_make' => $tx->carMake->name_kurdish ?? 'نەزانراو',
+                'car_color' => $tx->carColor->name_kurdish ?? '-',
+                'model_year' => $tx->model_year,
+                'chassis_number' => $tx->chassis_number,
+                'booklet_number' => $tx->booklet_number,
+                'transaction_type' => $tx->transactionType->name_kurdish ?? 'دەرهێنانی دەفتەر',
+                'transaction_date' => $tx->transaction_date ? $tx->transaction_date->format('Y-m-d') : null,
+                'start_date' => $tx->start_date ? $tx->start_date->format('Y-m-d') : null,
+                'end_date' => $tx->end_date ? $tx->end_date->format('Y-m-d') : null,
+                'is_cancelled' => (bool)$tx->is_cancelled,
+                'is_expired' => $isExpired,
+                'box_number' => $tx->NO_boxfile,
+                'show_url' => route('transactions.show', $tx->id),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'visitor_name' => $name ?: ($transactions->first()->visitor_name ?? ''),
+            'phone_number' => $phone ?: ($transactions->first()->phone_number ?? ''),
+            'distinct_cars_count' => $distinctPlates->count(),
+            'total_booklets_count' => $transactions->count(),
+            'distinct_plates' => $distinctPlates,
+            'transactions' => $formatted,
+        ]);
+    }
+
+    /**
+     * Export multiple-car citizens report to CSV with UTF-8 BOM.
+     */
+    public function exportCitizensMultipleCarsCsv(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && $user->role !== 'archiver' && !$user->hasPermission('reports.citizens_multiple_cars')) {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی داگرتنی ئەم ڕاپۆرتەت نییە!');
+        }
+
+        $search = trim($request->get('search', ''));
+        $minCars = max(2, (int)$request->get('min_cars', 2));
+        $groupBy = in_array($request->get('group_by'), ['both', 'name', 'phone']) ? $request->get('group_by') : 'both';
+        $sortBy = in_array($request->get('sort'), ['cars_desc', 'booklets_desc', 'name_asc']) ? $request->get('sort') : 'cars_desc';
+
+        $query = DB::table('transactions')
+            ->whereNull('deleted_at');
+
+        if ($groupBy === 'name') {
+            $query->select(
+                'visitor_name',
+                DB::raw('MIN(phone_number) as phone_number'),
+                DB::raw("GROUP_CONCAT(DISTINCT phone_number) as all_phones"),
+                DB::raw('COUNT(DISTINCT plate_number) as car_count'),
+                DB::raw('COUNT(id) as total_booklets'),
+                DB::raw("GROUP_CONCAT(DISTINCT plate_number) as plates_list")
+            )
+            ->whereNotNull('visitor_name')
+            ->where('visitor_name', '!=', '')
+            ->groupBy('visitor_name');
+        } elseif ($groupBy === 'phone') {
+            $query->select(
+                'phone_number',
+                DB::raw('MIN(visitor_name) as visitor_name'),
+                DB::raw("GROUP_CONCAT(DISTINCT visitor_name) as all_names"),
+                DB::raw('COUNT(DISTINCT plate_number) as car_count'),
+                DB::raw('COUNT(id) as total_booklets'),
+                DB::raw("GROUP_CONCAT(DISTINCT plate_number) as plates_list")
+            )
+            ->whereNotNull('phone_number')
+            ->where('phone_number', '!=', '')
+            ->where('phone_number', '!=', '0')
+            ->groupBy('phone_number');
+        } else {
+            $query->select(
+                'visitor_name',
+                'phone_number',
+                DB::raw('COUNT(DISTINCT plate_number) as car_count'),
+                DB::raw('COUNT(id) as total_booklets'),
+                DB::raw("GROUP_CONCAT(DISTINCT plate_number) as plates_list")
+            )
+            ->whereNotNull('visitor_name')
+            ->where('visitor_name', '!=', '')
+            ->groupBy('visitor_name', 'phone_number');
+        }
+
+        $query->havingRaw('COUNT(DISTINCT plate_number) >= ?', [$minCars]);
+
+        if ($search !== '') {
+            $matchingCitizens = DB::table('transactions')
+                ->whereNull('deleted_at')
+                ->where(function ($q) use ($search) {
+                    $q->where('visitor_name', 'like', "%{$search}%")
+                      ->orWhere('phone_number', 'like', "%{$search}%")
+                      ->orWhere('plate_number', 'like', "%{$search}%")
+                      ->orWhere('chassis_number', 'like', "%{$search}%")
+                      ->orWhere('booklet_number', 'like', "%{$search}%");
+                });
+
+            if ($groupBy === 'phone') {
+                $matchedPhones = $matchingCitizens->pluck('phone_number')->filter()->unique()->toArray();
+                $query->whereIn('phone_number', $matchedPhones);
+            } else {
+                $matchedNames = $matchingCitizens->pluck('visitor_name')->filter()->unique()->toArray();
+                $query->whereIn('visitor_name', $matchedNames);
+            }
+        }
+
+        if ($sortBy === 'booklets_desc') {
+            $query->orderByDesc('total_booklets')->orderByDesc('car_count');
+        } elseif ($sortBy === 'name_asc') {
+            $query->orderBy('visitor_name', 'asc');
+        } else {
+            $query->orderByDesc('car_count')->orderByDesc('total_booklets');
+        }
+
+        $rows = $query->get();
+
+        $filename = 'citizens_multiple_cars_' . date('Y_m_d_His') . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($rows) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM
+            fputcsv($handle, ['ڕاپۆرتی ئەو هاوڵاتیانەی زیاتر لە یەک ئۆتۆمبێلیان بەناوەوەیە - بەڕێوەبەرایەتی گشتی گومرگ']);
+            fputcsv($handle, ['بەرواری دەرهێنان: ' . now()->format('Y-m-d H:i')]);
+            fputcsv($handle, ['کۆی هاووڵاتیان: ' . count($rows)]);
+            fputcsv($handle, []);
+            fputcsv($handle, [
+                '#',
+                'ناوی هاووڵاتی',
+                'ژمارەی مۆبایل',
+                'ژمارەی ئۆتۆمبێلەکان',
+                'کۆی دەفتەرەکان',
+                'تابلۆی ئۆتۆمبێلەکان',
+            ]);
+
+            $index = 1;
+            foreach ($rows as $row) {
+                fputcsv($handle, [
+                    $index++,
+                    $row->visitor_name ?? ($row->all_names ?? ''),
+                    $row->phone_number ?? ($row->all_phones ?? ''),
+                    $row->car_count,
+                    $row->total_booklets,
+                    $row->plates_list,
+                ]);
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function store(Request $request)
     {
         if (!auth()->user()->hasPermission('transactions.create')) {

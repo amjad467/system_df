@@ -57,6 +57,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/transactions/reports/expired-booklets/sync-attendance', [BookletNoticeController::class, 'syncAttendance'])->name('booklet_notices.sync');
     Route::get('/reports/unreturned-traffic-letters', [TransactionController::class, 'unreturnedTrafficLettersReport'])->name('reports.unreturned_mrur');
     Route::post('/transactions/{transaction}/update-traffic-letter', [TransactionController::class, 'updateTrafficLetter'])->name('transactions.update_traffic_letter');
+    Route::get('/reports/citizens-multiple-cars', [TransactionController::class, 'citizensMultipleCarsReport'])->name('reports.citizens_multiple_cars');
+    Route::get('/reports/citizens-multiple-cars/details', [TransactionController::class, 'citizenCarsDetailsApi'])->name('reports.citizens_multiple_cars.details');
+    Route::get('/reports/citizens-multiple-cars/export', [TransactionController::class, 'exportCitizensMultipleCarsCsv'])->name('reports.citizens_multiple_cars.export');
     Route::get('/reports/accounting-66', [AccountingReportController::class, 'index'])->name('reports.accounting_66');
     Route::get('/reports/accounting-66/print', [AccountingReportController::class, 'print'])->name('reports.accounting_66.print');
     Route::get('/reports/accounting-66/export', [AccountingReportController::class, 'exportCsv'])->name('reports.accounting_66.export');
