@@ -3,7 +3,7 @@
 @section('content')
 <div class="space-y-5" x-data="{ 
     tableViewMode: (window.innerWidth < 768 ? 'cards' : 'table'),
-    showAdvancedSearch: {{ in_array($dateFilter, ['custom', 'yesterday', 'this_week', 'all']) || request()->filled('from_date') || request()->filled('to_date') ? 'true' : 'false' }},
+    dateFilter: '{{ $dateFilter ?? 'all' }}',
     showDrawer: false,
     previewTx: null,
     plateInfo: null,
@@ -199,48 +199,84 @@
         </div>
     </div>
 
-    <!-- فۆڕمی سەرەوە: گەڕان، دیاریکردنی بەروار و هەڵبژاردنی پەڕە (15، 30، 50) -->
-    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3.5">
+    <!-- فۆڕمی سەرەوە: مەرجەکانی بەروار، ساڵ، جۆری مامەڵە، گەڕان و ژمارەی پەڕە -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xl space-y-3">
         <form action="{{ route('transactions.index') }}" method="GET" id="topFilterForm" class="space-y-3">
-            <!-- پاراستنی باری قۆناغ و فلتەری بەروار لە فۆڕمدا -->
+            <!-- پاراستنی باری قۆناغ لە فۆڕمدا -->
             <input type="hidden" name="stage" value="{{ $stage ?? 'all' }}">
-            <input type="hidden" name="date_filter" id="activeDateFilterInput" value="{{ $dateFilter ?? 'today' }}">
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
-                <!-- دوگمەکانی خێرای بەروار (ئەمڕۆ بەرامبەر ڕۆژانی تر) -->
-                <div class="lg:col-span-4 flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
-                    <button type="submit" onclick="document.getElementById('activeDateFilterInput').value='today'" 
-                            class="flex-1 py-1.5 px-3 rounded-lg text-xs font-black transition flex items-center justify-center gap-1.5 {{ $dateFilter === 'today' ? 'bg-sky-600 text-white shadow' : 'text-slate-400 hover:text-white' }}">
-                        <i class="fa-solid fa-calendar-day"></i>
-                        <span>تەنها بۆ ئەمڕۆ</span>
-                    </button>
-                    <button type="button" @click="showAdvancedSearch = !showAdvancedSearch"
-                            class="flex-1 py-1.5 px-3 rounded-lg text-xs font-black transition flex items-center justify-center gap-1.5 {{ in_array($dateFilter, ['custom', 'yesterday', 'this_week', 'all']) ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white' }}">
-                        <i class="fa-solid fa-sliders"></i>
-                        <span>باقی ڕۆژەکان & فلتەر</span>
-                        <i class="fa-solid fa-chevron-down text-[10px] transition transform" :class="showAdvancedSearch ? 'rotate-180' : ''"></i>
-                    </button>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12 gap-2.5 items-center">
+                <!-- ١. درۆپ داونی مەرجی بەروار (Date Condition) -->
+                <div class="lg:col-span-3">
+                    <div class="relative flex items-center bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 focus-within:border-sky-500 focus-within:ring-1 focus-within:ring-sky-500/40 transition">
+                        <i class="fa-solid fa-calendar-days text-sky-400 text-xs ml-2 flex-shrink-0"></i>
+                        <select name="date_filter" id="dateFilterSelect" x-model="dateFilter"
+                                @change="if(['all', 'today', 'yesterday', 'this_month', 'last_month', 'this_year', 'last_year'].includes(dateFilter)) { $nextTick(() => document.getElementById('topFilterForm').submit()); }"
+                                class="w-full bg-transparent text-slate-100 font-bold text-xs focus:outline-none cursor-pointer">
+                            <option value="all" class="bg-slate-900 text-white">🌐 گشت کاتەکان (بێ مەرجی بەروار)</option>
+                            <option value="today" class="bg-slate-900 text-white">📅 تەنها ئەمڕۆ ({{ $today }})</option>
+                            <option value="yesterday" class="bg-slate-900 text-white">⏳ دوێنێ</option>
+                            <option value="this_month" class="bg-slate-900 text-white">🗓️ ئەم مانگە</option>
+                            <option value="last_month" class="bg-slate-900 text-white">🗓️ مانگی پێشوو</option>
+                            <option value="this_year" class="bg-slate-900 text-white">📆 ئەمساڵ ({{ date('Y') }})</option>
+                            <option value="last_year" class="bg-slate-900 text-white">📆 ساڵی پێشوو ({{ date('Y') - 1 }})</option>
+                            <option value="exact" class="bg-slate-900 text-white">🎯 یەکسان بە بەروارێک</option>
+                            <option value="custom" class="bg-slate-900 text-white">↔️ دیاریکردنی مەودا (لە ... تا ...)</option>
+                        </select>
+                    </div>
                 </div>
 
-                <!-- گەڕانی دەقی خێرا -->
-                <div class="lg:col-span-5 relative">
+                <!-- ٢. درۆپ داونی ساڵ (Year Filter) -->
+                <div class="lg:col-span-2">
+                    <div class="relative flex items-center bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 focus-within:border-amber-500 focus-within:ring-1 focus-within:ring-amber-500/40 transition">
+                        <i class="fa-solid fa-calendar text-amber-400 text-xs ml-2 flex-shrink-0"></i>
+                        <select name="year" onchange="document.getElementById('topFilterForm').submit()"
+                                class="w-full bg-transparent text-slate-100 font-bold text-xs focus:outline-none cursor-pointer">
+                            <option value="" class="bg-slate-900 text-white">گشت ساڵەکان</option>
+                            @foreach($availableYears as $yr)
+                                <option value="{{ $yr }}" {{ request('year') == $yr ? 'selected' : '' }} class="bg-slate-900 text-white">
+                                    ساڵی {{ $yr }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- ٣. درۆپ داونی جۆری مامەڵە (Transaction Type) -->
+                <div class="lg:col-span-2">
+                    <div class="relative flex items-center bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1.5 focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500/40 transition">
+                        <i class="fa-solid fa-tag text-emerald-400 text-xs ml-2 flex-shrink-0"></i>
+                        <select name="transaction_type_id" onchange="document.getElementById('topFilterForm').submit()"
+                                class="w-full bg-transparent text-slate-100 font-bold text-xs focus:outline-none cursor-pointer">
+                            <option value="" class="bg-slate-900 text-white">گشت جۆرەکان</option>
+                            @foreach($transactionTypes as $tt)
+                                <option value="{{ $tt->id }}" {{ request('transaction_type_id') == $tt->id ? 'selected' : '' }} class="bg-slate-900 text-white">
+                                    {{ $tt->name_kurdish }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- ٤. گەڕانی دەقی خێرا (Search Input) -->
+                <div class="lg:col-span-3 relative">
                     <input type="text" name="search" value="{{ request('search') }}" 
-                           placeholder="گەڕان بەپێی بارکۆد، ناوی شۆفێر، ژمارەی تابلۆ، دەفتەر..."
-                           class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-10 pl-4 py-2 text-xs font-medium text-slate-100 placeholder-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none transition">
+                           placeholder="گەڕان بەپێی بارکۆد، شۆفێر، تابلۆ، دەفتەر..."
+                           class="w-full bg-slate-950 border border-slate-800 rounded-xl pr-9 pl-8 py-2 text-xs font-medium text-slate-100 placeholder-slate-500 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none transition">
                     <button type="submit" class="absolute right-3 top-2.5 text-slate-400 hover:text-sky-400">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </button>
                     @if(request('search'))
-                        <a href="{{ route('transactions.index', ['stage' => $stage ?? 'all', 'date_filter' => $dateFilter]) }}" 
+                        <a href="{{ route('transactions.index', array_filter(['stage' => $stage ?? 'all', 'date_filter' => request('date_filter'), 'year' => request('year'), 'transaction_type_id' => request('transaction_type_id')])) }}" 
                            class="absolute left-3 top-2.5 text-slate-500 hover:text-rose-400 text-xs" title="سڕینەوەی گەڕان">
                             <i class="fa-solid fa-xmark"></i>
                         </a>
                     @endif
                 </div>
 
-                <!-- پەڕە و ژمارەی پیشاندان لە سەرەوە (خاڵی ٤: 15، 30، 50) -->
-                <div class="lg:col-span-3 flex items-center justify-end gap-2.5">
-                    <div class="flex items-center gap-1.5 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+                <!-- ٥. پەڕە و ژمارەی پیشاندان -->
+                <div class="lg:col-span-2 flex items-center justify-end gap-2">
+                    <div class="flex items-center gap-1.5 bg-slate-950 px-2.5 py-1.5 rounded-xl border border-slate-800 text-xs w-full justify-between">
                         <label for="per_page_select" class="text-slate-400 whitespace-nowrap text-[11px] font-bold">پیشاندان:</label>
                         <select id="per_page_select" name="per_page" onchange="document.getElementById('topFilterForm').submit()" 
                                 class="bg-transparent text-sky-400 font-mono font-black focus:outline-none cursor-pointer">
@@ -252,7 +288,7 @@
                     </div>
 
                     @if($transactions->hasPages())
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 flex-shrink-0">
                             @if($transactions->onFirstPage())
                                 <span class="px-2 py-1.5 bg-slate-950 text-slate-600 rounded-lg text-xs cursor-not-allowed border border-slate-800">
                                     <i class="fa-solid fa-chevron-right"></i>
@@ -263,7 +299,7 @@
                                 </a>
                             @endif
 
-                            <span class="px-2.5 py-1 text-slate-300 font-mono text-xs font-bold bg-slate-950 border border-slate-800 rounded-lg">
+                            <span class="px-2 py-1 text-slate-300 font-mono text-xs font-bold bg-slate-950 border border-slate-800 rounded-lg whitespace-nowrap">
                                 {{ $transactions->currentPage() }}/{{ $transactions->lastPage() }}
                             </span>
 
@@ -281,52 +317,45 @@
                 </div>
             </div>
 
-            <!-- فۆڕمی تایبەت بۆ باقی ڕۆژەکان و گەڕانی پێشکەوتوو (Advanced Search Drawer) -->
-            <div x-show="showAdvancedSearch" x-cloak x-transition.duration.200ms
-                 class="pt-3.5 mt-2 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/80">
+            <!-- بەشی تایبەت بۆ بەرواری یەکسان یان مەودای بەروار -->
+            <div x-show="dateFilter === 'exact' || dateFilter === 'custom'" x-cloak x-transition
+                 class="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
                 
-                <!-- هەڵبژاردنی بەرواری خێرا -->
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-400 mb-1">فلتەری کاتیی خێرا:</label>
-                    <div class="grid grid-cols-3 gap-1">
-                        <button type="submit" onclick="document.getElementById('activeDateFilterInput').value='yesterday'" class="py-1 px-1.5 rounded-lg text-[11px] font-bold border transition text-center {{ $dateFilter === 'yesterday' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800' }}">دوێنێ</button>
-                        <button type="submit" onclick="document.getElementById('activeDateFilterInput').value='this_week'" class="py-1 px-1.5 rounded-lg text-[11px] font-bold border transition text-center {{ $dateFilter === 'this_week' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800' }}">٧ ڕۆژ</button>
-                        <button type="submit" onclick="document.getElementById('activeDateFilterInput').value='all'" class="py-1 px-1.5 rounded-lg text-[11px] font-bold border transition text-center {{ $dateFilter === 'all' ? 'bg-amber-600 border-amber-500 text-white' : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800' }}">گشت کات</button>
-                    </div>
+                <!-- ١. بەرواری یەکسان بە (Exact Date) -->
+                <div x-show="dateFilter === 'exact'" class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs text-sky-400 font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        بەرواری دیاریکراو (یەکسان بە):
+                    </span>
+                    <input type="date" name="exact_date" value="{{ request('exact_date', $today) }}"
+                           onchange="document.getElementById('topFilterForm').submit()"
+                           class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:border-sky-500 focus:outline-none">
                 </div>
 
-                <!-- لە بەرواری -->
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-400 mb-1">لە بەرواری (From Date):</label>
-                    <input type="date" name="from_date" value="{{ request('from_date') }}" onchange="document.getElementById('activeDateFilterInput').value='custom'"
-                           class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:border-sky-500 focus:outline-none">
-                </div>
-
-                <!-- تا بەرواری -->
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-400 mb-1">تا بەرواری (To Date):</label>
-                    <input type="date" name="to_date" value="{{ request('to_date') }}" onchange="document.getElementById('activeDateFilterInput').value='custom'"
-                           class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:border-sky-500 focus:outline-none">
-                </div>
-
-                <!-- جۆری مامەڵە & دوگمەی ئەپلای -->
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-400 mb-1">جۆری مامەڵە:</label>
+                <!-- ٢. مەودای بەروار (Custom Range) -->
+                <div x-show="dateFilter === 'custom'" class="flex items-center gap-3 flex-wrap">
                     <div class="flex items-center gap-1.5">
-                        <select name="transaction_type_id" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-xs text-slate-200 focus:border-sky-500 focus:outline-none">
-                            <option value="">گشت جۆرەکان</option>
-                            @foreach($transactionTypes as $tt)
-                                <option value="{{ $tt->id }}" {{ request('transaction_type_id') == $tt->id ? 'selected' : '' }}>{{ $tt->name_kurdish }}</option>
-                            @endforeach
-                        </select>
-                        <button type="submit" onclick="if(document.querySelector('input[name=from_date]').value || document.querySelector('input[name=to_date]').value) document.getElementById('activeDateFilterInput').value='custom'" 
-                                class="px-3.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-lg shadow transition whitespace-nowrap">
-                            جێبەجێکردن
-                        </button>
-                        <a href="{{ route('transactions.index', ['stage' => $stage ?? 'all', 'date_filter' => 'today']) }}" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg text-xs transition" title="پاککردنەوە بۆ ئەمڕۆ">
-                            <i class="fa-solid fa-rotate-left"></i>
-                        </a>
+                        <span class="text-xs text-slate-400 font-bold">لە بەرواری:</span>
+                        <input type="date" name="from_date" value="{{ request('from_date') }}"
+                               class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:border-sky-500 focus:outline-none">
                     </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs text-slate-400 font-bold">تا بەرواری:</span>
+                        <input type="date" name="to_date" value="{{ request('to_date') }}"
+                               class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:border-sky-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 mr-auto">
+                    <button type="submit" class="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-lg shadow transition flex items-center gap-1.5 active:scale-95">
+                        <i class="fa-solid fa-filter"></i>
+                        <span>جێبەجێکردن</span>
+                    </button>
+                    <a href="{{ route('transactions.index', ['stage' => $stage ?? 'all', 'date_filter' => 'all']) }}" 
+                       class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs transition flex items-center gap-1.5" title="پاککردنەوە بۆ هەمووی">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>پاککردنەوە</span>
+                    </a>
                 </div>
             </div>
         </form>
@@ -345,20 +374,56 @@
                 </span>
                 
                 <!-- Active Date Filter Badge -->
-                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border flex items-center gap-1 {{ $dateFilter === 'today' ? 'bg-sky-500/10 text-sky-300 border-sky-500/30' : ($dateFilter === 'all' ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30') }}">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border flex items-center gap-1.5 {{ $dateFilter === 'today' ? 'bg-sky-500/10 text-sky-300 border-sky-500/30' : ($dateFilter === 'all' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30') }}">
                     <i class="fa-solid fa-clock"></i>
                     @if($dateFilter === 'today')
-                        تەنها ئەمڕۆ ({{ date('Y-m-d') }})
+                        تەنها ئەمڕۆ ({{ $today }})
                     @elseif($dateFilter === 'yesterday')
                         دوێنێ ({{ now()->subDay()->format('Y-m-d') }})
-                    @elseif($dateFilter === 'this_week')
-                        ٧ ڕۆژی ڕابردوو
+                    @elseif($dateFilter === 'this_month')
+                        ئەم مانگە ({{ now()->format('Y-m') }})
+                    @elseif($dateFilter === 'last_month')
+                        مانگی پێشوو ({{ now()->subMonthNoOverflow()->format('Y-m') }})
+                    @elseif($dateFilter === 'this_year')
+                        ئەمساڵ ({{ date('Y') }})
+                    @elseif($dateFilter === 'last_year')
+                        ساڵی پێشوو ({{ date('Y') - 1 }})
+                    @elseif($dateFilter === 'exact')
+                        بەرواری دیاریکراو ({{ request('exact_date', $today) }})
                     @elseif($dateFilter === 'custom')
-                        دەستنیشانکراو ({{ request('from_date') ?? '...' }} تا {{ request('to_date') ?? '...' }})
+                        دەستنیشانکراو ({{ request('from_date', '...') }} تا {{ request('to_date', '...') }})
                     @else
-                        گشت کاتەکان (بێ سنووردارکردنی کات)
+                        🌐 گشت کاتەکان (بێ مەرجی بەروار)
                     @endif
                 </span>
+
+                @if(request('year') && request('year') !== 'all')
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-amber-500/10 text-amber-300 border-amber-500/30 flex items-center gap-1">
+                        <i class="fa-solid fa-calendar"></i>
+                        ساڵی {{ request('year') }}
+                    </span>
+                @endif
+
+                @if(request('transaction_type_id') && request('transaction_type_id') !== 'all')
+                    @php
+                        $selectedType = $transactionTypes->firstWhere('id', request('transaction_type_id'));
+                    @endphp
+                    @if($selectedType)
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-emerald-500/10 text-emerald-300 border-emerald-500/30 flex items-center gap-1">
+                            <i class="fa-solid fa-tag"></i>
+                            {{ $selectedType->name_kurdish }}
+                        </span>
+                    @endif
+                @endif
+
+                @if($dateFilter !== 'all' || request('year') || request('transaction_type_id') || request('search'))
+                    <a href="{{ route('transactions.index', ['stage' => $stage ?? 'all', 'date_filter' => 'all']) }}" 
+                       class="text-[11px] text-rose-400 hover:text-rose-300 underline font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-xmark"></i>
+                        <span>سڕینەوەی هەموو فلتەرەکان</span>
+                    </a>
+                @endif
+            </div>
             </div>
 
             <!-- View Switcher (Cards / Table) & Stage Indicator -->

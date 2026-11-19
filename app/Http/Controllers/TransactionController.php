@@ -38,79 +38,115 @@ class TransactionController extends Controller
 
         $today = now()->toDateString();
 
-        // ڕێکخستنی بەروار: ئەگەر فلتەر دیارینەکرابوو، ئەگەر ئەمڕۆ تۆمار هەبوو today بەکاربێنە، دەنا all بۆ ئەوەی تۆمارەکان بە بەتاڵی دەرنەکەون
+        // ڕێکخستنی بەروار: ئەگەر فلتەر دیارینەکرابوو، بە شێوەی بنەڕەتی 'all' (گشت کاتەکان) بەکاربێنە
         $dateFilter = $request->get('date_filter');
         if (!$dateFilter) {
-            if ($request->filled('from_date') || $request->filled('to_date')) {
+            if ($request->filled('exact_date')) {
+                $dateFilter = 'exact';
+            } elseif ($request->filled('from_date') || $request->filled('to_date')) {
                 $dateFilter = 'custom';
-            } elseif ($request->has('all_dates')) {
-                $dateFilter = 'all';
             } else {
-                $hasToday = Transaction::whereDate('transaction_date', $today)->orWhereDate('created_at', $today)->exists();
-                $dateFilter = $hasToday ? 'today' : 'all';
+                $dateFilter = 'all';
             }
         }
+
+        // کۆکردنەوەی ساڵە بەردەستەکان بۆ درۆپ داونی ساڵەکان
+        try {
+            if (config('database.default') === 'sqlite') {
+                $availableYears = Transaction::selectRaw("DISTINCT strftime('%Y', transaction_date) as yr")
+                    ->whereNotNull('transaction_date')
+                    ->orderByDesc('yr')
+                    ->pluck('yr')
+                    ->filter()
+                    ->values()
+                    ->toArray();
+            } else {
+                $availableYears = Transaction::selectRaw("DISTINCT EXTRACT(YEAR FROM transaction_date) as yr")
+                    ->whereNotNull('transaction_date')
+                    ->orderByDesc('yr')
+                    ->pluck('yr')
+                    ->filter()
+                    ->values()
+                    ->toArray();
+            }
+        } catch (\Throwable $e) {
+            $availableYears = [2026, 2025, 2024, 2023];
+        }
+        if (empty($availableYears)) {
+            $availableYears = [2026, 2025, 2024, 2023];
+        }
+
+        // فانکشنی هاوبەش بۆ سەپاندنی هەموو مەرجەکانی فلتەر
+        $applyCommonFilters = function($q) use ($request, $dateFilter, $today) {
+            // ١. مەرجی بەروار
+            if ($dateFilter === 'today') {
+                $q->where(function($sq) use ($today) {
+                    $sq->whereDate('transaction_date', $today)
+                       ->orWhereDate('created_at', $today);
+                });
+            } elseif ($dateFilter === 'yesterday') {
+                $yesterday = now()->subDay()->toDateString();
+                $q->where(function($sq) use ($yesterday) {
+                    $sq->whereDate('transaction_date', $yesterday)
+                       ->orWhereDate('created_at', $yesterday);
+                });
+            } elseif ($dateFilter === 'this_month') {
+                $startOfMonth = now()->startOfMonth()->toDateString();
+                $endOfMonth = now()->endOfMonth()->toDateString();
+                $q->whereBetween('transaction_date', [$startOfMonth, $endOfMonth]);
+            } elseif ($dateFilter === 'last_month') {
+                $startOfLastMonth = now()->subMonthNoOverflow()->startOfMonth()->toDateString();
+                $endOfLastMonth = now()->subMonthNoOverflow()->endOfMonth()->toDateString();
+                $q->whereBetween('transaction_date', [$startOfLastMonth, $endOfLastMonth]);
+            } elseif ($dateFilter === 'this_year') {
+                $q->whereYear('transaction_date', now()->year);
+            } elseif ($dateFilter === 'last_year') {
+                $q->whereYear('transaction_date', now()->subYear()->year);
+            } elseif ($dateFilter === 'exact' && $request->filled('exact_date')) {
+                $q->whereDate('transaction_date', $request->exact_date);
+            } elseif ($dateFilter === 'custom') {
+                if ($request->filled('from_date') && $request->filled('to_date')) {
+                    $q->whereBetween('transaction_date', [$request->from_date, $request->to_date]);
+                } elseif ($request->filled('from_date')) {
+                    $q->whereDate('transaction_date', '>=', $request->from_date);
+                } elseif ($request->filled('to_date')) {
+                    $q->whereDate('transaction_date', '<=', $request->to_date);
+                }
+            }
+
+            // ٢. فلتەری ساڵ
+            if ($request->filled('year') && $request->year !== 'all') {
+                $q->whereYear('transaction_date', $request->year);
+            }
+
+            // ٣. فلتەری جۆری مامەڵە
+            if ($request->filled('transaction_type_id') && $request->transaction_type_id !== 'all') {
+                $q->where('transaction_type_id', $request->transaction_type_id);
+            }
+
+            // ٤. گەڕانی دەقی خێرا
+            if ($request->filled('search')) {
+                $search = trim($request->search);
+                $q->where(function($sq) use ($search) {
+                    $sq->where('barcode', 'like', "%{$search}%")
+                      ->orWhere('visitor_name', 'like', "%{$search}%")
+                      ->orWhere('visitor_name_eng', 'like', "%{$search}%")
+                      ->orWhere('second_driver_name', 'like', "%{$search}%")
+                      ->orWhere('second_driver_name_eng', 'like', "%{$search}%")
+                      ->orWhere('phone_number', 'like', "%{$search}%")
+                      ->orWhere('plate_number', 'like', "%{$search}%")
+                      ->orWhere('chassis_number', 'like', "%{$search}%")
+                      ->orWhere('receipt_37a_number', 'like', "%{$search}%")
+                      ->orWhere('booklet_number', 'like', "%{$search}%")
+                      ->orWhere('salana_number', 'like', "%{$search}%")
+                      ->orWhere('no_nusraw_mrur', 'like', "%{$search}%")
+                      ->orWhere('no_nusraw_gumrg', 'like', "%{$search}%");
+                });
+            }
+        };
 
         $query = Transaction::with(['transactionType', 'trafficDirectorate', 'carMake', 'carColor', 'plateType']);
-
-        // سەپاندنی فلتەری بەروار
-        if ($dateFilter === 'today') {
-            $query->where(function($q) use ($today) {
-                $q->whereDate('transaction_date', $today)
-                  ->orWhereDate('created_at', $today);
-            });
-        } elseif ($dateFilter === 'yesterday') {
-            $yesterday = now()->subDay()->toDateString();
-            $query->where(function($q) use ($yesterday) {
-                $q->whereDate('transaction_date', $yesterday)
-                  ->orWhereDate('created_at', $yesterday);
-            });
-        } elseif ($dateFilter === 'this_week') {
-            $lastWeek = now()->subDays(7)->toDateString();
-            $query->where(function($q) use ($lastWeek, $today) {
-                $q->whereBetween('transaction_date', [$lastWeek, $today])
-                  ->orWhereBetween('created_at', [$lastWeek, now()]);
-            });
-        } elseif ($dateFilter === 'custom') {
-            if ($request->filled('from_date') && $request->filled('to_date')) {
-                $query->whereBetween('transaction_date', [$request->from_date, $request->to_date]);
-            } elseif ($request->filled('from_date')) {
-                $query->whereDate('transaction_date', '>=', $request->from_date);
-            } elseif ($request->filled('to_date')) {
-                $query->whereDate('transaction_date', '<=', $request->to_date);
-            } else {
-                $query->where(function($q) use ($today) {
-                    $q->whereDate('transaction_date', $today)
-                      ->orWhereDate('created_at', $today);
-                });
-                $dateFilter = 'today';
-            }
-        }
-        // ئەگەر all بێت هیچ مەرجێکی بەروار نایەتە پێشەوە تا گشت کاتەکان پیشان بدات
-
-        // گەڕانی دەقی
-        if ($request->filled('search')) {
-            $search = trim($request->search);
-            $query->where(function($q) use ($search) {
-                $q->where('barcode', 'like', "%{$search}%")
-                  ->orWhere('visitor_name', 'like', "%{$search}%")
-                  ->orWhere('visitor_name_eng', 'like', "%{$search}%")
-                  ->orWhere('second_driver_name', 'like', "%{$search}%")
-                  ->orWhere('second_driver_name_eng', 'like', "%{$search}%")
-                  ->orWhere('phone_number', 'like', "%{$search}%")
-                  ->orWhere('plate_number', 'like', "%{$search}%")
-                  ->orWhere('chassis_number', 'like', "%{$search}%")
-                  ->orWhere('receipt_37a_number', 'like', "%{$search}%")
-                  ->orWhere('booklet_number', 'like', "%{$search}%")
-                  ->orWhere('salana_number', 'like', "%{$search}%")
-                  ->orWhere('no_nusraw_mrur', 'like', "%{$search}%")
-                  ->orWhere('no_nusraw_gumrg', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('transaction_type_id')) {
-            $query->where('transaction_type_id', $request->transaction_type_id);
-        }
+        $applyCommonFilters($query);
 
         // فلتەری قۆناغ
         $stage = $request->get('stage', 'all');
@@ -139,51 +175,9 @@ class TransactionController extends Controller
             }
         }
 
-        // هەژمارکردنی ژمارەی مامەڵەکانی هەر قۆناغێک بەپێی بەرواری هەڵبژێردراو
+        // هەژمارکردنی ژمارەی مامەڵەکانی هەر قۆناغێک بەپێی فلتەرە چالاکەکان
         $baseCountQuery = Transaction::query();
-        if ($dateFilter === 'today') {
-            $baseCountQuery->where(function($q) use ($today) {
-                $q->whereDate('transaction_date', $today)
-                  ->orWhereDate('created_at', $today);
-            });
-        } elseif ($dateFilter === 'yesterday') {
-            $yesterday = now()->subDay()->toDateString();
-            $baseCountQuery->where(function($q) use ($yesterday) {
-                $q->whereDate('transaction_date', $yesterday)
-                  ->orWhereDate('created_at', $yesterday);
-            });
-        } elseif ($dateFilter === 'this_week') {
-            $lastWeek = now()->subDays(7)->toDateString();
-            $baseCountQuery->where(function($q) use ($lastWeek, $today) {
-                $q->whereBetween('transaction_date', [$lastWeek, $today])
-                  ->orWhereBetween('created_at', [$lastWeek, now()]);
-            });
-        } elseif ($dateFilter === 'custom') {
-            if ($request->filled('from_date') && $request->filled('to_date')) {
-                $baseCountQuery->whereBetween('transaction_date', [$request->from_date, $request->to_date]);
-            } elseif ($request->filled('from_date')) {
-                $baseCountQuery->whereDate('transaction_date', '>=', $request->from_date);
-            } elseif ($request->filled('to_date')) {
-                $baseCountQuery->whereDate('transaction_date', '<=', $request->to_date);
-            } else {
-                $baseCountQuery->where(function($q) use ($today) {
-                    $q->whereDate('transaction_date', $today)
-                      ->orWhereDate('created_at', $today);
-                });
-            }
-        }
-        if ($request->filled('search')) {
-            $search = trim($request->search);
-            $baseCountQuery->where(function($q) use ($search) {
-                $q->where('barcode', 'like', "%{$search}%")
-                  ->orWhere('visitor_name', 'like', "%{$search}%")
-                  ->orWhere('plate_number', 'like', "%{$search}%")
-                  ->orWhere('booklet_number', 'like', "%{$search}%");
-            });
-        }
-        if ($request->filled('transaction_type_id')) {
-            $baseCountQuery->where('transaction_type_id', $request->transaction_type_id);
-        }
+        $applyCommonFilters($baseCountQuery);
 
         // هەژمارکردنی خێرای ژمارەی مامەڵەکان بە یەک کوێری لەبری ٧ کوێری جیاواز
         $stats = (clone $baseCountQuery)->selectRaw("
@@ -222,7 +216,8 @@ class TransactionController extends Controller
             'stage',
             'perPage',
             'dateFilter',
-            'today'
+            'today',
+            'availableYears'
         ));
     }
 
