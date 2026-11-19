@@ -429,19 +429,19 @@
     </div>
 
     <!-- خشتەی ڕێکخراو و پاکی مامەڵەکان (Clean, Professional & Uncluttered Table) -->
-    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+    <div class="bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden">
         <!-- زانیاری پەڕە و ژمارە لە سەرەوەی خشتە بە دوگمەی گۆڕینی دیمەن (کارت / خشتە) -->
-        <div class="px-4 py-2.5 bg-slate-950/60 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+        <div class="px-4 py-2.5 bg-slate-50 dark:bg-slate-950/60 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-400">
             <div class="flex items-center gap-2 flex-wrap">
-                <i class="fa-solid fa-table-list text-sky-400"></i>
+                <i class="fa-solid fa-table-list text-sky-600 dark:text-sky-400"></i>
                 <span>پیشاندانی 
-                    <strong class="font-mono text-white">{{ $transactions->firstItem() ?? 0 }}</strong> تا 
-                    <strong class="font-mono text-white">{{ $transactions->lastItem() ?? 0 }}</strong> 
-                    لە کۆی <strong class="font-mono text-emerald-400">{{ number_format($transactions->total()) }}</strong> مامەڵە
+                    <strong class="font-mono text-slate-900 dark:text-white">{{ $transactions->firstItem() ?? 0 }}</strong> تا 
+                    <strong class="font-mono text-slate-900 dark:text-white">{{ $transactions->lastItem() ?? 0 }}</strong> 
+                    لە کۆی <strong class="font-mono text-emerald-600 dark:text-emerald-400">{{ number_format($transactions->total()) }}</strong> مامەڵە
                 </span>
                 
                 <!-- Active Date Filter Badge -->
-                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border flex items-center gap-1.5 {{ $dateFilter === 'today' ? 'bg-sky-500/10 text-sky-300 border-sky-500/30' : ($dateFilter === 'all' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30') }}">
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border flex items-center gap-1.5 {{ $dateFilter === 'today' ? 'bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/30' : ($dateFilter === 'all' ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' : 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/30') }}">
                     <i class="fa-solid fa-clock"></i>
                     @if($dateFilter === 'today')
                         تەنها ئەمڕۆ ({{ $today }})
@@ -465,7 +465,7 @@
                 </span>
 
                 @if(request('year') && request('year') !== 'all')
-                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-amber-500/10 text-amber-300 border-amber-500/30 flex items-center gap-1">
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 flex items-center gap-1">
                         <i class="fa-solid fa-calendar"></i>
                         ساڵی {{ request('year') }}
                     </span>
@@ -476,7 +476,7 @@
                         $selectedType = $transactionTypes->firstWhere('id', request('transaction_type_id'));
                     @endphp
                     @if($selectedType)
-                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-emerald-500/10 text-emerald-300 border-emerald-500/30 flex items-center gap-1">
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 flex items-center gap-1">
                             <i class="fa-solid fa-tag"></i>
                             {{ $selectedType->name_kurdish }}
                         </span>
@@ -485,29 +485,28 @@
 
                 @if($dateFilter !== 'all' || request('year') || request('transaction_type_id') || request('search'))
                     <a href="{{ route('transactions.index', ['stage' => $stage ?? 'all', 'date_filter' => 'all']) }}" 
-                       class="text-[11px] text-rose-400 hover:text-rose-300 underline font-bold flex items-center gap-1">
+                       class="text-[11px] text-rose-600 dark:text-rose-400 hover:text-rose-500 underline font-bold flex items-center gap-1">
                         <i class="fa-solid fa-xmark"></i>
                         <span>سڕینەوەی هەموو فلتەرەکان</span>
                     </a>
                 @endif
             </div>
-            </div>
 
             <!-- View Switcher (Cards / Table) & Stage Indicator -->
             <div class="flex items-center gap-2 flex-wrap">
-                <div class="flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1">
-                    <button type="button" @click="tableViewMode = 'cards'" :class="tableViewMode === 'cards' ? 'bg-sky-600 text-white shadow' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                <div class="flex items-center bg-slate-200/80 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl p-1 gap-1">
+                    <button type="button" @click="tableViewMode = 'cards'" :class="tableViewMode === 'cards' ? 'bg-sky-600 text-white shadow' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1">
                         <i class="fa-solid fa-grip"></i>
                         <span>کارت</span>
                     </button>
-                    <button type="button" @click="tableViewMode = 'table'" :class="tableViewMode === 'table' ? 'bg-sky-600 text-white shadow' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                    <button type="button" @click="tableViewMode = 'table'" :class="tableViewMode === 'table' ? 'bg-sky-600 text-white shadow' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'" class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1">
                         <i class="fa-solid fa-table-list"></i>
                         <span>خشتە</span>
                     </button>
                 </div>
 
                 <div class="text-[11px] text-slate-500 hidden sm:block">
-                    قۆناغ: <span class="text-sky-300 font-bold">
+                    قۆناغ: <span class="text-sky-700 dark:text-sky-300 font-bold">
                         @if(($stage ?? 'all') === 'inspection') ١. کەشف و تەخمین
                         @elseif(($stage ?? '') === 'audit') ٢. وردبینی
                         @elseif(($stage ?? '') === 'payment') ٣. ژمێریاری
@@ -558,48 +557,48 @@
                         'show_url' => route('transactions.show', $tx->id),
                     ];
                 @endphp
-                <div class="bg-slate-950/70 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 space-y-3 transition shadow-lg flex flex-col justify-between">
+                <div class="bg-white dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 rounded-2xl p-4 space-y-3 transition shadow-md dark:shadow-lg flex flex-col justify-between">
                     <div class="space-y-3">
                         <!-- Top Row: Barcode + Date + Stage Pill -->
                         <div class="flex items-center justify-between gap-2">
                             <div class="flex items-center gap-1.5">
                                 <button type="button" @click="openPreview({{ json_encode($txPayload) }})" 
-                                        class="font-mono text-xs font-black text-sky-400 bg-sky-950/80 px-2.5 py-1 rounded-xl border border-sky-800/60 shadow-sm">
+                                        class="font-mono text-xs font-black text-sky-700 dark:text-sky-400 bg-sky-100 dark:bg-sky-950/80 px-2.5 py-1 rounded-xl border border-sky-300 dark:border-sky-800/60 shadow-sm">
                                     {{ $tx->barcode }}
                                 </button>
-                                <span class="text-[10px] text-slate-400 font-mono">
+                                <span class="text-[10px] text-slate-600 dark:text-slate-400 font-mono font-semibold">
                                     {{ $tx->transaction_date ? $tx->transaction_date->format('Y-m-d') : ($tx->created_at ? $tx->created_at->format('Y-m-d') : '-') }}
                                 </span>
                             </div>
                             <div>
                                 @if($tx->is_cancelled)
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/20 text-rose-300 border border-rose-500/40">پووچەڵکراوە</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/40">پووچەڵکراوە</span>
                                 @elseif($tx->is_booklet_completed)
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">تەواوکراوە</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40">تەواوکراوە</span>
                                 @elseif($tx->is_paid)
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/20 text-blue-300 border border-blue-500/40">دەفتەر</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-500/40">دەفتەر</span>
                                 @elseif($tx->is_audited)
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40">وەسڵ و پارە</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40">وەسڵ و پارە</span>
                                 @elseif($tx->is_inspected)
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-500/20 text-purple-300 border border-purple-500/40">وردبینی</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/40">وردبینی</span>
                                 @else
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-orange-500/20 text-orange-300 border border-orange-500/40">کەشف و تەخمین</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-orange-500/20 text-orange-700 dark:text-orange-300 border border-orange-500/40">کەشف و تەخمین</span>
                                 @endif
                             </div>
                         </div>
 
                         <!-- Citizen Name & Phone -->
-                        <div class="flex items-center justify-between gap-2 border-t border-slate-800/80 pt-2">
+                        <div class="flex items-center justify-between gap-2 border-t border-slate-200 dark:border-slate-800/80 pt-2">
                             <div class="min-w-0">
-                                <button type="button" @click="openPreview({{ json_encode($txPayload) }})" class="text-xs font-black text-white hover:text-sky-400 transition text-right block truncate cursor-pointer">
+                                <button type="button" @click="openPreview({{ json_encode($txPayload) }})" class="text-xs font-black text-slate-950 dark:text-white hover:text-sky-600 dark:hover:text-sky-400 transition text-right block truncate cursor-pointer">
                                     {{ $tx->visitor_name }}
                                 </button>
                                 @if($tx->second_driver_name)
-                                    <span class="text-[10px] text-slate-400 block truncate">شۆفێری ٢: {{ $tx->second_driver_name }}</span>
+                                    <span class="text-[10px] text-slate-600 dark:text-slate-400 block truncate font-medium">شۆفێری ٢: {{ $tx->second_driver_name }}</span>
                                 @endif
                             </div>
                             @if($tx->phone_number)
-                                <a href="tel:{{ $tx->phone_number }}" class="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-[11px] font-mono font-bold flex items-center gap-1 shrink-0" dir="ltr" title="پەیوەندیکردن">
+                                <a href="tel:{{ $tx->phone_number }}" class="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 rounded-xl text-[11px] font-mono font-black flex items-center gap-1 shrink-0" dir="ltr" title="پەیوەندیکردن">
                                     <i class="fa-solid fa-phone text-[9px]"></i>
                                     <span>{{ $tx->phone_number }}</span>
                                 </a>
@@ -607,41 +606,41 @@
                         </div>
 
                         <!-- Vehicle Plate Graphic & Model -->
-                        <div class="flex items-center justify-between gap-2 bg-slate-900/90 p-2.5 rounded-xl border border-slate-800/80">
+                        <div class="flex items-center justify-between gap-2 bg-slate-50 dark:bg-slate-900/90 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800/80">
                             <div>
                                 <x-vehicle-plate :plate="$tx->plate_number" :type="$tx->plateType" size="sm" />
                             </div>
                             <div class="text-left min-w-0">
-                                <span class="text-xs font-bold text-slate-200 block truncate">{{ $tx->carMake->name_kurdish ?? 'ئۆتۆمبێل' }}</span>
-                                <span class="text-[10px] font-mono text-slate-400 block truncate">{{ $tx->model_year ?? '-' }} | {{ $tx->carColor->name_kurdish ?? '' }}</span>
+                                <span class="text-xs font-black text-slate-900 dark:text-slate-200 block truncate">{{ $tx->carMake->name_kurdish ?? 'ئۆتۆمبێل' }}</span>
+                                <span class="text-[10px] font-mono text-slate-600 dark:text-slate-400 block truncate font-semibold">{{ $tx->model_year ?? '-' }} | {{ $tx->carColor->name_kurdish ?? '' }}</span>
                             </div>
                         </div>
 
                         <!-- Meta Info Grid -->
-                        <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-slate-800/60">
+                        <div class="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-slate-200 dark:border-slate-800/60">
                             <div>
-                                <span class="text-slate-500 block text-[10px]">جۆری مامەڵە:</span>
-                                <span class="font-bold text-slate-300 truncate block">{{ $tx->transactionType->name_kurdish ?? '-' }}</span>
+                                <span class="text-slate-500 dark:text-slate-400 block text-[10px]">جۆری مامەڵە:</span>
+                                <span class="font-bold text-slate-900 dark:text-slate-300 truncate block">{{ $tx->transactionType->name_kurdish ?? '-' }}</span>
                             </div>
                             <div>
-                                <span class="text-slate-500 block text-[10px]">بڕی پارە:</span>
-                                <span class="font-mono font-black text-emerald-400">{{ number_format($tx->total_pay) }} د.ع</span>
+                                <span class="text-slate-500 dark:text-slate-400 block text-[10px]">بڕی پارە:</span>
+                                <span class="font-mono font-black text-slate-900 dark:text-emerald-400">{{ number_format($tx->total_pay) }} د.ع</span>
                             </div>
                             <div>
-                                <span class="text-slate-500 block text-[10px]">ژمارەی دەفتەر:</span>
-                                <span class="font-mono font-bold text-amber-400">{{ $tx->booklet_number ?? '-' }}</span>
+                                <span class="text-slate-500 dark:text-slate-400 block text-[10px]">ژمارەی دەفتەر:</span>
+                                <span class="font-mono font-bold text-amber-600 dark:text-amber-400">{{ $tx->booklet_number ?? '-' }}</span>
                             </div>
                             <div>
-                                <span class="text-slate-500 block text-[10px]">ژمارەی بۆکس:</span>
-                                <span class="font-mono font-bold text-sky-400">{{ $tx->NO_boxfile ?? ($tx->NO_boxfile_puchal ?? '-') }}</span>
+                                <span class="text-slate-500 dark:text-slate-400 block text-[10px]">ژمارەی بۆکس:</span>
+                                <span class="font-mono font-bold text-sky-700 dark:text-sky-400">{{ $tx->NO_boxfile ?? ($tx->NO_boxfile_puchal ?? '-') }}</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Touch Buttons -->
-                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800">
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
                         <button type="button" @click="openPreview({{ json_encode($txPayload) }})" 
-                                class="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded-xl text-xs font-bold border border-slate-700 flex items-center justify-center gap-1.5 transition">
+                                class="py-2 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sky-700 dark:text-sky-400 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 flex items-center justify-center gap-1.5 transition">
                             <i class="fa-solid fa-eye text-xs"></i>
                             <span>پێشبینی</span>
                         </button>
@@ -661,8 +660,8 @@
 
         <!-- نیشاندانی خشتەی تەقلیدی بۆ دێسکتۆپ و تابلێت (Table View) -->
         <div x-show="tableViewMode === 'table'" class="overflow-x-auto w-full touch-scroll">
-            <table class="w-full text-right text-xs text-slate-300 border-collapse min-w-[950px]">
-                <thead class="bg-slate-950 text-slate-400 text-[11px] font-black uppercase tracking-wider border-b border-slate-800">
+            <table class="w-full text-right text-xs text-slate-800 dark:text-slate-300 border-collapse min-w-[950px]">
+                <thead class="bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-400 text-[11px] font-black uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
                     <tr>
                         <th class="py-2.5 px-3.5 text-center w-12">#</th>
                         <th class="py-2.5 px-3.5">بارکۆد & بەروار</th>
@@ -675,7 +674,7 @@
                         <th class="py-2.5 px-3.5 text-center w-28">کردار</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-800/60 font-medium">
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-800/60 font-medium bg-white dark:bg-slate-900/40">
                     @forelse($transactions as $index => $tx)
                         @php
                             $txPayload = [
@@ -711,20 +710,20 @@
                                 'show_url' => route('transactions.show', $tx->id),
                             ];
                         @endphp
-                        <tr class="hover:bg-slate-800/50 transition">
+                        <tr class="bg-white dark:bg-transparent hover:bg-sky-50 dark:hover:bg-slate-800/60 transition">
                             <!-- ژمارەی ڕیزبەند -->
-                            <td class="py-3 px-3.5 text-center text-slate-500 font-mono text-[11px]">
+                            <td class="py-3 px-3.5 text-center text-slate-700 dark:text-slate-400 font-mono text-xs font-bold">
                                 {{ ($transactions->firstItem() ?? 1) + $index }}
                             </td>
 
                             <!-- بارکۆد و بەروار -->
                             <td class="py-2.5 px-3.5 whitespace-nowrap">
                                 <button type="button" @click="openPreview({{ json_encode($txPayload) }})" 
-                                        class="font-mono text-xs font-black text-sky-400 bg-sky-950/60 hover:bg-sky-900 px-2 py-0.5 rounded border border-sky-800/50 transition cursor-pointer" 
+                                        class="font-mono text-xs font-black text-sky-700 dark:text-sky-400 bg-sky-100 dark:bg-sky-950/60 hover:bg-sky-200 dark:hover:bg-sky-900 px-2 py-0.5 rounded border border-sky-300 dark:border-sky-800/50 transition cursor-pointer" 
                                         title="کلیک بکە بۆ پێشبینی خێرا">
                                     {{ $tx->barcode }}
                                 </button>
-                                <div class="text-[10px] text-slate-500 font-mono mt-0.5 flex items-center gap-1">
+                                <div class="text-[10px] text-slate-600 dark:text-slate-400 font-mono mt-0.5 flex items-center gap-1 font-semibold">
                                     <i class="fa-regular fa-clock text-[9px]"></i>
                                     {{ $tx->transaction_date ? $tx->transaction_date->format('Y-m-d') : ($tx->created_at ? $tx->created_at->format('Y-m-d') : '-') }}
                                 </div>
@@ -733,13 +732,13 @@
                             <!-- ناوی هاووڵاتی -->
                             <td class="py-2.5 px-3.5 whitespace-nowrap min-w-[160px]">
                                 <button type="button" @click="openPreview({{ json_encode($txPayload) }})" 
-                                        class="font-bold text-white text-xs hover:text-sky-400 transition text-right block w-full cursor-pointer" 
+                                        class="font-extrabold text-slate-950 dark:text-white text-xs hover:text-sky-600 dark:hover:text-sky-400 transition text-right block w-full cursor-pointer" 
                                         title="کلیک بکە بۆ پێشبینی خێرا">
                                     {{ $tx->visitor_name }}
                                 </button>
                                 @if($tx->phone_number)
-                                    <span class="text-[10px] text-slate-400 font-mono flex items-center gap-1 mt-0.5 truncate" dir="ltr">
-                                        <i class="fa-solid fa-phone text-[8px] text-emerald-400"></i>{{ $tx->phone_number }}
+                                    <span class="text-[10px] text-slate-600 dark:text-slate-400 font-mono flex items-center gap-1 mt-0.5 truncate font-bold" dir="ltr">
+                                        <i class="fa-solid fa-phone text-[8px] text-emerald-600 dark:text-emerald-400"></i>{{ $tx->phone_number }}
                                     </span>
                                 @endif
                             </td>
@@ -749,17 +748,17 @@
                                 <div>
                                     <x-vehicle-plate :plate="$tx->plate_number" :type="$tx->plateType" size="sm" />
                                 </div>
-                                <div class="text-[11px] text-slate-300 font-semibold mt-0.5">
+                                <div class="text-[11px] text-slate-900 dark:text-slate-200 font-bold mt-0.5">
                                     {{ $tx->carMake->name_kurdish ?? 'ئۆتۆمبێل' }}
                                     @if($tx->model_year)
-                                        <span class="text-[10px] font-mono text-slate-400 font-normal">({{ $tx->model_year }})</span>
+                                        <span class="text-[10px] font-mono text-slate-600 dark:text-slate-400 font-bold">({{ $tx->model_year }})</span>
                                     @endif
                                 </div>
                             </td>
 
                             <!-- جۆری مامەڵە -->
                             <td class="py-2.5 px-3.5 whitespace-nowrap">
-                                <span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-slate-800 text-slate-200 border border-slate-700">
+                                <span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
                                     {{ $tx->transactionType->name_kurdish ?? '-' }}
                                 </span>
                             </td>
@@ -767,15 +766,15 @@
                             <!-- ژمارەی دەفتەر و بۆکس -->
                             <td class="py-2.5 px-3.5 whitespace-nowrap">
                                 @if($tx->booklet_number)
-                                    <div class="font-mono font-black text-sky-400 text-xs flex items-center gap-1">
+                                    <div class="font-mono font-black text-sky-700 dark:text-sky-400 text-xs flex items-center gap-1">
                                         <i class="fa-solid fa-passport text-[10px]"></i>
                                         {{ $tx->booklet_number }}
                                     </div>
                                 @else
-                                    <span class="text-slate-600 font-mono text-xs">-</span>
+                                    <span class="text-slate-400 dark:text-slate-600 font-mono text-xs">-</span>
                                 @endif
                                 @if($tx->NO_boxfile || $tx->NO_boxfile_puchal)
-                                    <span class="text-[10px] font-mono text-slate-400 block mt-0.5">
+                                    <span class="text-[10px] font-mono text-slate-700 dark:text-slate-300 font-bold block mt-0.5">
                                         بۆکس: {{ $tx->NO_boxfile ?: $tx->NO_boxfile_puchal }}
                                     </span>
                                 @endif
@@ -783,11 +782,11 @@
 
                             <!-- وەسڵ و کۆی پارە -->
                             <td class="py-2.5 px-3.5 whitespace-nowrap">
-                                <div class="font-mono font-black text-white text-xs">
-                                    {{ number_format($tx->total_pay) }} <span class="text-[10px] text-slate-400 font-normal">د.ع</span>
+                                <div class="font-mono font-black text-slate-950 dark:text-white text-xs">
+                                    {{ number_format($tx->total_pay) }} <span class="text-[10px] text-slate-600 dark:text-slate-400 font-bold">د.ع</span>
                                 </div>
                                 @if($tx->receipt_37a_number)
-                                    <div class="text-[10px] text-emerald-400 font-mono mt-0.5 font-bold">
+                                    <div class="text-[10px] text-emerald-700 dark:text-emerald-400 font-mono mt-0.5 font-black">
                                         وەسڵ: {{ $tx->receipt_37a_number }}
                                     </div>
                                 @endif
@@ -796,31 +795,31 @@
                             <!-- قۆناغی ئێستا (Stage Badge) -->
                             <td class="py-2.5 px-3.5 text-center whitespace-nowrap">
                                 @if($tx->is_cancelled)
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center justify-center gap-1">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-ban text-[8px]"></i> پووچەڵکراوە
                                     </span>
                                 @elseif($tx->is_submitted)
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/15 text-teal-300 border border-teal-500/30 flex items-center justify-center gap-1">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30 flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-box-archive text-[8px]"></i> ئەڕشیفکراو
                                     </span>
                                 @elseif($tx->is_booklet_completed)
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center gap-1">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-check text-[8px]"></i> دەفتەر تەواو
                                     </span>
                                 @elseif($tx->is_paid)
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/15 text-blue-300 border border-blue-500/30 flex items-center justify-center gap-1">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/15 text-blue-700 dark:text-blue-300 border border-blue-500/30 flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-passport text-[8px]"></i> بەشی دەفتەر
                                     </span>
                                 @elseif($tx->is_audited)
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center gap-1">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-receipt text-[8px]"></i> چاوەڕێی وەسڵ
                                     </span>
                                 @elseif($tx->is_inspected)
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-500/15 text-purple-300 border border-purple-500/30 flex items-center justify-center gap-1">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30 flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-stamp text-[8px]"></i> چاوەڕێی وردبینی
                                     </span>
                                 @else
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-orange-500/15 text-orange-300 border border-orange-500/30 flex items-center justify-center gap-1">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-orange-500/15 text-orange-700 dark:text-orange-300 border border-orange-500/30 flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-clipboard-check text-[8px]"></i> چاوەڕێی کەشف
                                     </span>
                                 @endif
@@ -832,7 +831,7 @@
                                     <!-- دوگمەی چاو (پێشبینی خێرا) -->
                                     <button type="button" 
                                             @click="openPreview({{ json_encode($txPayload) }})" 
-                                            class="px-2.5 py-1.5 bg-slate-800 hover:bg-sky-600 text-sky-400 hover:text-white rounded-xl text-xs font-bold border border-slate-700 hover:border-sky-500 transition shadow-sm cursor-pointer flex items-center gap-1" 
+                                            class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-sky-600 text-slate-700 dark:text-sky-400 hover:text-slate-950 dark:hover:text-white rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-700 hover:border-sky-500 transition shadow-sm cursor-pointer flex items-center gap-1" 
                                             title="پێشبینی خێرا بەبێ چوونە دەرەوە">
                                         <i class="fa-solid fa-eye text-xs"></i>
                                         <span class="hidden xl:inline text-[11px]">پێشبینی</span>
@@ -881,9 +880,9 @@
 
         <!-- پەڕەبەندی خوارەوە (Bottom Pagination) -->
         @if($transactions->hasPages())
-            <div class="p-4 border-t border-slate-800 bg-slate-950/60 flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div class="text-xs text-slate-400">
-                    پەڕەی <span class="font-mono text-white font-bold">{{ $transactions->currentPage() }}</span> لە کۆی <span class="font-mono text-white font-bold">{{ $transactions->lastPage() }}</span>
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="text-xs text-slate-600 dark:text-slate-400">
+                    پەڕەی <span class="font-mono text-slate-900 dark:text-white font-bold">{{ $transactions->currentPage() }}</span> لە کۆی <span class="font-mono text-slate-900 dark:text-white font-bold">{{ $transactions->lastPage() }}</span>
                 </div>
                 <div>
                     {{ $transactions->links() }}
