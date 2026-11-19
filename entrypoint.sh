@@ -29,10 +29,10 @@ mkdir -p /var/www/database \
          /var/www/storage/logs \
          /var/www/bootstrap/cache
 
-# 2. If database.sqlite is empty or corrupted, seed it from database_seed.sqlite
-if [ ! -s /var/www/database/database.sqlite ] || [ $(wc -c < /var/www/database/database.sqlite 2>/dev/null || echo 0) -lt 100000 ]; then
+# 2. If database.sqlite is empty or smaller than the full bundled seed (17,424 records), seed it from database_seed.sqlite
+if [ ! -s /var/www/database/database.sqlite ] || [ $(wc -c < /var/www/database/database.sqlite 2>/dev/null || echo 0) -lt 10000000 ]; then
     if [ -f /var/www/database/database_seed.sqlite ]; then
-        echo "Restoring local database from bundled database_seed.sqlite..."
+        echo "Restoring local database from bundled database_seed.sqlite (17,424 records)..."
         cp -f /var/www/database/database_seed.sqlite /var/www/database/database.sqlite
     fi
 fi
