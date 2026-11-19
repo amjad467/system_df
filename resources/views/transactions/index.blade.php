@@ -68,8 +68,18 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end">
-            <!-- نیشاندەری باری بەروار -->
-            @if($dateFilter === 'today')
+            <!-- نیشاندەری باری بەروار و گەڕان -->
+            @if($dateFilter === 'number_between')
+                <span class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/30 flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-arrows-left-right text-xs"></i>
+                    لە نێوان دوو ژمارە (بێ مەرجی بەروار)
+                </span>
+            @elseif($dateFilter === 'number_exact')
+                <span class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-sky-500/10 text-sky-400 border border-sky-500/30 flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-bullseye text-xs"></i>
+                    یەکسان بە ژمارە (بێ مەرجی بەروار)
+                </span>
+            @elseif($dateFilter === 'today')
                 <span class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     مامەڵەکانی ئەمڕۆ ({{ $today }})
@@ -213,15 +223,21 @@
                         <select name="date_filter" id="dateFilterSelect" x-model="dateFilter"
                                 @change="if(['all', 'today', 'yesterday', 'this_month', 'last_month', 'this_year', 'last_year'].includes(dateFilter)) { $nextTick(() => document.getElementById('topFilterForm').submit()); }"
                                 class="w-full bg-transparent text-slate-100 font-bold text-xs focus:outline-none cursor-pointer">
-                            <option value="all" class="bg-slate-900 text-white">🌐 گشت کاتەکان (بێ مەرجی بەروار)</option>
-                            <option value="today" class="bg-slate-900 text-white">📅 تەنها ئەمڕۆ ({{ $today }})</option>
-                            <option value="yesterday" class="bg-slate-900 text-white">⏳ دوێنێ</option>
-                            <option value="this_month" class="bg-slate-900 text-white">🗓️ ئەم مانگە</option>
-                            <option value="last_month" class="bg-slate-900 text-white">🗓️ مانگی پێشوو</option>
-                            <option value="this_year" class="bg-slate-900 text-white">📆 ئەمساڵ ({{ date('Y') }})</option>
-                            <option value="last_year" class="bg-slate-900 text-white">📆 ساڵی پێشوو ({{ date('Y') - 1 }})</option>
-                            <option value="exact" class="bg-slate-900 text-white">🎯 یەکسان بە بەروارێک</option>
-                            <option value="custom" class="bg-slate-900 text-white">↔️ دیاریکردنی مەودا (لە ... تا ...)</option>
+                            <optgroup label="📅 مەرجەکانی بەروار" class="bg-slate-900 text-sky-400 font-bold">
+                                <option value="all" class="bg-slate-900 text-white">🌐 گشت کاتەکان (بێ مەرجی بەروار)</option>
+                                <option value="today" class="bg-slate-900 text-white">📅 تەنها ئەمڕۆ ({{ $today }})</option>
+                                <option value="yesterday" class="bg-slate-900 text-white">⏳ دوێنێ</option>
+                                <option value="this_month" class="bg-slate-900 text-white">🗓️ ئەم مانگە</option>
+                                <option value="last_month" class="bg-slate-900 text-white">🗓️ مانگی پێشوو</option>
+                                <option value="this_year" class="bg-slate-900 text-white">📆 ئەمساڵ ({{ date('Y') }})</option>
+                                <option value="last_year" class="bg-slate-900 text-white">📆 ساڵی پێشوو ({{ date('Y') - 1 }})</option>
+                                <option value="exact" class="bg-slate-900 text-white">🎯 یەکسان بە بەروارێک</option>
+                                <option value="custom" class="bg-slate-900 text-white">↔️ مەودای بەروار (لە ... تا ...)</option>
+                            </optgroup>
+                            <optgroup label="🔢 مەرجەکانی ژمارە (بێ مەرجی بەروار)" class="bg-slate-900 text-amber-400 font-bold">
+                                <option value="number_exact" class="bg-slate-900 text-amber-300">🎯 یەکسان بە ژمارە (دەفتەر، وەسڵ، تابلۆ، زنجیرە)</option>
+                                <option value="number_between" class="bg-slate-900 text-amber-300">↔️ لە نێوان دوو ژمارە (لە ... تا ...)</option>
+                            </optgroup>
                         </select>
                     </div>
                 </div>
@@ -317,9 +333,9 @@
                 </div>
             </div>
 
-            <!-- بەشی تایبەت بۆ بەرواری یەکسان یان مەودای بەروار -->
-            <div x-show="dateFilter === 'exact' || dateFilter === 'custom'" x-cloak x-transition
-                 class="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 bg-slate-950/60 p-3 rounded-xl border border-slate-800">
+            <!-- بەشی تایبەت بۆ بەرواری دیاریکراو یان مەودای بەروار یان مەرجەکانی ژمارە -->
+            <div x-show="dateFilter === 'exact' || dateFilter === 'custom' || dateFilter === 'number_exact' || dateFilter === 'number_between'" x-cloak x-transition
+                 class="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 bg-slate-950/70 p-3 rounded-xl border border-slate-800">
                 
                 <!-- ١. بەرواری یەکسان بە (Exact Date) -->
                 <div x-show="dateFilter === 'exact'" class="flex items-center gap-2 flex-wrap">
@@ -344,6 +360,57 @@
                         <input type="date" name="to_date" value="{{ request('to_date') }}"
                                class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:border-sky-500 focus:outline-none">
                     </div>
+                </div>
+
+                <!-- ٣. یەکسان بە ژمارە (بێ مەرجی بەروار) -->
+                <div x-show="dateFilter === 'number_exact'" class="flex items-center gap-2.5 flex-wrap">
+                    <span class="text-xs text-amber-400 font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-bullseye"></i>
+                        یەکسان بە ژمارە:
+                    </span>
+                    <select name="number_field" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none cursor-pointer">
+                        <option value="booklet_number" {{ request('number_field') == 'booklet_number' ? 'selected' : '' }}>📘 ژمارەی دەفتەر</option>
+                        <option value="receipt_37a_number" {{ request('number_field') == 'receipt_37a_number' ? 'selected' : '' }}>🧾 ژمارەی وەسڵی ۳۷/أ</option>
+                        <option value="plate_number" {{ request('number_field') == 'plate_number' ? 'selected' : '' }}>🚗 ژمارەی تابلۆ</option>
+                        <option value="id" {{ request('number_field') == 'id' ? 'selected' : '' }}>🔢 زنجیرەی مامەڵە (ID)</option>
+                        <option value="barcode" {{ request('number_field') == 'barcode' ? 'selected' : '' }}>🏷️ ژمارەی بارکۆد</option>
+                        <option value="all" {{ request('number_field', 'all') == 'all' ? 'selected' : '' }}>🌐 لە هەموو ژمارەکان بگەڕێ</option>
+                    </select>
+                    <input type="text" name="number_exact_val" value="{{ request('number_exact_val') }}"
+                           placeholder="ژمارەکە لێرە بنووسە..."
+                           class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono font-bold focus:border-amber-500 focus:outline-none w-44">
+                    <span class="text-[10px] text-amber-400 font-medium bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-lg">
+                        ⚡ بێ حسابکردن بۆ بەروار (گشت ساڵەکان دەپشکنێت)
+                    </span>
+                </div>
+
+                <!-- ٤. لە نێوان دوو ژمارە (بێ مەرجی بەروار) -->
+                <div x-show="dateFilter === 'number_between'" class="flex items-center gap-2.5 flex-wrap">
+                    <span class="text-xs text-amber-400 font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-arrows-left-right"></i>
+                        لە نێوان دوو ژمارە:
+                    </span>
+                    <select name="number_field" class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none cursor-pointer">
+                        <option value="booklet_number" {{ request('number_field') == 'booklet_number' ? 'selected' : '' }}>📘 ژمارەی دەفتەر</option>
+                        <option value="receipt_37a_number" {{ request('number_field') == 'receipt_37a_number' ? 'selected' : '' }}>🧾 ژمارەی وەسڵی ۳۷/أ</option>
+                        <option value="id" {{ request('number_field') == 'id' ? 'selected' : '' }}>🔢 زنجیرەی مامەڵە (ID)</option>
+                        <option value="all" {{ request('number_field', 'all') == 'all' ? 'selected' : '' }}>🌐 دەفتەر یان وەسڵ یان زنجیرە</option>
+                    </select>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs text-slate-400 font-bold">لە:</span>
+                        <input type="text" name="number_from" value="{{ request('number_from') }}"
+                               placeholder="مثلاً: 32550"
+                               class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono font-bold focus:border-amber-500 focus:outline-none w-28">
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs text-slate-400 font-bold">تا:</span>
+                        <input type="text" name="number_to" value="{{ request('number_to') }}"
+                               placeholder="مثلاً: 32590"
+                               class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono font-bold focus:border-amber-500 focus:outline-none w-28">
+                    </div>
+                    <span class="text-[10px] text-amber-400 font-medium bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-lg">
+                        ⚡ بێ حسابکردن بۆ بەروار (گشت ساڵەکان دەپشکنێت)
+                    </span>
                 </div>
 
                 <div class="flex items-center gap-2 mr-auto">

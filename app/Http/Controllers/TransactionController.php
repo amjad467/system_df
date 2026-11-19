@@ -38,10 +38,14 @@ class TransactionController extends Controller
 
         $today = now()->toDateString();
 
-        // ڕێکخستنی بەروار: ئەگەر فلتەر دیارینەکرابوو، بە شێوەی بنەڕەتی 'all' (گشت کاتەکان) بەکاربێنە
+        // ڕێکخستنی بەروار و گەڕان: ئەگەر فلتەر دیارینەکرابوو، بە شێوەی بنەڕەتی 'all' (گشت کاتەکان) بەکاربێنە
         $dateFilter = $request->get('date_filter');
         if (!$dateFilter) {
-            if ($request->filled('exact_date')) {
+            if ($request->filled('number_from') && $request->filled('number_to')) {
+                $dateFilter = 'number_between';
+            } elseif ($request->filled('number_exact_val')) {
+                $dateFilter = 'number_exact';
+            } elseif ($request->filled('exact_date')) {
                 $dateFilter = 'exact';
             } elseif ($request->filled('from_date') || $request->filled('to_date')) {
                 $dateFilter = 'custom';
@@ -78,45 +82,117 @@ class TransactionController extends Controller
 
         // فانکشنی هاوبەش بۆ سەپاندنی هەموو مەرجەکانی فلتەر
         $applyCommonFilters = function($q) use ($request, $dateFilter, $today) {
-            // ١. مەرجی بەروار
-            if ($dateFilter === 'today') {
-                $q->where(function($sq) use ($today) {
-                    $sq->whereDate('transaction_date', $today)
-                       ->orWhereDate('created_at', $today);
-                });
-            } elseif ($dateFilter === 'yesterday') {
-                $yesterday = now()->subDay()->toDateString();
-                $q->where(function($sq) use ($yesterday) {
-                    $sq->whereDate('transaction_date', $yesterday)
-                       ->orWhereDate('created_at', $yesterday);
-                });
-            } elseif ($dateFilter === 'this_month') {
-                $startOfMonth = now()->startOfMonth()->toDateString();
-                $endOfMonth = now()->endOfMonth()->toDateString();
-                $q->whereBetween('transaction_date', [$startOfMonth, $endOfMonth]);
-            } elseif ($dateFilter === 'last_month') {
-                $startOfLastMonth = now()->subMonthNoOverflow()->startOfMonth()->toDateString();
-                $endOfLastMonth = now()->subMonthNoOverflow()->endOfMonth()->toDateString();
-                $q->whereBetween('transaction_date', [$startOfLastMonth, $endOfLastMonth]);
-            } elseif ($dateFilter === 'this_year') {
-                $q->whereYear('transaction_date', now()->year);
-            } elseif ($dateFilter === 'last_year') {
-                $q->whereYear('transaction_date', now()->subYear()->year);
-            } elseif ($dateFilter === 'exact' && $request->filled('exact_date')) {
-                $q->whereDate('transaction_date', $request->exact_date);
-            } elseif ($dateFilter === 'custom') {
-                if ($request->filled('from_date') && $request->filled('to_date')) {
-                    $q->whereBetween('transaction_date', [$request->from_date, $request->to_date]);
-                } elseif ($request->filled('from_date')) {
-                    $q->whereDate('transaction_date', '>=', $request->from_date);
-                } elseif ($request->filled('to_date')) {
-                    $q->whereDate('transaction_date', '<=', $request->to_date);
-                }
-            }
+            $isNumberFilter = in_array($dateFilter, ['number_exact', 'number_between'])
+                              || $request->filled('number_exact_val')
+                              || ($request->filled('number_from') && $request->filled('number_to'));
 
-            // ٢. فلتەری ساڵ
-            if ($request->filled('year') && $request->year !== 'all') {
-                $q->whereYear('transaction_date', $request->year);
+            // ئەگەر گەڕان بەپێی ژمارە نەبوو، مەرجەکانی بەروار و ساڵ دەسەپێندرێن
+            if (!$isNumberFilter) {
+                // ١. مەرجی بەروار
+                if ($dateFilter === 'today') {
+                    $q->where(function($sq) use ($today) {
+                        $sq->whereDate('transaction_date', $today)
+                           ->orWhereDate('created_at', $today);
+                    });
+                } elseif ($dateFilter === 'yesterday') {
+                    $yesterday = now()->subDay()->toDateString();
+                    $q->where(function($sq) use ($yesterday) {
+                        $sq->whereDate('transaction_date', $yesterday)
+                           ->orWhereDate('created_at', $yesterday);
+                    });
+                } elseif ($dateFilter === 'this_month') {
+                    $startOfMonth = now()->startOfMonth()->toDateString();
+                    $endOfMonth = now()->endOfMonth()->toDateString();
+                    $q->whereBetween('transaction_date', [$startOfMonth, $endOfMonth]);
+                } elseif ($dateFilter === 'last_month') {
+                    $startOfLastMonth = now()->subMonthNoOverflow()->startOfMonth()->toDateString();
+                    $endOfLastMonth = now()->subMonthNoOverflow()->endOfMonth()->toDateString();
+                    $q->whereBetween('transaction_date', [$startOfLastMonth, $endOfLastMonth]);
+                } elseif ($dateFilter === 'this_year') {
+                    $q->whereYear('transaction_date', now()->year);
+                } elseif ($dateFilter === 'last_year') {
+                    $q->whereYear('transaction_date', now()->subYear()->year);
+                } elseif ($dateFilter === 'exact' && $request->filled('exact_date')) {
+                    $q->whereDate('transaction_date', $request->exact_date);
+                } elseif ($dateFilter === 'custom') {
+                    if ($request->filled('from_date') && $request->filled('to_date')) {
+                        $q->whereBetween('transaction_date', [$request->from_date, $request->to_date]);
+                    } elseif ($request->filled('from_date')) {
+                        $q->whereDate('transaction_date', '>=', $request->from_date);
+                    } elseif ($request->filled('to_date')) {
+                        $q->whereDate('transaction_date', '<=', $request->to_date);
+                    }
+                }
+
+                // ٢. فلتەری ساڵ
+                if ($request->filled('year') && $request->year !== 'all') {
+                    $q->whereYear('transaction_date', $request->year);
+                }
+            } else {
+                // ٣. مەرجی ژمارەیی تایبەت (بێ هیچ سنوردارکردنێکی بەروار و ساڵ)
+                $digitMap = ['۰'=>'0','۱'=>'1','۲'=>'2','۳'=>'3','۴'=>'4','۵'=>'5','۶'=>'6','۷'=>'7','۸'=>'8','۹'=>'9','٠'=>'0','١'=>'1','٢'=>'2','٣'=>'3','٤'=>'4','٥'=>'5','٦'=>'6','٧'=>'7','٨'=>'8','٩'=>'9'];
+                $numberField = $request->get('number_field', 'all');
+
+                if ($dateFilter === 'number_between' || ($request->filled('number_from') && $request->filled('number_to'))) {
+                    $fromRaw = strtr(trim($request->number_from), $digitMap);
+                    $toRaw = strtr(trim($request->number_to), $digitMap);
+                    $from = (int)preg_replace('/[^0-9]/', '', $fromRaw);
+                    $to = (int)preg_replace('/[^0-9]/', '', $toRaw);
+
+                    if ($from > $to) {
+                        $tmp = $from;
+                        $from = $to;
+                        $to = $tmp;
+                    }
+
+                    $q->where(function($sq) use ($numberField, $from, $to) {
+                        $isSqlite = config('database.default') === 'sqlite';
+                        $bookletCast = $isSqlite ? "CAST(booklet_number AS INTEGER)" : "CAST(NULLIF(regexp_replace(booklet_number, '[^0-9]', '', 'g'), '') AS BIGINT)";
+                        $receiptCast = $isSqlite ? "CAST(receipt_37a_number AS INTEGER)" : "CAST(NULLIF(regexp_replace(receipt_37a_number, '[^0-9]', '', 'g'), '') AS BIGINT)";
+
+                        if ($numberField === 'booklet_number') {
+                            $sq->whereRaw("{$bookletCast} >= ? AND {$bookletCast} <= ?", [$from, $to]);
+                        } elseif ($numberField === 'receipt_37a_number') {
+                            $sq->whereRaw("{$receiptCast} >= ? AND {$receiptCast} <= ?", [$from, $to]);
+                        } elseif ($numberField === 'id') {
+                            $sq->whereBetween('id', [$from, $to]);
+                        } else {
+                            // all: لە نێوان دەفتەر یان وەسڵ یان زنجیرە
+                            $sq->whereRaw("({$bookletCast} >= ? AND {$bookletCast} <= ?)", [$from, $to])
+                               ->orWhereRaw("({$receiptCast} >= ? AND {$receiptCast} <= ?)", [$from, $to])
+                               ->orWhereBetween('id', [$from, $to]);
+                        }
+                    });
+                } elseif ($dateFilter === 'number_exact' || $request->filled('number_exact_val')) {
+                    $valRaw = strtr(trim($request->number_exact_val), $digitMap);
+                    $cleanVal = preg_replace('/[\s\-\_\/]+/', '', $valRaw);
+                    $cleanValUpper = strtoupper($cleanVal);
+
+                    $q->where(function($sq) use ($numberField, $cleanVal, $cleanValUpper, $valRaw) {
+                        if ($numberField === 'booklet_number') {
+                            $sq->where('booklet_number', $cleanVal)
+                               ->orWhere('booklet_number', $valRaw);
+                        } elseif ($numberField === 'receipt_37a_number') {
+                            $sq->where('receipt_37a_number', $cleanVal)
+                               ->orWhere('receipt_37a_number', $valRaw);
+                        } elseif ($numberField === 'plate_number') {
+                            $sq->where('plate_number', $cleanValUpper)
+                               ->orWhere('plate_number', $valRaw);
+                        } elseif ($numberField === 'id') {
+                            $sq->where('id', (int)$cleanVal);
+                        } elseif ($numberField === 'barcode') {
+                            $sq->where('barcode', $cleanValUpper)
+                               ->orWhere('barcode', $valRaw);
+                        } else {
+                            // all
+                            $sq->where('booklet_number', $cleanVal)
+                               ->orWhere('receipt_37a_number', $cleanVal)
+                               ->orWhere('plate_number', $cleanValUpper)
+                               ->orWhere('barcode', $cleanValUpper)
+                               ->orWhere('id', (int)$cleanVal);
+                        }
+                    });
+                }
             }
 
             // ٣. فلتەری جۆری مامەڵە
