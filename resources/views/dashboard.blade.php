@@ -87,52 +87,34 @@
                 @endif
             </div>
         </div>
-    </div>
 
-    <!-- ========================================================================= -->
-    <!-- 2. DEDICATED BARCODE SEARCH & SCAN WORKSTATION (LIKE DATA ENTRY FORM) -->
-    <!-- ========================================================================= -->
-    <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-2xl relative">
-        <div class="max-w-2xl mx-auto space-y-3">
-            <div class="text-center space-y-1">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-500/15 text-sky-300 border border-sky-500/30 shadow-sm">
-                    <i class="fa-solid fa-barcode text-sm"></i>
-                    <span>وێستگەی سکانی خێرا و گەڕان بەدوای مامەڵە</span>
-                </span>
-                <h2 class="text-base sm:text-xl font-black text-white">
-                    بارکۆدی مامەڵە لێبدە بۆ بینینی زانیاری، شوێن و ڕاپەڕاندنی قۆناغ
-                </h2>
-                <p class="text-xs text-slate-400">
-                    دەتوانیت بە ئامێری سکانەر بارکۆد لێبدەیت، یان ژمارەی بارکۆد / تابلۆ لێرە بنووسیت (F2)
-                </p>
-            </div>
-
-            <!-- Big Search Input Box -->
-            <form action="{{ route('transactions.scan') }}" method="POST" class="relative group">
+        <!-- Integrated Barcode Search & Fast Scanner -->
+        <div class="relative z-10 pt-3 border-t border-slate-800/80">
+            <form action="{{ route('transactions.scan') }}" method="POST" class="max-w-2xl mx-auto relative group">
                 @csrf
-                <div class="relative flex items-center bg-slate-950 rounded-2xl border-2 border-sky-500/60 hover:border-sky-400 focus-within:border-sky-300 focus-within:ring-4 focus-within:ring-sky-500/30 transition shadow-2xl">
+                <div class="relative flex items-center bg-slate-950 rounded-2xl border border-sky-500/50 hover:border-sky-400 focus-within:border-sky-300 focus-within:ring-2 focus-within:ring-sky-500/30 transition shadow-lg">
                     <!-- Scanner Icon -->
-                    <div class="absolute right-4 text-sky-400 pointer-events-none">
-                        <i class="fa-solid fa-barcode text-xl"></i>
+                    <div class="absolute right-3.5 text-sky-400 pointer-events-none">
+                        <i class="fa-solid fa-barcode text-lg"></i>
                     </div>
 
                     <input type="text" 
                            name="barcode" 
                            id="dashBarcodeInput" 
                            placeholder="بارکۆدی ١٠ ڕەقەمی بنووسە یان سکانی بکە... (F2)" 
-                           class="w-full bg-transparent text-white placeholder-slate-500 text-base sm:text-lg font-mono font-black pr-14 pl-32 py-3.5 sm:py-4 focus:outline-none text-right tracking-wider"
+                           class="w-full bg-transparent text-white placeholder-slate-500 text-sm font-mono font-black pr-12 pl-28 py-2.5 sm:py-3 focus:outline-none text-right tracking-wider"
                            autocomplete="off"
                            autofocus
                            title="لێرە بارکۆد لێبدە یان بە ئامێری سکانەر لێیبدە (F2)">
 
                     <!-- Left Action Buttons -->
-                    <div class="absolute left-2.5 flex items-center gap-1.5">
-                        <kbd class="hidden sm:inline-flex items-center px-2 py-1 text-[11px] font-mono font-bold text-slate-400 bg-slate-800 border border-slate-700 rounded-lg shadow-sm" title="داگرتنی F2 بۆ فۆکەس">
+                    <div class="absolute left-2 flex items-center gap-1.5">
+                        <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono font-bold text-slate-400 bg-slate-800 border border-slate-700 rounded-md" title="داگرتنی F2 بۆ فۆکەس">
                             F2
                         </kbd>
                         <button type="submit" 
-                                class="px-5 py-2 sm:py-2.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-lg shadow-sky-500/30 transition flex items-center gap-1.5 active:scale-95">
-                            <i class="fa-solid fa-arrow-left text-xs"></i>
+                                class="px-4 py-1.5 sm:py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-md transition flex items-center gap-1.5 active:scale-95 cursor-pointer">
+                            <i class="fa-solid fa-arrow-left text-[11px]"></i>
                             <span>گەڕان</span>
                         </button>
                     </div>
