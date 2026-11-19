@@ -72,25 +72,25 @@ class ImportLegacyTransactions extends Command
             $carColorsCache[trim($cc->name_kurdish)] = $cc->id;
         }
 
-        // Resolve helper functions
-        $resolveDirectorate = function($rawName) use (&$directoratesMap) {
-            if (!$rawName) return 1;
-            $name = trim($rawName);
-            if (mb_stripos($name, 'سلێمان') !== false) return 1;
-            if (mb_stripos($name, 'هەولێر') !== false || mb_stripos($name, 'ههولێر') !== false) return 2;
-            if (mb_stripos($name, 'دهۆک') !== false || mb_stripos($name, 'دهوك') !== false) return 3;
-            if (mb_stripos($name, 'هەڵەبجە') !== false || mb_stripos($name, 'ههڵهبجه') !== false) return 4;
+        // Directorates dynamic resolution
+        $sulId = TrafficDirectorate::where('name_kurdish', 'like', '%سلێمان%')->value('id') ?? 2;
+        $erbilId = TrafficDirectorate::where('name_kurdish', 'like', '%هەولێر%')->orWhere('name_kurdish', 'like', '%ههولێر%')->value('id') ?? 1;
+        $duhokId = TrafficDirectorate::where('name_kurdish', 'like', '%دهۆک%')->orWhere('name_kurdish', 'like', '%دهوك%')->value('id') ?? 3;
+        $halabjaId = TrafficDirectorate::where('name_kurdish', 'like', '%هەڵەبجە%')->orWhere('name_kurdish', 'like', '%ههڵهبجه%')->value('id') ?? 4;
 
-            // Check if exists or create
-            foreach ($directoratesMap as $k => $id) {
-                if (mb_stripos($k, $name) !== false) return $id;
+        $resolveDirectorate = function($rawName) use ($sulId, $erbilId, $duhokId, $halabjaId) {
+            if (!$rawName) return $sulId;
+            $name = trim($rawName);
+
+            if (mb_stripos($name, 'سلێمان') !== false || mb_stripos($name, 'سليمان') !== false) return $sulId;
+            if (mb_stripos($name, 'هەولێر') !== false || mb_stripos($name, 'ههولێر') !== false || mb_stripos($name, 'اربيل') !== false) return $erbilId;
+            if (mb_stripos($name, 'دهۆک') !== false || mb_stripos($name, 'دهوك') !== false) return $duhokId;
+            if (mb_stripos($name, 'هەڵەبجە') !== false || mb_stripos($name, 'ههڵهبجه') !== false) return $halabjaId;
+            if (mb_stripos($name, 'کەرکوک') !== false || mb_stripos($name, 'كركوك') !== false) {
+                return TrafficDirectorate::firstOrCreate(['name_kurdish' => 'بەڕێوەبەرایەتی هاتوچۆی پارێزگای کەرکوک'], ['name_english' => 'Kirkuk Traffic Directorate'])->id;
             }
-            $newDir = TrafficDirectorate::firstOrCreate(
-                ['name_kurdish' => $name],
-                ['name_english' => $name]
-            );
-            $directoratesMap[$name] = $newDir->id;
-            return $newDir->id;
+
+            return $sulId;
         };
 
         $resolvePlateType = function($tabloId, $rawName = null) use (&$plateTypesMap) {
