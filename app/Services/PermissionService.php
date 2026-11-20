@@ -225,6 +225,11 @@ class PermissionService
     /**
      * Seed or sync database defaults if role_permissions is empty.
      */
+    public static function seedDefaults(): void
+    {
+        self::ensureDefaultsSeeded();
+    }
+
     public static function ensureDefaultsSeeded(): void
     {
         if (RolePermission::count() === 0) {
