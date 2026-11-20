@@ -47,7 +47,8 @@ class FeeCalculatorService
             $stamp = (float)$txType->stamp_pay;
             $form = (float)$txType->form_pay;
             $fine = (float)$txType->fine_pay;
-            $inspection = $isBus ? (float)$txType->bus_inspection_pay : (float)$txType->inspection_pay;
+            $busPay = (float)($txType->bus_inspection_pay ?: 30000);
+            $inspection = $isBus ? $busPay : (float)$txType->inspection_pay;
 
             // Only Issue Booklet (1) and Renew Booklet (2) multiply fee by years
             if (in_array($transactionTypeId, [1, 2])) {
@@ -75,7 +76,7 @@ class FeeCalculatorService
 
                     $stamp = 3000;
                     $form = 4000;
-                    $inspection = $isBus ? 27000 : 20000;
+                    $inspection = $isBus ? 30000 : 20000;
                     $endDate = $startDate ? $startDate->copy()->addYears($numYears) : null;
                     break;
 
@@ -99,7 +100,7 @@ class FeeCalculatorService
                 case 5: // Cancellation
                     $stamp = 3000;
                     $form = 4000;
-                    $inspection = 20000;
+                    $inspection = $isBus ? 30000 : 20000;
                     $payYears = 0;
                     $startDate = null;
                     $endDate = null;
@@ -116,7 +117,7 @@ class FeeCalculatorService
                 case 8: // Inspection
                     $stamp = 3000;
                     $form = 4000;
-                    $inspection = 20000;
+                    $inspection = $isBus ? 30000 : 20000;
                     $payYears = 0;
                     $startDate = null;
                     $endDate = null;

@@ -36,6 +36,7 @@ class Transaction extends Model
         'is_printed' => 'boolean',
         'is_cancelled' => 'boolean',
         'is_returned' => 'boolean',
+        'is_bus' => 'boolean',
     ];
 
     public function getIsCancelledAttribute(): bool

@@ -1381,6 +1381,7 @@ class TransactionController extends Controller
             'traffic_directorate_id' => 'nullable|exists:traffic_directorates,id',
             'director_id' => 'nullable|exists:directors,id',
             'plate_type_id' => 'nullable|exists:plate_types,id',
+            'is_bus' => 'nullable|boolean',
             'car_make_id' => 'nullable|exists:car_makes,id',
             'car_color_id' => 'nullable|exists:car_colors,id',
             'visitor_name' => 'required|string|max:255',
@@ -1467,7 +1468,7 @@ class TransactionController extends Controller
         $transaction = DB::transaction(function () use ($validated, $request) {
             $barcode = BarcodeService::generateNextBarcode();
             $numYears = (int)($request->input('num_years', 1));
-            $isBus = ($request->input('plate_type_id') == 4);
+            $isBus = $request->boolean('is_bus') || ($request->input('plate_type_id') == 4);
             $typeId = (int)$request->transaction_type_id;
 
             $fees = FeeCalculatorService::calculate(
@@ -1495,6 +1496,7 @@ class TransactionController extends Controller
 
             $transactionData = array_merge($validated, [
                 'barcode' => $barcode,
+                'is_bus' => $isBus,
                 'num_years' => $fees['num_years'],
                 'pay_amount_years' => $fees['pay_amount_years'],
                 'pay_stamp' => $fees['pay_stamp'],
@@ -1676,6 +1678,7 @@ class TransactionController extends Controller
             'traffic_directorate_id' => 'nullable|exists:traffic_directorates,id',
             'director_id' => 'nullable|exists:directors,id',
             'plate_type_id' => 'nullable|exists:plate_types,id',
+            'is_bus' => 'nullable|boolean',
             'car_make_id' => 'nullable|exists:car_makes,id',
             'car_color_id' => 'nullable|exists:car_colors,id',
             'visitor_name' => 'required|string|max:255',
@@ -1709,7 +1712,7 @@ class TransactionController extends Controller
         ]);
 
         $numYears = (int)($request->input('num_years', 1));
-        $isBus = ($request->input('plate_type_id') == 4);
+        $isBus = $request->boolean('is_bus') || ($request->input('plate_type_id') == 4);
         $typeId = (int)$request->transaction_type_id;
 
         $fees = FeeCalculatorService::calculate(
@@ -1750,6 +1753,7 @@ class TransactionController extends Controller
         }
 
         $transaction->update(array_merge($validated, [
+            'is_bus' => $isBus,
             'num_years' => $fees['num_years'],
             'pay_amount_years' => $fees['pay_amount_years'],
             'pay_stamp' => $fees['pay_stamp'],
@@ -1774,6 +1778,7 @@ class TransactionController extends Controller
                 'traffic_directorate_id' => $transaction->traffic_directorate_id,
                 'director_id'            => $transaction->director_id,
                 'plate_type_id'          => $transaction->plate_type_id,
+                'is_bus'                 => $transaction->is_bus,
                 'car_make_id'            => $transaction->car_make_id,
                 'car_color_id'           => $transaction->car_color_id,
                 'visitor_name'           => $transaction->visitor_name,

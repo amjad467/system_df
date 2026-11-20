@@ -356,6 +356,29 @@
                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono uppercase tracking-wider focus:border-sky-500 focus:outline-none">
                 </div>
             </div>
+
+            <!-- BUS / TRUCK / HEAVY VEHICLE TOGGLE (ئۆتۆمبێلی گەورە: پاس یان بارهەڵگر) -->
+            <div class="mt-4 pt-3 border-t border-slate-700/60">
+                <label class="flex items-center justify-between p-3 rounded-xl border transition cursor-pointer select-none"
+                       :class="isBus ? 'bg-amber-500/15 border-amber-500/70 text-amber-200 ring-1 ring-amber-500/40' : 'bg-slate-900/60 border-slate-700 text-slate-300 hover:bg-slate-800/50'">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center transition"
+                             :class="isBus ? 'bg-amber-500 text-white shadow-sm' : 'bg-slate-800 text-slate-400'">
+                            <i class="fa-solid fa-truck-moving text-sm"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold block">ئۆتۆمبێلی گەورەیە (پاس یان بارهەڵگر)</span>
+                            <span class="text-[11px] text-slate-400">کەشفی ئەم ئۆتۆمبێلە ٣٠,٠٠٠ دینار هەژمار دەکرێت</span>
+                        </div>
+                    </div>
+                    <input type="checkbox" 
+                           name="is_bus" 
+                           value="1" 
+                           x-model="isBus" 
+                           @change="calculateFees()" 
+                           class="w-5 h-5 rounded border-slate-600 text-amber-500 focus:ring-amber-500 cursor-pointer">
+                </label>
+            </div>
         </div>
 
         <!-- 4. Dynamic Duration & Dates Section -->
@@ -476,6 +499,7 @@
             typeId: '{{ $transaction->transaction_type_id }}',
             numYears: '{{ $transaction->num_years }}',
             plateTypeId: '{{ $transaction->plate_type_id }}',
+            isBus: {{ $transaction->is_bus ? 'true' : 'false' }},
             carMakeId: '{{ $transaction->car_make_id }}',
             carColorId: '{{ $transaction->car_color_id }}',
             passportIssuePlace: '{{ old("passport_issue_place", $transaction->passport_issue_place) }}',
@@ -564,7 +588,7 @@
             calculateFees() {
                 const typeId = parseInt(this.typeId || 1);
                 const years = Math.min(Math.max(parseInt(this.numYears || 1), 1), 10);
-                const isBus = (parseInt(this.plateTypeId) === 4);
+                const isBus = Boolean(this.isBus) || (parseInt(this.plateTypeId) === 4);
 
                 let payYears = 0;
                 let stamp = 3000;
@@ -600,13 +624,13 @@
                         else if (years === 2) payYears = 120000;
                         else if (years === 3) payYears = 140000;
                         else payYears = 80000 * years;
-                        inspection = isBus ? 27000 : 20000;
+                        inspection = isBus ? 30000 : 20000;
                     } else if (typeId === 3 || typeId === 4) {
                         fine = 25000;
                     } else if (typeId === 7) {
                         fine = 50000;
                     } else if (typeId === 5 || typeId === 8) {
-                        inspection = 20000;
+                        inspection = isBus ? 30000 : 20000;
                     }
                 }
 

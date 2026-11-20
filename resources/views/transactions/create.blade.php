@@ -589,6 +589,29 @@
                                class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono">
                     </div>
                 </div>
+
+                <!-- BUS / TRUCK / HEAVY VEHICLE TOGGLE (ئۆتۆمبێلی گەورە: پاس یان بارهەڵگر) -->
+                <div class="pt-1">
+                    <label class="flex items-center justify-between p-2 rounded-xl border transition cursor-pointer select-none"
+                           :class="isBus ? 'bg-amber-500/15 border-amber-500/70 text-amber-900 dark:text-amber-200 ring-1 ring-amber-500/40' : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50'">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg flex items-center justify-center transition"
+                                 :class="isBus ? 'bg-amber-500 text-white shadow-sm' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'">
+                                <i class="fa-solid fa-truck-moving text-xs"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-black block">ئۆتۆمبێلی گەورەیە (پاس یان بارهەڵگر)</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400">کەشفی ئەم ئۆتۆمبێلە ٣٠,٠٠٠ دینار هەژمار دەکرێت</span>
+                            </div>
+                        </div>
+                        <input type="checkbox" 
+                               name="is_bus" 
+                               value="1" 
+                               x-model="isBus" 
+                               @change="calculateFees()" 
+                               class="w-4 h-4 rounded border-slate-400 dark:border-slate-700 text-amber-500 focus:ring-amber-500 cursor-pointer">
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -826,6 +849,10 @@
                             <span>فۆڕم و پسوولە:</span>
                             <span class="font-mono" x-text="formatNumber(fees.formPay)"></span>
                         </div>
+                        <div x-show="fees.inspectionPay > 0" class="flex justify-between text-slate-600 dark:text-slate-300">
+                            <span>کرێی کەشف:</span>
+                            <span class="font-mono font-bold" :class="isBus ? 'text-amber-600 dark:text-amber-400 font-black' : ''" x-text="formatNumber(fees.inspectionPay)"></span>
+                        </div>
                         <div x-show="typeId == 1" class="flex justify-between text-sky-600 dark:text-sky-400 font-semibold">
                             <span>بەڵێننامەی یاسایی:</span>
                             <span class="font-mono" x-text="formatNumber(fees.pledgeTotal)"></span>
@@ -1041,6 +1068,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
         address: initialTx ? (initialTx.address || '') : '',
 
         // Vehicle details
+        isBus: initialTx ? Boolean(initialTx.is_bus) : false,
         chassisNumber: initialTx ? (initialTx.chassis_number || '') : '',
         plateNumber: initialTx ? (initialTx.plate_number || '') : '',
         plateTypeId: initialTx ? (initialTx.plate_type_id || 1) : 1,
@@ -1091,6 +1119,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             mainPay: 0,
             stampPay: 0,
             formPay: 0,
+            inspectionPay: 0,
             pledgeTotal: 25000,
             totalPay: 0
         },
@@ -1323,6 +1352,9 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             if (record.chassis_number) {
                 this.chassisNumber = String(record.chassis_number).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 17);
             }
+            if (typeof record.is_bus !== 'undefined') {
+                this.isBus = Boolean(record.is_bus);
+            }
             this.visitorName = record.visitor_name || '';
             this.visitorNameEng = record.visitor_name_eng || '';
             this.phoneNumber = record.phone_number || '';
@@ -1410,12 +1442,17 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             let main = (parseInt(this.numYears) === 3 ? (r.pay_3_year || 0) : (parseInt(this.numYears) === 2 ? (r.pay_2_year || 0) : (r.pay_1_year || 0)));
             let stamp = r.stamp_pay || 0;
             let form = r.form_pay || 0;
+            let inspection = 0;
+            if (this.typeId == 1 || this.typeId == 2 || this.typeId == 5 || this.typeId == 8) {
+                inspection = this.isBus ? (parseFloat(r.bus_inspection_pay) || 30000) : (parseFloat(r.inspection_pay) || 20000);
+            }
 
             this.fees.mainPay = main;
             this.fees.stampPay = stamp;
             this.fees.formPay = form;
+            this.fees.inspectionPay = inspection;
             this.fees.pledgeTotal = (parseInt(this.typeId) === 1) ? 25000 : 0;
-            this.fees.totalPay = main + stamp + form;
+            this.fees.totalPay = main + stamp + form + inspection;
         },
 
         formatNumber(n) {
