@@ -253,6 +253,16 @@ class BookletNoticeController extends Controller
             ->whereNotNull('end_date')
             ->where('end_date', '<', $now)
             ->whereNull('cancelled_at')
+            ->where(function($q) {
+                $q->whereNull('transactions.is_cancelled')->orWhere('transactions.is_cancelled', 0);
+            })
+            ->whereNotExists(function($q) {
+                $q->select(\Illuminate\Support\Facades\DB::raw(1))
+                  ->from('transactions as t_newer')
+                  ->whereColumn('t_newer.plate_number', 'transactions.plate_number')
+                  ->where('t_newer.id', '>', \Illuminate\Support\Facades\DB::raw('transactions.id'))
+                  ->whereNull('t_newer.deleted_at');
+            })
             ->whereDoesntHave('bookletNotices')
             ->orderBy('end_date', 'asc')
             ->limit($limit)

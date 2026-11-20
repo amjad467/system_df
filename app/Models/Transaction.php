@@ -420,10 +420,20 @@ class Transaction extends Model
     {
         // Booklet types: 1: New Issue, 2: Renewal, 3: Name Change, 4: Booklet Replacement, 7: Both
         $bookletTypeIds = [1, 2, 3, 4, 7];
-        return $query->whereIn('transaction_type_id', $bookletTypeIds)
-            ->whereNotNull('end_date')
-            ->whereNull('cancelled_at')
-            ->where('end_date', '<', now()->startOfDay());
+        return $query->whereIn('transactions.transaction_type_id', $bookletTypeIds)
+            ->whereNotNull('transactions.end_date')
+            ->whereNull('transactions.cancelled_at')
+            ->where(function($q) {
+                $q->whereNull('transactions.is_cancelled')->orWhere('transactions.is_cancelled', 0);
+            })
+            ->where('transactions.end_date', '<', now()->startOfDay())
+            ->whereNotExists(function($q) {
+                $q->select(\Illuminate\Support\Facades\DB::raw(1))
+                  ->from('transactions as t_newer')
+                  ->whereColumn('t_newer.plate_number', 'transactions.plate_number')
+                  ->where('t_newer.id', '>', \Illuminate\Support\Facades\DB::raw('transactions.id'))
+                  ->whereNull('t_newer.deleted_at');
+            });
     }
 
     public function scopeExpiringSoonBooklets($query, $days = 30)
@@ -431,11 +441,21 @@ class Transaction extends Model
         $bookletTypeIds = [1, 2, 3, 4, 7];
         $now = now()->startOfDay();
         $soon = now()->addDays($days)->endOfDay();
-        return $query->whereIn('transaction_type_id', $bookletTypeIds)
-            ->whereNotNull('end_date')
-            ->whereNull('cancelled_at')
-            ->where('end_date', '>=', $now)
-            ->where('end_date', '<=', $soon);
+        return $query->whereIn('transactions.transaction_type_id', $bookletTypeIds)
+            ->whereNotNull('transactions.end_date')
+            ->whereNull('transactions.cancelled_at')
+            ->where(function($q) {
+                $q->whereNull('transactions.is_cancelled')->orWhere('transactions.is_cancelled', 0);
+            })
+            ->where('transactions.end_date', '>=', $now)
+            ->where('transactions.end_date', '<=', $soon)
+            ->whereNotExists(function($q) {
+                $q->select(\Illuminate\Support\Facades\DB::raw(1))
+                  ->from('transactions as t_newer')
+                  ->whereColumn('t_newer.plate_number', 'transactions.plate_number')
+                  ->where('t_newer.id', '>', \Illuminate\Support\Facades\DB::raw('transactions.id'))
+                  ->whereNull('t_newer.deleted_at');
+            });
     }
 }
 

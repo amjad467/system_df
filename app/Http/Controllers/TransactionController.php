@@ -633,7 +633,17 @@ class TransactionController extends Controller
         $baseQuery = Transaction::with(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'latestBookletNotice'])
             ->whereIn('transaction_type_id', $bookletTypeIds)
             ->whereNotNull('end_date')
-            ->whereNull('cancelled_at');
+            ->whereNull('cancelled_at')
+            ->where(function($q) {
+                $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+            })
+            ->whereNotExists(function($q) {
+                $q->select(\Illuminate\Support\Facades\DB::raw(1))
+                  ->from('transactions as t_newer')
+                  ->whereColumn('t_newer.plate_number', 'transactions.plate_number')
+                  ->where('t_newer.id', '>', \Illuminate\Support\Facades\DB::raw('transactions.id'))
+                  ->whereNull('t_newer.deleted_at');
+            });
 
         if ($year) {
             if ($yearType === 'transaction_date') {
