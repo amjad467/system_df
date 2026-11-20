@@ -1370,6 +1370,11 @@ class TransactionController extends Controller
             $request->merge(['plate_number' => $cleanPlate]);
         }
 
+        if ($request->filled('chassis_number')) {
+            $cleanChassis = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string)$request->chassis_number));
+            $request->merge(['chassis_number' => $cleanChassis]);
+        }
+
         $validated = $request->validate([
             'parent_transaction_id' => 'nullable|exists:transactions,id',
             'transaction_type_id' => 'required|exists:transaction_types,id',
@@ -1389,7 +1394,7 @@ class TransactionController extends Controller
             'passport_issue_place' => 'nullable|string|max:255',
             'plate_number' => 'required|string|max:100',
             'model_year' => 'required|digits:4',
-            'chassis_number' => 'required|string|max:100',
+            'chassis_number' => 'required|string|max:17',
             'piston_count' => 'nullable|integer',
             'salana_number' => 'nullable|string|max:100',
             'num_years' => 'nullable|integer|min:1|max:10',
@@ -1406,6 +1411,9 @@ class TransactionController extends Controller
             'date_nusraw_puchal' => 'nullable|date',
             'NO_boxfile' => 'nullable|integer|min:0',
             'NO_boxfile_puchal' => 'nullable|integer|min:0',
+        ], [
+            'chassis_number.max' => 'ژمارەی شاسی نابێت لە ١٧ پیت و ژمارە زیاتربێت!',
+            'chassis_number.required' => 'تکایە ژمارەی شاسی بنووسە!',
         ]);
 
         // 1. Prevent duplicate Booklet Issue (دەرهێنانی دەفتەر) if previous booklet is active and not cancelled

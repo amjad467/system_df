@@ -349,6 +349,7 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">ژمارەی شاسی (VIN) *</label>
                     <input type="text" name="chassis_number" value="{{ old('chassis_number', $transaction->chassis_number) }}" 
+                           maxlength="17"
                            @input="onChassisInput($event)"
                            data-english-field="true"
                            required dir="ltr" lang="en" style="text-transform: uppercase;"
@@ -516,6 +517,9 @@
                     val = window.LangConvert.toEnglish(val);
                 }
                 val = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                if (val.length > 17) {
+                    val = val.slice(0, 17);
+                }
                 e.target.value = val;
             },
 

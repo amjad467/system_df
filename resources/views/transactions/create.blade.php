@@ -357,15 +357,21 @@
                             <i class="fa-solid fa-barcode text-sky-500"></i>
                             <span>ژمارەی شاسی (Chassis VIN) *</span>
                         </label>
-                        <span x-show="isCheckingChassis" x-cloak class="text-[11px] text-sky-500 flex items-center gap-1 font-bold animate-pulse font-mono">
-                            <i class="fa-solid fa-spinner fa-spin"></i> پشکنین...
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded transition"
+                                  :class="chassisNumber && chassisNumber.length === 17 ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30' : (chassisNumber && chassisNumber.length > 0 ? 'bg-sky-500/10 text-sky-600 dark:text-sky-400' : 'text-slate-400')"
+                                  x-text="(chassisNumber ? chassisNumber.length : 0) + ' / 17'"></span>
+                            <span x-show="isCheckingChassis" x-cloak class="text-[11px] text-sky-500 flex items-center gap-1 font-bold animate-pulse font-mono">
+                                <i class="fa-solid fa-spinner fa-spin"></i> پشکنین...
+                            </span>
+                        </div>
                     </div>
 
                     <input type="text" 
                            id="input_chassisNumber"
                            name="chassis_number" 
                            x-model="chassisNumber" 
+                           maxlength="17"
                            @input="onChassisInput($event)" 
                            @blur="lookupByChassis()" 
                            @keydown.enter.prevent="lookupByChassis(); focusNext('visitorName')" 
@@ -1221,6 +1227,9 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
                 val = window.LangConvert.toEnglish(val);
             }
             val = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            if (val.length > 17) {
+                val = val.slice(0, 17);
+            }
             this.chassisNumber = val;
             e.target.value = val;
 
@@ -1276,7 +1285,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
         populateFromPrevious(record) {
             this.parentTransactionId = record.id;
             if (record.chassis_number) {
-                this.chassisNumber = record.chassis_number;
+                this.chassisNumber = String(record.chassis_number).toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 17);
             }
             this.visitorName = record.visitor_name || '';
             this.visitorNameEng = record.visitor_name_eng || '';
@@ -1388,6 +1397,17 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             // Requirement 1: Check active booklet duplicate blocking
             if (this.typeId == 1 && this.hasActiveBooklet) {
                 this.validationError = 'تۆ دەفتەری پێشووت پووچەڵ نەکردووەتەوە! ناتوانیت مامەڵەی دەرهێنانی نوێ تۆمار بکەیت، بەڵام دەتوانیت لە سەرەوە جۆری مامەڵەکە بگۆڕیت بۆ پووچەڵکردنەوە، تازەکردنەوە، یان جۆرەکانی تر.';
+                const el = document.getElementById('input_chassisNumber');
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.focus();
+                }
+                return;
+            }
+
+            if (this.chassisNumber && this.chassisNumber.length > 17) {
+                this.validationError = 'ژمارەی شاسی نابێت لە ١٧ پیت و ژمارە زیاتربێت!';
+                this.missingField = 'chassisNumber';
                 const el = document.getElementById('input_chassisNumber');
                 if (el) {
                     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
