@@ -147,6 +147,19 @@ class PermissionService
     protected static array $permissionsCache = [];
 
     /**
+     * Clear all cached user permissions across memory and cache stores.
+     */
+    public static function clearPermissionsCache(): void
+    {
+        static::$permissionsCache = [];
+        try {
+            \Illuminate\Support\Facades\Cache::flush();
+        } catch (\Throwable $e) {
+            // Ignore cache store driver limitations
+        }
+    }
+
+    /**
      * Checks if a user has a specific permission (ultra-fast with in-memory memoization).
      */
     public static function userHasPermission(User $user, string $permission): bool
@@ -155,11 +168,16 @@ class PermissionService
             return true;
         }
 
+        // Normalize permission aliases
+        if ($permission === 'transactions.print_booklet') {
+            $permission = 'prints.booklet';
+        }
+
         $cacheKey = $user->id . '_' . $user->role;
         if (!isset(static::$permissionsCache[$cacheKey])) {
             static::$permissionsCache[$cacheKey] = \Illuminate\Support\Facades\Cache::remember(
                 "user_perms_{$cacheKey}",
-                300,
+                60,
                 function () use ($user) {
                     // 1. Check custom permissions
                     if ($user->custom_permissions !== null) {
@@ -183,7 +201,7 @@ class PermissionService
             );
         }
 
-        $activePerms = static::$permissionsCache[$cacheKey];
+        $activePerms = static::$permissionsCache[$cacheKey] ?? [];
         return in_array($permission, $activePerms) || in_array('*', $activePerms);
     }
 

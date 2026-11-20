@@ -10,8 +10,8 @@ class ActivityLogController extends Controller
 {
     public function index(Request $request)
     {
-        if (!auth()->user()->isAdmin()) {
-            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی تۆماری لۆگەکان تەنها بۆ ئەدمینی سیستەمە!');
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('logs.view')) {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی تۆماری لۆگەکانت نییە بەپێی پێرمشنەکان!');
         }
 
         $query = ActivityLog::latest();

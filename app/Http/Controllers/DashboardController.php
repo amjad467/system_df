@@ -215,7 +215,7 @@ class DashboardController extends Controller
         $pendingBookletList    = collect();
         $pendingSubmitList     = collect();
 
-        if ($user->isAdmin() || $activeRole === 'inspector') {
+        if ($user->isAdmin() || $activeRole === 'inspector' || $user->hasPermission('transactions.inspect')) {
             $pendingInspectionList = Transaction::with(['transactionType', 'carMake', 'plateType'])
                 ->where('is_inspected', false)
                 ->whereNull('cancelled_at')
@@ -224,7 +224,7 @@ class DashboardController extends Controller
                 ->get();
         }
 
-        if ($user->isAdmin() || $activeRole === 'auditor') {
+        if ($user->isAdmin() || $activeRole === 'auditor' || $user->hasPermission('transactions.audit')) {
             $pendingAuditList = Transaction::with(['transactionType', 'carMake', 'plateType'])
                 ->where('is_inspected', true)
                 ->where('is_audited', false)
@@ -234,7 +234,7 @@ class DashboardController extends Controller
                 ->get();
         }
 
-        if ($user->isAdmin() || $activeRole === 'cashier') {
+        if ($user->isAdmin() || $activeRole === 'cashier' || $user->hasPermission('transactions.pay')) {
             $pendingPaymentList = Transaction::with(['transactionType', 'carMake', 'plateType'])
                 ->where('is_audited', true)
                 ->where('is_paid', false)
@@ -256,7 +256,7 @@ class DashboardController extends Controller
                 ->get();
         }
 
-        if ($user->isAdmin() || $activeRole === 'booklet') {
+        if ($user->isAdmin() || $activeRole === 'booklet' || $user->hasPermission('transactions.complete_booklet')) {
             $pendingBookletList = Transaction::with(['transactionType', 'carMake', 'plateType'])
                 ->where('is_paid', true)
                 ->where('is_booklet_completed', false)
@@ -266,7 +266,7 @@ class DashboardController extends Controller
                 ->get();
         }
 
-        if ($user->isAdmin() || $activeRole === 'archiver') {
+        if ($user->isAdmin() || $activeRole === 'archiver' || $user->hasPermission('transactions.submit')) {
             $pendingSubmitList = Transaction::with(['transactionType', 'carMake', 'plateType'])
                 ->where('is_paid', true)
                 ->where(function ($q) {

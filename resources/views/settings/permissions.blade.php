@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="space-y-6" x-data="{ 
-    activeTab: 'roles',
+    activeTab: '{{ request()->get('tab', 'roles') }}',
     selectedCategory: 'all',
     searchQuery: '',
     collapsedCategories: {},

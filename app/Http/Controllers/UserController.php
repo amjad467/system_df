@@ -10,8 +10,17 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    protected function checkUserManagePermission(): void
+    {
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('users.manage')) {
+            abort(403, 'دەسەڵاتی بەڕێوەبردنی ئەکاونت و فەرمانبەرانت نییە بەپێی پێرمشنەکان!');
+        }
+    }
+
     public function index()
     {
+        $this->checkUserManagePermission();
+
         $users = User::with('trafficDirectorate')->latest()->get();
         $directorates = TrafficDirectorate::all();
         return view('users.index', compact('users', 'directorates'));
@@ -19,6 +28,7 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        $this->checkUserManagePermission();
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'user_login' => 'required|string|max:100|unique:users,user_login',
@@ -45,6 +55,7 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        $this->checkUserManagePermission();
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'user_login' => 'nullable|string|max:100|unique:users,user_login,' . $user->id,
@@ -101,6 +112,7 @@ class UserController extends Controller
 
     public function toggleStatus(User $user)
     {
+        $this->checkUserManagePermission();
         $user->update(['is_active' => !$user->is_active]);
         AuditLogger::log('گۆڕینی باری بەکارهێنەر', User::class, $user->id, "ناوی کارمەند: {$user->name}");
         return redirect()->back()->with('success', 'باری بەکار‌هێنەر دەستکاری کرا.');

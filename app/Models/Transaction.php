@@ -143,7 +143,12 @@ class Transaction extends Model
         // 3. If the transaction has completed final submission (سەبمیت و ئەرشیف), it is locked
         if ($this->is_submitted) return false;
 
-        // 4. Stage 1: Data Entry (تۆماری سەرەتایی داتائەنتەری)
+        // 4. If user has explicit 'transactions.edit' permission, allow editing before final submission
+        if ($user->hasPermission('transactions.edit')) {
+            return true;
+        }
+
+        // 5. Stage 1: Data Entry (تۆماری سەرەتایی داتائەنتەری)
         // Has not moved to Inspection (!is_inspected)
         if (!$this->is_inspected && !$this->is_audited && !$this->is_paid && !$this->is_booklet_completed) {
             return in_array($user->role, ['data_entry', 'inspector', 'auditor', 'cashier'])
@@ -151,37 +156,32 @@ class Transaction extends Model
                 || $user->hasPermission('transactions.edit');
         }
 
-        // 5. Stage 2: Inspection (کەشف و تەخمین)
+        // 6. Stage 2: Inspection (کەشف و تەخمین)
         // Completed inspection, but has NOT moved to Audit (!is_audited)
         if ($this->is_inspected && !$this->is_audited && !$this->is_paid && !$this->is_booklet_completed) {
             return in_array($user->role, ['inspector', 'auditor'])
                 || $user->hasPermission('transactions.inspect');
         }
 
-        // 6. Stage 3: Audit (وردبینی)
+        // 7. Stage 3: Audit (وردبینی)
         // Completed audit, but has NOT moved to Payment (!is_paid)
         if ($this->is_audited && !$this->is_paid && !$this->is_booklet_completed) {
             return in_array($user->role, ['auditor', 'cashier'])
                 || $user->hasPermission('transactions.audit');
         }
 
-        // 7. Stage 4: Payment (وەسڵ و پارەدان)
+        // 8. Stage 4: Payment (وەسڵ و پارەدان)
         // Paid, but has NOT moved to Booklet Completion (!is_booklet_completed)
         if ($this->is_paid && !$this->is_booklet_completed) {
             return in_array($user->role, ['cashier', 'booklet'])
                 || $user->hasPermission('transactions.pay');
         }
 
-        // 8. Stage 5: Booklet (دابینکردنی دەفتەر)
+        // 9. Stage 5: Booklet (دابینکردنی دەفتەر)
         // Booklet completed, but NOT submitted/archived (!is_submitted)
         if ($this->is_booklet_completed && !$this->is_submitted) {
             return in_array($user->role, ['booklet', 'archiver'])
                 || $user->hasPermission('transactions.complete_booklet');
-        }
-
-        // Fallback for custom transactions.edit permission before final stages
-        if ($user->hasPermission('transactions.edit')) {
-            return !$this->is_paid && !$this->is_booklet_completed;
         }
 
         return false;
@@ -395,26 +395,26 @@ class Transaction extends Model
 
         // Active Stage 2: Inspection
         if (!$this->is_inspected) {
-            return $user->role === 'inspector';
+            return $user->hasPermission('transactions.inspect') || $user->role === 'inspector';
         }
 
         // Active Stage 3: Audit
         if (!$this->is_audited) {
-            return $user->role === 'auditor';
+            return $user->hasPermission('transactions.audit') || $user->role === 'auditor';
         }
 
         // Active Stage 4: Payment
         if (!$this->is_paid) {
-            return $user->role === 'cashier';
+            return $user->hasPermission('transactions.pay') || $user->role === 'cashier';
         }
 
         // Active Stage 5: Booklet (if applicable)
         if ($this->requiresBooklet() && !$this->is_booklet_completed) {
-            return $user->role === 'booklet';
+            return $user->hasPermission('transactions.complete_booklet') || $user->role === 'booklet';
         }
 
         // Final Submit
-        return in_array($user->role, ['data_entry', 'booklet', 'cashier']);
+        return $user->hasPermission('transactions.submit') || in_array($user->role, ['archiver', 'data_entry', 'booklet', 'cashier']);
     }
 
     public function scopeExpiredBooklets($query)

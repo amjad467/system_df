@@ -23,9 +23,8 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
-        // Only Admin and Archiver can access the general transactions index
-        if (auth()->check() && !auth()->user()->isAdmin() && auth()->user()->role !== 'archiver') {
-            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی لیستی گشتی مامەڵەکان تەنها بۆ ئەدمین و کارمەندی ئەرشیفە.');
+        if (!auth()->check()) {
+            return redirect()->route('login');
         }
 
         // Self-heal: If database is empty on hosted service, automatically restore all 84 baseline records
@@ -1824,6 +1823,10 @@ class TransactionController extends Controller
 
     public function returnTransaction(Request $request, Transaction $transaction)
     {
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('transactions.return')) {
+            return redirect()->back()->with('error', 'دەسەڵاتی گەڕاندنەوەی مامەڵەت نییە بەپێی پێرمشنەکان!');
+        }
+
         $validated = $request->validate([
             'return_reason' => 'required|string|max:1000',
         ], [
@@ -1936,20 +1939,35 @@ class TransactionController extends Controller
             return redirect()->back()->with('error', "هیچ مامەڵەیەک نەدۆزرایەوە بە گەڕانی: {$term}");
         }
 
-        // Check Role-specific workflow guards
+        // Check Role-specific workflow guards (allow access if user has permission for this transaction)
         if (auth()->check()) {
             $user = auth()->user();
 
-            // 1. Booklet Desk Guard: Block Pledge (6), Cancellation (5), and Inspection (8)
-            if ($user->role === 'booklet' && in_array((int)$transaction->transaction_type_id, [5, 6, 8])) {
-                $typeName = $transaction->transactionType->name_kurdish ?? 'دیاری نەکراو';
-                return redirect()->route('dashboard')->with('error', "لێرە کاری دەفتەری نییە! ئەم مامەڵەیە جۆری [{$typeName}]ـە.");
-            }
+            if (!$user->isAdmin()) {
+                $canAccessType = false;
+                $typeId = (int)$transaction->transaction_type_id;
 
-            // 2. Legal Officer Guard: Only Booklet Issue (1) is allowed in legal pledge desk
-            if ($user->isLegal() && (int)$transaction->transaction_type_id !== 1) {
-                $typeName = $transaction->transactionType->name_kurdish ?? 'دیاری نەکراو';
-                return redirect()->route('dashboard')->with('error', "کاری تۆ لێرە ئەنجام نادرێت! بەشی یاسایی تەنها تایبەتە بە مامەڵەی دەرهێنانی دەفتەر (بەڵێننامەی یاسایی). جۆری ئەم مامەڵەیە: [{$typeName}]ـە.");
+                if ($typeId === 5 && ($user->hasPermission('prints.cancellation') || $user->hasPermission('transactions.cancel'))) {
+                    $canAccessType = true;
+                } elseif ($typeId === 6 && $user->hasPermission('prints.pledge')) {
+                    $canAccessType = true;
+                } elseif ($typeId === 8 && ($user->hasPermission('prints.inspection_letter') || $user->hasPermission('transactions.inspect'))) {
+                    $canAccessType = true;
+                } elseif (in_array($typeId, [1, 2, 3, 4, 7]) && ($user->hasPermission('prints.booklet') || $user->hasPermission('transactions.complete_booklet'))) {
+                    $canAccessType = true;
+                }
+
+                // Booklet Desk Guard: Block Pledge (6), Cancellation (5), and Inspection (8) ONLY IF user lacks permission
+                if ($user->role === 'booklet' && in_array($typeId, [5, 6, 8]) && !$canAccessType) {
+                    $typeName = $transaction->transactionType->name_kurdish ?? 'دیاری نەکراو';
+                    return redirect()->route('dashboard')->with('error', "لێرە کاری دەفتەری نییە! ئەم مامەڵەیە جۆری [{$typeName}]ـە.");
+                }
+
+                // Legal Officer Guard: Only Booklet Issue (1) is allowed in legal pledge desk UNLESS user has other permissions
+                if ($user->isLegal() && $typeId !== 1 && !$canAccessType) {
+                    $typeName = $transaction->transactionType->name_kurdish ?? 'دیاری نەکراو';
+                    return redirect()->route('dashboard')->with('error', "کاری تۆ لێرە ئەنجام نادرێت! بەشی یاسایی تەنها تایبەتە بە مامەڵەی دەرهێنانی دەفتەر (بەڵێننامەی یاسایی). جۆری ئەم مامەڵەیە: [{$typeName}]ـە.");
+                }
             }
         }
 
@@ -2216,12 +2234,8 @@ class TransactionController extends Controller
 
     public function completeBooklet(Request $request, Transaction $transaction)
     {
-        if (auth()->user()->role === 'data_entry') {
-            return redirect()->back()->with('error', 'کارمەندی داتائەنتەری دەسەڵاتی تۆمارکردنی ژمارەی دەفتەری نییە!');
-        }
-
         if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('transactions.complete_booklet')) {
-            return redirect()->back()->with('error', 'تەنها کارمەندی بەشی دەفتەر (Booklet Section) دەتوانێت ژمارەی دەفتەر تۆمار بکات!');
+            return redirect()->back()->with('error', 'دەسەڵاتی تۆمارکردنی ژمارەی دەفتەرت نییە بەپێی پێرمشنەکان!');
         }
 
         // Guard: Block Pledge (6), Cancellation (5), and Inspection (8) from booklet desk
@@ -2284,9 +2298,9 @@ class TransactionController extends Controller
 
     public function printPaymentReceipt(Request $request, Transaction $transaction)
     {
-        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+        if ($transaction->is_submitted && !auth()->user()->isAdmin() && auth()->user()->role !== 'archiver' && !auth()->user()->hasPermission('prints.receipt')) {
             return redirect()->route('transactions.show', $transaction->id)
-                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت پسوولەی ۳۷/أ چاپ بکات.');
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین یان دەسەڵاتدار دەتوانێت پسوولەی ۳۷/أ چاپ بکات.');
         }
 
         if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.receipt')) {
@@ -2311,9 +2325,9 @@ class TransactionController extends Controller
 
     public function submitArchive(Request $request, Transaction $transaction)
     {
-        // 4. Submit restricted strictly to Archiver and Admin only
-        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'archiver') {
-            return redirect()->back()->with('error', 'سەبمیتکردنی کۆتایی مامەڵە تەنها لە دەسەڵاتی کارمەندی ئەرشیف و ئەدمیندایە!');
+        // 4. Submit restricted strictly to Archiver and Admin or users with transactions.submit permission
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'archiver' && !auth()->user()->hasPermission('transactions.submit')) {
+            return redirect()->back()->with('error', 'سەبمیتکردنی کۆتایی مامەڵە لە دەسەڵاتی تۆدا نییە بەپێی پێرمشنەکان!');
         }
 
         // 4. Transaction types allowed for archiving: Booklet issue, renewal, name change, booklet change, cancellation, name & booklet change
@@ -2737,9 +2751,9 @@ class TransactionController extends Controller
 
     public function printReceipt(Request $request, Transaction $transaction)
     {
-        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+        if ($transaction->is_submitted && !auth()->user()->isAdmin() && auth()->user()->role !== 'archiver' && !auth()->user()->hasPermission('prints.inspection')) {
             return redirect()->route('transactions.show', $transaction->id)
-                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت پسوولەی کەشف و تەخمین چاپ بکات.');
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دەسەڵاتی چاپی ئەم پسوولەیەت نییە.');
         }
 
         $user = auth()->user();
@@ -2752,11 +2766,6 @@ class TransactionController extends Controller
         // 2. Must be approved by Estimator first
         if (!$transaction->is_inspected && !$user->isAdmin()) {
             return redirect()->back()->with('error', 'پسولەی کەشف و خەمڵاندن تەنها دوای پەسەندکردنی کەشف و تەخمین چاڵاک دەبێت.');
-        }
-
-        // 3. Locked for Estimator once Auditor approves
-        if ($transaction->is_audited && !$user->isAdmin() && $user->role === 'inspector') {
-            return redirect()->back()->with('error', 'وردبینی بۆ ئەم مامەڵەیە ئەنجامدراوە. فەرمانبەری تەخمین ناتوانێت دوای وردبینی پسولەی کەشف چاپ بکات.');
         }
 
         $mode = $request->query('mode', 'both'); // 'both', 'main', 'pledge'
@@ -2772,9 +2781,9 @@ class TransactionController extends Controller
 
     public function printDataEntry(Request $request, Transaction $transaction)
     {
-        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+        if ($transaction->is_submitted && !auth()->user()->isAdmin() && auth()->user()->role !== 'archiver' && !auth()->user()->hasPermission('prints.data_entry')) {
             return redirect()->route('transactions.show', $transaction->id)
-                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت فیشەی داتائەنتەری چاپ بکات.');
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دەسەڵاتی چاپی ئەم فیشەیەت نییە.');
         }
 
         if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.data_entry')) {
@@ -2793,9 +2802,9 @@ class TransactionController extends Controller
 
     public function printBooklet(Transaction $transaction)
     {
-        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+        if ($transaction->is_submitted && !auth()->user()->isAdmin() && auth()->user()->role !== 'archiver' && !auth()->user()->hasPermission('prints.booklet')) {
             return redirect()->route('transactions.show', $transaction->id)
-                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت دەفتەر چاپ بکات.');
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دەسەڵاتی چاپی دەفتەرت نییە.');
         }
 
         if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.booklet')) {
@@ -3097,9 +3106,9 @@ class TransactionController extends Controller
 
     public function printCancellation(Transaction $transaction)
     {
-        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+        if ($transaction->is_submitted && !auth()->user()->isAdmin() && auth()->user()->role !== 'archiver' && !auth()->user()->hasPermission('prints.cancellation')) {
             return redirect()->route('transactions.show', $transaction->id)
-                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت نوسراوی پووچەڵکردنەوە چاپ بکات.');
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دەسەڵاتی چاپی نووسراوی پووچەڵکردنەوەت نییە.');
         }
 
         if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.cancellation')) {
@@ -3113,9 +3122,9 @@ class TransactionController extends Controller
 
     public function printRestriction(Transaction $transaction)
     {
-        if ($transaction->is_submitted && !auth()->user()->isAdmin()) {
+        if ($transaction->is_submitted && !auth()->user()->isAdmin() && auth()->user()->role !== 'archiver' && !auth()->user()->hasPermission('prints.restriction')) {
             return redirect()->route('transactions.show', $transaction->id)
-                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها ئەدمین دەتوانێت نوسراوی ڕەفتارنەکردن چاپ بکات.');
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دەسەڵاتی چاپی نووسراوی ڕەفتارنەکردنت نییە.');
         }
 
         if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.restriction')) {
@@ -3129,13 +3138,13 @@ class TransactionController extends Controller
 
     public function printInspectionLetter(Transaction $transaction)
     {
-        // 8. Inspection letter available in Cashier and Archiver stages
-        if ($transaction->is_submitted && !auth()->user()->isAdmin() && auth()->user()->role !== 'archiver') {
+        // Inspection letter available in Cashier and Archiver stages or to users with prints.inspection_letter permission
+        if ($transaction->is_submitted && !auth()->user()->isAdmin() && auth()->user()->role !== 'archiver' && !auth()->user()->hasPermission('prints.inspection_letter')) {
             return redirect()->route('transactions.show', $transaction->id)
-                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دوای تەواوبوونی سەبمیت تەنها کارمەندی ئەرشیف و ئەدمین دەتوانن نوسراوی پشکنین چاپ بکەن.');
+                ->with('error', 'مامەڵەکە بە تەواوەتی سەبمیت و ئەرشیفکراوە؛ دەسەڵاتی چاپی نووسراوی پشکنینت نییە.');
         }
 
-        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'archiver' && auth()->user()->role !== 'cashier' && !auth()->user()->hasPermission('prints.inspection_letter')) {
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.inspection_letter') && auth()->user()->role !== 'archiver' && auth()->user()->role !== 'cashier') {
             return redirect()->back()->with('error', 'دەسەڵاتی چاپی نووسراوی پشکنینت نییە بەپێی پێرمشنەکان!');
         }
 

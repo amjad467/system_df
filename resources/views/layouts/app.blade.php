@@ -329,7 +329,7 @@
                         <i class="fa-solid fa-chart-pie text-xs opacity-90 text-sky-600 dark:text-sky-400"></i>
                         <span>داشبۆرد</span>
                     </a>
-                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
+                    @if(auth()->check())
                         <a href="{{ route('transactions.index') }}" class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-extrabold transition flex items-center gap-1.5 {{ request()->routeIs('transactions.index') ? 'bg-sky-100 text-sky-900 border border-sky-300 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30 shadow-sm' : 'text-slate-800 font-extrabold hover:text-sky-700 hover:bg-white hover:border-slate-300 border border-transparent shadow-none hover:shadow-sm dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 dark:hover:border-slate-700' }}">
                             <i class="fa-solid fa-list-check text-xs opacity-80 text-sky-600 dark:text-sky-400"></i>
                             <span>مامەڵەکان</span>
@@ -389,7 +389,15 @@
                     @endif
 
                     <!-- Admin Dropdown Menu -->
-                    @if(auth()->check() && auth()->user()->isAdmin())
+                    @php
+                        $canSeeAdminMenu = auth()->check() && (auth()->user()->isAdmin() 
+                            || auth()->user()->hasPermission('users.manage') 
+                            || auth()->user()->hasPermission('settings.pricing') 
+                            || auth()->user()->hasPermission('settings.lookups') 
+                            || auth()->user()->hasPermission('logs.view') 
+                            || auth()->user()->hasPermission('transactions.restore'));
+                    @endphp
+                    @if($canSeeAdminMenu)
                         <div class="relative" x-data="{ openAdminMenu: false }">
                             <button @click="openAdminMenu = !openAdminMenu" type="button" 
                                     class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-extrabold transition flex items-center gap-1.5 {{ request()->routeIs('settings.*') || request()->routeIs('users.*') || request()->routeIs('logs.*') || request()->routeIs('transactions.trash') || request()->routeIs('security.*') ? 'bg-indigo-100 text-indigo-900 border border-indigo-300 dark:bg-indigo-500/15 dark:text-indigo-400 dark:border-indigo-500/30 shadow-sm' : 'text-slate-800 font-extrabold hover:text-indigo-700 hover:bg-white hover:border-slate-300 border border-transparent shadow-none hover:shadow-sm dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 dark:hover:border-slate-700' }}">
@@ -401,52 +409,66 @@
                             <div x-show="openAdminMenu" @click.away="openAdminMenu = false" x-cloak 
                                  x-transition.origin.top.right.duration.150ms
                                  class="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl p-2 z-50 space-y-1">
-                                <a href="{{ route('settings.permissions') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.permissions*') ? 'bg-purple-600 text-white' : 'text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-500/10' }}">
-                                    <i class="fa-solid fa-user-shield w-4 text-center"></i>
-                                    <span>خشتەی پێرمشنەکان</span>
-                                </a>
-                                <a href="{{ route('users.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('users.index') ? 'bg-indigo-600 text-white' : 'text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10' }}">
-                                    <i class="fa-solid fa-users-gear w-4 text-center"></i>
-                                    <span>فەرمانبەران</span>
-                                </a>
-                                <a href="{{ route('settings.lookups', ['tab' => 'directors']) }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.lookups') && request('tab') == 'directors' ? 'bg-indigo-600 text-white' : 'text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10' }}">
-                                    <i class="fa-solid fa-user-tie w-4 text-center"></i>
-                                    <span>ڕێکخستنی بەڕێوەبەر</span>
-                                </a>
-                                <a href="{{ route('settings.lookups') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.lookups') && request('tab') != 'directors' ? 'bg-teal-600 text-white' : 'text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-500/10' }}">
-                                    <i class="fa-solid fa-folder-tree w-4 text-center"></i>
-                                    <span>پێناسەکان</span>
-                                </a>
-                                <a href="{{ route('settings.pricing') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.pricing') ? 'bg-amber-600 text-white' : 'text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-500/10' }}">
-                                    <i class="fa-solid fa-sliders w-4 text-center"></i>
-                                    <span>نرخەکان</span>
-                                </a>
-                                <div class="border-t border-slate-200 dark:border-slate-800 my-1"></div>
-                                <a href="{{ route('transactions.trash') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('transactions.trash') ? 'bg-rose-600 text-white' : 'text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10' }}">
-                                    <i class="fa-solid fa-trash-can w-4 text-center"></i>
-                                    <span>مامەڵە سڕاوەکان</span>
-                                </a>
-                                <a href="{{ route('logs.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('logs.index') ? 'bg-sky-600 text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
-                                    <i class="fa-solid fa-clock-rotate-left w-4 text-center"></i>
-                                    <span>لۆگی سیستم</span>
-                                </a>
-                                <a href="{{ route('security.hub') }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('security.*') ? 'bg-red-600 text-white' : 'text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10' }}">
-                                    <div class="flex items-center gap-2.5">
-                                        <i class="fa-solid fa-shield-halved w-4 text-center"></i>
-                                        <span>ئاسایش و مۆنیتەرینگ</span>
-                                    </div>
-                                    @php $unresCount = \App\Models\SecurityIncident::unresolvedCount(); @endphp
-                                    @if($unresCount > 0)
-                                        <span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-mono font-black animate-pulse">
-                                            {{ $unresCount }}
-                                        </span>
-                                    @endif
-                                </a>
-                                <div class="border-t border-slate-200 dark:border-slate-800 my-1"></div>
-                                <a href="{{ route('settings.backup.download') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-500/10" title="داگرتنی کۆپی یەدەگی داتابەیس">
-                                    <i class="fa-solid fa-database w-4 text-center text-sky-600 dark:text-sky-400"></i>
-                                    <span>باک ئەپی داتابەیس (Backup)</span>
-                                </a>
+                                @if(auth()->user()->isAdmin())
+                                    <a href="{{ route('settings.permissions') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.permissions*') ? 'bg-purple-600 text-white' : 'text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-500/10' }}">
+                                        <i class="fa-solid fa-user-shield w-4 text-center"></i>
+                                        <span>خشتەی پێرمشنەکان</span>
+                                    </a>
+                                @endif
+                                @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('users.manage'))
+                                    <a href="{{ route('users.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('users.index') ? 'bg-indigo-600 text-white' : 'text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10' }}">
+                                        <i class="fa-solid fa-users-gear w-4 text-center"></i>
+                                        <span>فەرمانبەران</span>
+                                    </a>
+                                @endif
+                                @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('settings.lookups'))
+                                    <a href="{{ route('settings.lookups', ['tab' => 'directors']) }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.lookups') && request('tab') == 'directors' ? 'bg-indigo-600 text-white' : 'text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/10' }}">
+                                        <i class="fa-solid fa-user-tie w-4 text-center"></i>
+                                        <span>ڕێکخستنی بەڕێوەبەر</span>
+                                    </a>
+                                    <a href="{{ route('settings.lookups') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.lookups') && request('tab') != 'directors' ? 'bg-teal-600 text-white' : 'text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-500/10' }}">
+                                        <i class="fa-solid fa-folder-tree w-4 text-center"></i>
+                                        <span>پێناسەکان</span>
+                                    </a>
+                                @endif
+                                @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('settings.pricing'))
+                                    <a href="{{ route('settings.pricing') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('settings.pricing') ? 'bg-amber-600 text-white' : 'text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-500/10' }}">
+                                        <i class="fa-solid fa-sliders w-4 text-center"></i>
+                                        <span>نرخەکان</span>
+                                    </a>
+                                @endif
+                                @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.restore'))
+                                    <div class="border-t border-slate-200 dark:border-slate-800 my-1"></div>
+                                    <a href="{{ route('transactions.trash') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('transactions.trash') ? 'bg-rose-600 text-white' : 'text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10' }}">
+                                        <i class="fa-solid fa-trash-can w-4 text-center"></i>
+                                        <span>مامەڵە سڕاوەکان</span>
+                                    </a>
+                                @endif
+                                @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('logs.view'))
+                                    <a href="{{ route('logs.index') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('logs.index') ? 'bg-sky-600 text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800' }}">
+                                        <i class="fa-solid fa-clock-rotate-left w-4 text-center"></i>
+                                        <span>لۆگی سیستم</span>
+                                    </a>
+                                @endif
+                                @if(auth()->user()->isAdmin())
+                                    <a href="{{ route('security.hub') }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('security.*') ? 'bg-red-600 text-white' : 'text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10' }}">
+                                        <div class="flex items-center gap-2.5">
+                                            <i class="fa-solid fa-shield-halved w-4 text-center"></i>
+                                            <span>ئاسایش و مۆنیتەرینگ</span>
+                                        </div>
+                                        @php $unresCount = \App\Models\SecurityIncident::unresolvedCount(); @endphp
+                                        @if($unresCount > 0)
+                                            <span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-mono font-black animate-pulse">
+                                                {{ $unresCount }}
+                                            </span>
+                                        @endif
+                                    </a>
+                                    <div class="border-t border-slate-200 dark:border-slate-800 my-1"></div>
+                                    <a href="{{ route('settings.backup.download') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-500/10" title="داگرتنی کۆپی یەدەگی داتابەیس">
+                                        <i class="fa-solid fa-database w-4 text-center text-sky-600 dark:text-sky-400"></i>
+                                        <span>باک ئەپی داتابەیس (Backup)</span>
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     @endif
@@ -705,28 +727,40 @@
                         </a>
                     @endif
 
-                    @if(auth()->check() && auth()->user()->isAdmin())
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('settings.lookups')))
                         <a href="{{ route('settings.lookups', ['tab' => 'directors']) }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-indigo-300 dark:border-indigo-500/40 text-indigo-600 dark:text-indigo-300 flex items-center justify-center font-bold">
                             <i class="fa-solid fa-user-tie ml-1.5"></i> بەڕێوەبەر
                         </a>
                         <a href="{{ route('settings.lookups') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-teal-300 dark:border-teal-500/40 text-teal-600 dark:text-teal-300 flex items-center justify-center">
                             <i class="fa-solid fa-folder-tree ml-1.5"></i> پێناسەکان
                         </a>
+                    @endif
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('users.manage')))
                         <a href="{{ route('users.index') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-indigo-300 dark:border-indigo-500/40 text-indigo-600 dark:text-indigo-300 flex items-center justify-center">
                             <i class="fa-solid fa-users-gear ml-1.5"></i> فەرمانبەران
                         </a>
+                    @endif
+                    @if(auth()->check() && auth()->user()->isAdmin())
                         <a href="{{ route('settings.permissions') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-purple-300 dark:border-purple-500/40 text-purple-600 dark:text-purple-300 flex items-center justify-center">
                             <i class="fa-solid fa-user-shield ml-1.5"></i> پێرمشنەکان
                         </a>
+                    @endif
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('settings.pricing')))
                         <a href="{{ route('settings.pricing') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-500/40 text-amber-600 dark:text-amber-300 flex items-center justify-center">
                             <i class="fa-solid fa-sliders ml-1.5"></i> نرخەکان
                         </a>
+                    @endif
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.restore')))
                         <a href="{{ route('transactions.trash') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-300 flex items-center justify-center">
                             <i class="fa-solid fa-trash-can ml-1.5"></i> سڕاوەکان
                         </a>
+                    @endif
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('logs.view')))
                         <a href="{{ route('logs.index') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300">
                             <i class="fa-solid fa-clock-rotate-left ml-1.5 text-slate-500"></i> لۆگ
                         </a>
+                    @endif
+                    @if(auth()->check() && auth()->user()->isAdmin())
                         <a href="{{ route('security.hub') }}" class="p-2.5 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 dark:text-red-400 font-bold">
                             <i class="fa-solid fa-shield-halved ml-1.5"></i> ئاسایش
                         </a>

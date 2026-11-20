@@ -91,6 +91,8 @@ class PermissionController extends Controller
             }
         }
 
+        PermissionService::clearPermissionsCache();
+
         AuditLogger::log('دەستکاریکردنی خشتەی پێرمشنەکانی بەشەکان', RolePermission::class, null, 'ئەدمین خشتەی چێک بۆکسی دەسەڵاتی ڕۆڵەکانی نوێکردەوە.');
 
         return redirect()->route('settings.permissions')->with('success', 'خشتەی پێرمشن و دەسەڵاتەکانی بەشەکان بە سەرکەوتوویی پاشەکەوتکرا.');
@@ -107,9 +109,11 @@ class PermissionController extends Controller
             $user->custom_permissions = null;
             $user->save();
 
+            PermissionService::clearPermissionsCache();
+
             AuditLogger::log('گەڕاندنەوەی پێرمشنی فەرمانبەر بۆ باری سەرەکی', User::class, $user->id, "پێرمشنەکانی کارمەند {$user->name} گەڕێنرانەوە بۆ دەسەڵاتی گشتی بەشەکەی ({$user->role})");
 
-            return redirect()->route('settings.permissions', ['user_id' => $user->id])
+            return redirect()->route('settings.permissions', ['user_id' => $user->id, 'tab' => 'user'])
                 ->with('success', "پێرمشنەکانی فەرمانبەر ({$user->name}) گەڕێنرانەوە بۆ پێرمشنی بنەڕەتی بەشەکەی.");
         }
 
@@ -120,9 +124,11 @@ class PermissionController extends Controller
         $user->custom_permissions = $userPerms;
         $user->save();
 
+        PermissionService::clearPermissionsCache();
+
         AuditLogger::log('دەستکاریکردنی تایبەتی پێرمشنی فەرمانبەر', User::class, $user->id, "پێرمشنی تایبەت بۆ کارمەند {$user->name} تۆمارکرا (" . count($userPerms) . " پێرمشن)");
 
-        return redirect()->route('settings.permissions', ['user_id' => $user->id])
+        return redirect()->route('settings.permissions', ['user_id' => $user->id, 'tab' => 'user'])
             ->with('success', "پێرمشن و دەسەڵاتە تایبەتەکانی فەرمانبەر ({$user->name}) بە سەرکەوتوویی پاشەکەوتکرا.");
     }
 
@@ -144,6 +150,8 @@ class PermissionController extends Controller
                 }
             }
         }
+
+        PermissionService::clearPermissionsCache();
 
         AuditLogger::log('ڕێکخستنەوەی سەرجەم پێرمشنەکان بۆ فەرمی', RolePermission::class, null, 'ئەدمین خشتەی پێرمشنەکانی گەڕاندەوە بۆ دەسەڵاتە فەرمییە بنەڕەتییەکان');
 

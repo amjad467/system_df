@@ -12,6 +12,10 @@ class SettingsController extends Controller
 {
     public function pricing()
     {
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('settings.pricing')) {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی دەستکاریکردنی نرخەکانت نییە بەپێی پێرمشنەکان!');
+        }
+
         $transactionTypes = TransactionType::all();
         $directors = Director::orderBy('id', 'asc')->get();
         $activeDirector = Director::getActiveDirector();
@@ -21,6 +25,9 @@ class SettingsController extends Controller
 
     public function updatePricing(Request $request)
     {
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('settings.pricing')) {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی دەستکاریکردنی نرخەکانت نییە بەپێی پێرمشنەکان!');
+        }
         // 1. Update Active Director if selected
         if ($request->filled('active_director_id')) {
             Director::query()->update(['is_active' => false]);
@@ -76,8 +83,8 @@ class SettingsController extends Controller
 
     public function lookups()
     {
-        if (!auth()->user()->isAdmin()) {
-            return redirect()->route('dashboard')->with('error', 'تەنها ئەدمین دەتوانێت داتاکانی بەڕێوەبەرایەتی و جۆری مامەڵە بەڕێوەببات!');
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('settings.lookups')) {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بەڕێوەبردنی پێناسە و لیستەکانت نییە بەپێی پێرمشنەکان!');
         }
 
         $transactionTypes = TransactionType::all();
