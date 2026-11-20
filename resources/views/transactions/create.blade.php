@@ -596,7 +596,7 @@
              COLUMN 2: CITIZEN & DRIVERS (Lg: 4 Cols)
              ========================================== -->
         <div class="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3.5 shadow-sm space-y-3 flex flex-col justify-between">
-            <div class="space-y-3">
+            <div class="space-y-2.5">
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
                     <h3 class="text-xs font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 uppercase">
                         <i class="fa-solid fa-user-check"></i>
@@ -605,46 +605,12 @@
                     <span class="text-[10px] text-slate-400 font-mono">Citizen / Driver</span>
                 </div>
 
-                <!-- First Driver Name (Kurdish) -->
+                <!-- 1. Phone Number -->
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">ناوی شۆفێری یەکەم (کوردی) *</label>
-                    <input type="text" 
-                           id="input_visitorName"
-                           name="visitor_name" 
-                           x-model="visitorName" 
-                           @input="onKurdishInput($event, 'visitorName')" 
-                           @blur="if ((!visitorNameEng || visitorNameEng.trim() === '') && visitorName) { autoFillEnglishName('visitorName', 'visitorNameEng'); }"
-                           required 
-                           placeholder="ناوی سیانی بە کوردی" 
-                           dir="rtl" 
-                           lang="ckb" 
-                           :class="missingField === 'visitorName' ? 'border-rose-500 ring-2 ring-rose-500/30' : 'border-slate-300 dark:border-slate-700'"
-                           class="w-full bg-white dark:bg-slate-950 border focus:border-sky-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold transition">
-                </div>
-
-                <!-- First Driver English Name -->
-                <div x-show="isFullBookletForm()">
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="block text-[11px] font-bold text-slate-600 dark:text-slate-400">ناوی ئینگلیزی (خۆکار وەرگێڕدراو)</label>
-                        <button type="button" @click="autoFillEnglishName('visitorName', 'visitorNameEng')" class="text-[10px] text-amber-500 hover:underline">
-                            <i class="fa-solid fa-wand-magic-sparkles"></i> وەرگێڕان
-                        </button>
-                    </div>
-                    <input type="text" 
-                           name="visitor_name_eng" 
-                           x-model="visitorNameEng" 
-                           @focus="if ((!visitorNameEng || visitorNameEng.trim() === '') && visitorName) { autoFillEnglishName('visitorName', 'visitorNameEng'); }"
-                           @input="onEnglishInput($event, 'visitorNameEng')" 
-                           placeholder="FULL NAME IN ENGLISH (CAPITAL)" 
-                           dir="ltr" 
-                           lang="en" 
-                           style="text-transform: uppercase;" 
-                           class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 focus:border-amber-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 uppercase font-mono tracking-wider transition">
-                </div>
-
-                <!-- Phone Number -->
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">ژمارەی مۆبایل *</label>
+                    <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        <i class="fa-solid fa-phone text-emerald-500 ml-1"></i>
+                        <span>ژمارەی مۆبایل *</span>
+                    </label>
                     <input type="text" 
                            id="input_phoneNumber"
                            name="phone_number" 
@@ -657,10 +623,81 @@
                            class="w-full bg-white dark:bg-slate-950 border focus:border-emerald-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono tracking-wider transition">
                 </div>
 
-                <!-- Passport / ID Number & Place Grid -->
+                <!-- 2. First Driver Name (Kurdish & English) -->
+                <div class="space-y-1.5 p-2 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 rounded-xl">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">ناوی شۆفێری یەکەم (کوردی) *</label>
+                        <input type="text" 
+                               id="input_visitorName"
+                               name="visitor_name" 
+                               x-model="visitorName" 
+                               @input="onKurdishInput($event, 'visitorName')" 
+                               @blur="if ((!visitorNameEng || visitorNameEng.trim() === '') && visitorName) { autoFillEnglishName('visitorName', 'visitorNameEng'); }"
+                               required 
+                               placeholder="ناوی سیانی بە کوردی" 
+                               dir="rtl" 
+                               lang="ckb" 
+                               :class="missingField === 'visitorName' ? 'border-rose-500 ring-2 ring-rose-500/30' : 'border-slate-300 dark:border-slate-700'"
+                               class="w-full bg-white dark:bg-slate-900 border focus:border-sky-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold transition">
+                    </div>
+
+                    <div x-show="isFullBookletForm()">
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400">ناوی ئینگلیزی (شۆفێری یەکەم - خۆکار)</label>
+                            <button type="button" @click="autoFillEnglishName('visitorName', 'visitorNameEng')" class="text-[10px] text-amber-500 hover:underline">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> وەرگێڕان
+                            </button>
+                        </div>
+                        <input type="text" 
+                               name="visitor_name_eng" 
+                               x-model="visitorNameEng" 
+                               @focus="if ((!visitorNameEng || visitorNameEng.trim() === '') && visitorName) { autoFillEnglishName('visitorName', 'visitorNameEng'); }"
+                               @input="onEnglishInput($event, 'visitorNameEng')" 
+                               placeholder="FULL NAME IN ENGLISH (CAPITAL)" 
+                               dir="ltr" 
+                               lang="en" 
+                               style="text-transform: uppercase;" 
+                               class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 focus:border-amber-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 uppercase font-mono tracking-wider transition">
+                    </div>
+                </div>
+
+                <!-- 3. Second Driver Name (Kurdish & English) -->
+                <div x-show="isFullBookletForm()" class="space-y-1.5 p-2 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800/80 rounded-xl">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">ناوی شۆفێری دووەم (کوردی - ئارەزوومەندانە)</label>
+                        <input type="text" 
+                               name="second_driver_name" 
+                               x-model="secondDriverName" 
+                               @input="onKurdishInput($event, 'secondDriverName')" 
+                               @blur="if ((!secondDriverNameEng || secondDriverNameEng.trim() === '') && secondDriverName) { autoFillEnglishName('secondDriverName', 'secondDriverNameEng'); }"
+                               placeholder="ناوی شۆفێری دووەم بە کوردی" 
+                               dir="rtl" 
+                               class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold">
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-[10px] font-semibold text-slate-500 dark:text-slate-400">ناوی ئینگلیزی شۆفێری دووەم</label>
+                            <button type="button" @click="autoFillEnglishName('secondDriverName', 'secondDriverNameEng')" class="text-[10px] text-amber-500 hover:underline">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> وەرگێڕان
+                            </button>
+                        </div>
+                        <input type="text" 
+                               name="second_driver_name_eng" 
+                               x-model="secondDriverNameEng" 
+                               @focus="if ((!secondDriverNameEng || secondDriverNameEng.trim() === '') && secondDriverName) { autoFillEnglishName('secondDriverName', 'secondDriverNameEng'); }"
+                               @input="onEnglishInput($event, 'secondDriverNameEng')" 
+                               placeholder="SECOND DRIVER ENGLISH (CAPITAL)" 
+                               dir="ltr" 
+                               style="text-transform: uppercase;" 
+                               class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 uppercase font-mono tracking-wider">
+                    </div>
+                </div>
+
+                <!-- 4. Passport / Document Number & 5. Issue Date Grid -->
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">ژمارەی پاسپۆرت / پێناس</label>
+                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">ژمارەی بەڵگەنامە / پاسپۆرت</label>
                         <input type="text" 
                                name="passport_number" 
                                x-model="passportNumber" 
@@ -670,50 +707,47 @@
                     </div>
 
                     <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300">شوێنی دەرچوون</label>
-                            <button type="button" 
-                                    @click="showPassportPlaceModal = true" 
-                                    class="text-[10px] text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-bold flex items-center gap-1 transition cursor-pointer">
-                                <i class="fa-solid fa-plus-circle"></i>
-                                <span>زیادکردن</span>
-                            </button>
-                        </div>
-                        <select name="passport_issue_place" 
-                                x-model="passportIssuePlace" 
-                                class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 focus:border-sky-500 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold transition focus:outline-none">
-                            <option value="">-- هەڵبژاردنی شوێن --</option>
-                            <template x-for="p in passportPlaces" :key="p.id">
-                                <option :value="p.name" :selected="passportIssuePlace == p.name" x-text="p.name"></option>
-                            </template>
-                        </select>
+                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">بەرواری بەڵگەنامە</label>
+                        <input type="date" 
+                               name="passport_issue_date" 
+                               x-model="passportIssueDate" 
+                               dir="ltr" 
+                               class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono">
                     </div>
                 </div>
 
-                <!-- Second Driver Name (Optional) -->
-                <div x-show="isFullBookletForm()" class="space-y-2 pt-1 border-t border-slate-100 dark:border-slate-800">
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">ناوی شۆفێری دووەم (ئارەزوومەندانە)</label>
-                        <input type="text" 
-                               name="second_driver_name" 
-                               x-model="secondDriverName" 
-                               @input="onKurdishInput($event, 'secondDriverName')" 
-                               @blur="if ((!secondDriverNameEng || secondDriverNameEng.trim() === '') && secondDriverName) { autoFillEnglishName('secondDriverName', 'secondDriverNameEng'); }"
-                               placeholder="ناوی شۆفێری دووەم بە کوردی" 
-                               dir="rtl" 
-                               class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100">
+                <!-- 6. Issue Place -->
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300">شوێنی دەرچوونی بەڵگەنامە</label>
+                        <button type="button" 
+                                @click="showPassportPlaceModal = true" 
+                                class="text-[10px] text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-bold flex items-center gap-1 transition cursor-pointer">
+                            <i class="fa-solid fa-plus-circle"></i>
+                            <span>زیادکردن</span>
+                        </button>
                     </div>
+                    <select name="passport_issue_place" 
+                            x-model="passportIssuePlace" 
+                            class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 focus:border-sky-500 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold transition focus:outline-none">
+                        <option value="">-- هەڵبژاردنی شوێن --</option>
+                        <template x-for="p in passportPlaces" :key="p.id">
+                            <option :value="p.name" :selected="passportIssuePlace == p.name" x-text="p.name"></option>
+                        </template>
+                    </select>
+                </div>
 
-                    <div>
-                        <input type="text" 
-                               name="second_driver_name_eng" 
-                               x-model="secondDriverNameEng" 
-                               @input="onEnglishInput($event, 'secondDriverNameEng')" 
-                               placeholder="SECOND DRIVER ENGLISH (CAPITAL)" 
-                               dir="ltr" 
-                               style="text-transform: uppercase;" 
-                               class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 uppercase font-mono tracking-wider">
-                    </div>
+                <!-- 7. Driver Address / Residence -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        <i class="fa-solid fa-house-chimney text-slate-400 ml-1"></i>
+                        <span>شوێنی دانیشتووی شۆفێر (ناونیشان)</span>
+                    </label>
+                    <input type="text" 
+                           name="address" 
+                           x-model="address" 
+                           placeholder="مثلاً: سلێمانی - بەختیاری" 
+                           class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100">
                 </div>
             </div>
         </div>
@@ -997,12 +1031,14 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
         visitorNameEng: initialTx ? (initialTx.visitor_name_eng || '') : '',
         phoneNumber: initialTx ? (initialTx.phone_number || '') : '',
         passportNumber: initialTx ? (initialTx.passport_number || '') : '',
+        passportIssueDate: initialTx ? (initialTx.passport_issue_date ? String(initialTx.passport_issue_date).substring(0, 10) : '') : '',
         passportIssuePlace: initialTx ? (initialTx.passport_issue_place || '') : 'سلێمانی',
         passportPlaces: passportPlacesList || [],
         showPassportPlaceModal: false,
         newPassportPlaceName: '',
         secondDriverName: initialTx ? (initialTx.second_driver_name || '') : '',
         secondDriverNameEng: initialTx ? (initialTx.second_driver_name_eng || '') : '',
+        address: initialTx ? (initialTx.address || '') : '',
 
         // Vehicle details
         chassisNumber: initialTx ? (initialTx.chassis_number || '') : '',
@@ -1291,9 +1327,11 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             this.visitorNameEng = record.visitor_name_eng || '';
             this.phoneNumber = record.phone_number || '';
             this.passportNumber = record.passport_number || '';
+            this.passportIssueDate = record.passport_issue_date ? String(record.passport_issue_date).substring(0, 10) : '';
             this.passportIssuePlace = record.passport_issue_place || '';
             this.secondDriverName = record.second_driver_name || '';
             this.secondDriverNameEng = record.second_driver_name_eng || '';
+            this.address = record.address || '';
 
             if (record.plate_number) {
                 this.plateNumber = record.plate_number;

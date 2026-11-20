@@ -710,21 +710,60 @@
 
                     <!-- Type & Model -->
                     @php
-                        $rawCarEn = trim(($transaction->carMake->name_english ?? $transaction->carMake->name_kurdish ?? 'CAR') . ($transaction->model_year ? " - {$transaction->model_year}" : ''));
-                        if (mb_strlen($rawCarEn, 'UTF-8') > 27) {
-                            $subEn = mb_substr($rawCarEn, 0, 28, 'UTF-8');
-                            $lastSpaceEn = mb_strrpos($subEn, ' ', 0, 'UTF-8');
-                            if ($lastSpaceEn !== false && $lastSpaceEn > 5) {
-                                $line1En = mb_substr($rawCarEn, 0, $lastSpaceEn, 'UTF-8');
-                                $line2En = mb_substr($rawCarEn, $lastSpaceEn + 1, null, 'UTF-8');
-                            } else {
-                                $line1En = mb_substr($rawCarEn, 0, 27, 'UTF-8');
-                                $line2En = mb_substr($rawCarEn, 27, null, 'UTF-8');
+                        if (!function_exists('wrapBookletCarText')) {
+                            function wrapBookletCarText($text, $maxChars = 28) {
+                                $text = trim($text ?? '');
+                                if ($text === '') return '';
+                                $words = preg_split('/\s+/u', $text, -1, PREG_SPLIT_NO_EMPTY);
+                                $lines = [];
+                                $curr = '';
+
+                                foreach ($words as $w) {
+                                    if ($curr === '') {
+                                        if (mb_strlen($w, 'UTF-8') > $maxChars) {
+                                            $wLen = mb_strlen($w, 'UTF-8');
+                                            for ($i = 0; $i < $wLen; $i += $maxChars) {
+                                                $chunk = mb_substr($w, $i, $maxChars, 'UTF-8');
+                                                if ($i + $maxChars < $wLen) {
+                                                    $lines[] = $chunk;
+                                                } else {
+                                                    $curr = $chunk;
+                                                }
+                                            }
+                                        } else {
+                                            $curr = $w;
+                                        }
+                                    } else {
+                                        $test = $curr . ' ' . $w;
+                                        if (mb_strlen($test, 'UTF-8') <= $maxChars) {
+                                            $curr = $test;
+                                        } else {
+                                            $lines[] = $curr;
+                                            if (mb_strlen($w, 'UTF-8') > $maxChars) {
+                                                $wLen = mb_strlen($w, 'UTF-8');
+                                                for ($i = 0; $i < $wLen; $i += $maxChars) {
+                                                    $chunk = mb_substr($w, $i, $maxChars, 'UTF-8');
+                                                    if ($i + $maxChars < $wLen) {
+                                                        $lines[] = $chunk;
+                                                    } else {
+                                                        $curr = $chunk;
+                                                    }
+                                                }
+                                            } else {
+                                                $curr = $w;
+                                            }
+                                        }
+                                    }
+                                }
+                                if ($curr !== '') {
+                                    $lines[] = $curr;
+                                }
+                                return implode('<br>', array_map('e', $lines));
                             }
-                            $formattedCarEn = e(trim($line1En)) . '<br>' . e(trim($line2En));
-                        } else {
-                            $formattedCarEn = e($rawCarEn);
                         }
+
+                        $rawCarEn = trim(($transaction->carMake->name_english ?? $transaction->carMake->name_kurdish ?? 'CAR') . ($transaction->model_year ? " - {$transaction->model_year}" : ''));
+                        $formattedCarEn = wrapBookletCarText($rawCarEn, 28);
                     @endphp
                     <div id="f-cen-make" class="calibrated-field field-en font-black uppercase multiline-field text-left" data-fid="f-cen-make" data-name-ku="جۆر و مۆدێل (ئینگلیزی)" data-name-en="Make & Model" style="top: 24.5mm; left: 45mm; min-width: 80mm;">
                         {!! $formattedCarEn !!}
@@ -782,20 +821,7 @@
                     <!-- جۆرو مۆدێلی ئۆتۆمبێل -->
                     @php
                         $rawCarKu = trim(($transaction->carMake->name_kurdish ?? '') . ($transaction->model_year ? " ({$transaction->model_year})" : ''));
-                        if (mb_strlen($rawCarKu, 'UTF-8') > 27) {
-                            $subKu = mb_substr($rawCarKu, 0, 28, 'UTF-8');
-                            $lastSpaceKu = mb_strrpos($subKu, ' ', 0, 'UTF-8');
-                            if ($lastSpaceKu !== false && $lastSpaceKu > 5) {
-                                $line1Ku = mb_substr($rawCarKu, 0, $lastSpaceKu, 'UTF-8');
-                                $line2Ku = mb_substr($rawCarKu, $lastSpaceKu + 1, null, 'UTF-8');
-                            } else {
-                                $line1Ku = mb_substr($rawCarKu, 0, 27, 'UTF-8');
-                                $line2Ku = mb_substr($rawCarKu, 27, null, 'UTF-8');
-                            }
-                            $formattedCarKu = e(trim($line1Ku)) . '<br>' . e(trim($line2Ku));
-                        } else {
-                            $formattedCarKu = e($rawCarKu);
-                        }
+                        $formattedCarKu = wrapBookletCarText($rawCarKu, 28);
                     @endphp
                     <div id="f-cku-make" class="calibrated-field field-ku font-black multiline-field text-right" data-fid="f-cku-make" data-name-ku="جۆر و مۆدێلی ئۆتۆمبێل" data-name-en="Car Make & Model" style="top: 24.5mm; right: 75mm; min-width: 65mm;">
                         {!! $formattedCarKu !!}
