@@ -1,6 +1,11 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $dateFilter = $dateFilter ?? request('date_filter', 'all');
+    $today = $today ?? date('Y-m-d');
+    $availableYears = $availableYears ?? [2026, 2025, 2024, 2023];
+@endphp
 <div class="space-y-5" x-data="{ 
     tableViewMode: (window.innerWidth < 768 ? 'cards' : 'table'),
     dateFilter: '{{ $dateFilter ?? 'all' }}',
@@ -585,6 +590,10 @@
                         'is_returned' => (bool)$tx->is_returned,
                         'return_reason' => $tx->return_reason,
                         'user_input' => $tx->user_input,
+                        'is_booklet_lost' => (bool)$tx->is_booklet_lost,
+                        'lost_letter_number' => $tx->lost_letter_number,
+                        'lost_letter_date' => $tx->lost_letter_date ? $tx->lost_letter_date->format('Y-m-d') : null,
+                        'lost_directorate_name' => $tx->lost_directorate_name,
                         'date' => $tx->transaction_date ? $tx->transaction_date->format('Y-m-d') : ($tx->created_at ? $tx->created_at->format('Y-m-d') : ''),
                         'show_url' => route('transactions.show', $tx->id),
                     ];
@@ -615,6 +624,11 @@
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/40">وردبینی</span>
                                 @else
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-orange-500/20 text-orange-700 dark:text-orange-300 border border-orange-500/40">کەشف و تەخمین</span>
+                                @endif
+                                @if($tx->is_booklet_lost || !empty($tx->lost_letter_number))
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 inline-flex items-center gap-1">
+                                        <i class="fa-solid fa-triangle-exclamation text-[9px]"></i> دەفتەری ونبوو
+                                    </span>
                                 @endif
                             </div>
                         </div>
@@ -738,6 +752,10 @@
                                 'is_returned' => (bool)$tx->is_returned,
                                 'return_reason' => $tx->return_reason,
                                 'user_input' => $tx->user_input,
+                                'is_booklet_lost' => (bool)$tx->is_booklet_lost,
+                                'lost_letter_number' => $tx->lost_letter_number,
+                                'lost_letter_date' => $tx->lost_letter_date ? $tx->lost_letter_date->format('Y-m-d') : null,
+                                'lost_directorate_name' => $tx->lost_directorate_name,
                                 'date' => $tx->transaction_date ? $tx->transaction_date->format('Y-m-d') : ($tx->created_at ? $tx->created_at->format('Y-m-d') : ''),
                                 'show_url' => route('transactions.show', $tx->id),
                             ];
@@ -793,6 +811,13 @@
                                 <span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
                                     {{ $tx->transactionType->name_kurdish ?? '-' }}
                                 </span>
+                                @if($tx->is_booklet_lost || !empty($tx->lost_letter_number))
+                                    <div class="mt-1">
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-black bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/40 shadow-sm" title="نووسراوی ونبووەکان: {{ $tx->lost_letter_number }}">
+                                            <i class="fa-solid fa-triangle-exclamation text-[9px]"></i> دەفتەری ونبوو
+                                        </span>
+                                    </div>
+                                @endif
                             </td>
 
                             <!-- ژمارەی دەفتەر و بۆکس -->
@@ -1130,6 +1155,24 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- ئاگاداری دەفتەری ونبوو بۆ پێشبینی خێرا -->
+                    <template x-if="previewTx?.is_booklet_lost">
+                        <div class="p-3 rounded-xl border border-amber-500/50 bg-amber-950/40 text-amber-200 text-xs space-y-1 shadow-inner">
+                            <div class="flex items-center justify-between font-black text-amber-300">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                                    <span>دەفتەری ئەم مامەڵەیە ونبووە</span>
+                                </span>
+                                <span class="text-[10px] bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-black">ونبوو</span>
+                            </div>
+                            <p class="text-[11px] text-slate-200 leading-relaxed">
+                                ئاماژە بە نووسراوی <span class="font-bold text-amber-300" x-text="previewTx?.lost_directorate_name || 'بەڕێوەبەرایەتی ونبووەکان'"></span>
+                                ژمارە (<span class="font-mono text-white font-black" x-text="previewTx?.lost_letter_number || '-'"></span>)
+                                لە (<span class="font-mono text-white font-black" x-text="previewTx?.lost_letter_date || '-'"></span>)
+                            </p>
+                        </div>
+                    </template>
 
                     <!-- دۆخی ستێپەکان (Step Checklist) -->
                     <div class="bg-slate-950/60 border border-slate-800 p-3 rounded-xl space-y-1.5">

@@ -803,6 +803,31 @@
             </div>
         </div>
 
+        <!-- ئاگاداری فەرمی ونبوونی دەفتەر بۆ وردبین -->
+        @if($transaction->is_booklet_lost || !empty($transaction->lost_letter_number))
+        <div class="bg-gradient-to-r from-amber-950/90 via-amber-900/80 to-amber-950/90 border-2 border-amber-500 rounded-xl p-3.5 sm:p-4 shadow-xl flex items-start gap-3.5 text-amber-200 ring-2 ring-amber-500/30">
+            <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center text-xl font-black shrink-0 shadow-lg shadow-amber-500/30">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="flex-1 space-y-1">
+                <div class="flex items-center justify-between flex-wrap gap-2">
+                    <h4 class="text-sm font-black text-amber-300 flex items-center gap-2">
+                        <span>ئاگاداری بۆ وردبین: دەفتەری ئەم ئۆتۆمبێلە ونبووە!</span>
+                    </h4>
+                    <span class="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-500 text-slate-950 shadow-sm">
+                        دەفتەری ونبوو
+                    </span>
+                </div>
+                <p class="text-xs font-bold text-slate-100 leading-relaxed">
+                    ئاماژە بە ونبوونی دەفتەری ئۆتۆمبێلی ناوبراو، پاڵپشت بە نووسراوی 
+                    <span class="text-amber-300 font-black underline">{{ $transaction->lost_directorate_name ?: 'بەڕێوەبەرایەتی ونبووەکان' }}</span>
+                    ژمارە ( <span class="font-mono text-white text-sm font-black px-1.5 py-0.5 bg-black/50 rounded border border-amber-500/50">{{ $transaction->lost_letter_number ?: '-' }}</span> ) 
+                    لە ڕێکەوتی ( <span class="font-mono text-white text-sm font-black px-1.5 py-0.5 bg-black/50 rounded border border-amber-500/50">{{ $transaction->lost_letter_date ? $transaction->lost_letter_date->format('Y-m-d') : '-' }}</span> ).
+                </p>
+            </div>
+        </div>
+        @endif
+
         <!-- دابەشکردنی خوارەوە: زۆربەی زانیارییەکان لە لایەکی فۆرمەکە (لای ڕاست) و بڕیاری وردبینی لە لایەکەی تر (لای چەپ) -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 items-start">
             
@@ -953,6 +978,16 @@
                         ئامادەیە بۆ پەسەندکردن
                     </span>
                 </div>
+
+                @if($transaction->is_booklet_lost || !empty($transaction->lost_letter_number))
+                <div class="bg-amber-500/20 border-2 border-amber-500/60 rounded-xl p-2.5 text-xs font-bold text-amber-200 flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-400 text-base shrink-0"></i>
+                    <div class="leading-tight">
+                        <span class="font-black text-amber-300 block">دەفتەری ئەم ئۆتۆمبێلە ونبووە:</span>
+                        <span class="text-[11px] font-mono text-slate-200">نووسراوی ژمارە {{ $transaction->lost_letter_number ?? '-' }} لە {{ $transaction->lost_letter_date ? $transaction->lost_letter_date->format('Y-m-d') : '-' }}</span>
+                    </div>
+                </div>
+                @endif
 
                 <!-- پوختەی پارە و ڕسوومات -->
                 <div class="bg-slate-900 border border-slate-800 rounded-xl p-2.5 space-y-1.5">
@@ -1288,6 +1323,13 @@
                             <button type="button" @click="showAuditModal = true" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-purple-600/20 transition flex items-center">
                                 <i class="fa-solid fa-clipboard-check ml-1.5"></i> ستێپی ٣: پەسەندکردنی وردبینی
                             </button>
+
+                            @if($transaction->is_booklet_lost || !empty($transaction->lost_letter_number))
+                                <span class="px-2.5 py-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/50 rounded-xl text-xs font-black flex items-center gap-1.5" title="دەفتەری ئەم ئۆتۆمبێلە ونبووە">
+                                    <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                                    دەفتەری ونبوو
+                                </span>
+                            @endif
 
                             <!-- چاپی نوسراوی ئیداری لە قۆناغی وردبینی (تەنها بۆ ئەو جۆرەی کە پەیوەندیدارە) -->
                             @if($transaction->isCancellation())
@@ -2227,6 +2269,31 @@
                 </div>
             </div>
 
+            <!-- ئاگاداری ونبوونی دەفتەر لە مۆدالی وردبینی -->
+            @if($transaction->is_booklet_lost || !empty($transaction->lost_letter_number))
+            <div class="bg-gradient-to-r from-amber-950/90 via-amber-900/80 to-amber-950/90 border-2 border-amber-500 rounded-xl p-3 sm:p-3.5 shadow-xl flex items-start gap-3 text-amber-200 ring-2 ring-amber-500/30">
+                <div class="w-9 h-9 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center text-lg font-black shrink-0 shadow">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="flex-1 space-y-0.5">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <h4 class="text-xs sm:text-sm font-black text-amber-300 flex items-center gap-2">
+                            <span>ئاگاداری بۆ وردبین: دەفتەری ئەم مامەڵەیە ونبووە!</span>
+                        </h4>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-slate-950">
+                            دەفتەری ونبوو
+                        </span>
+                    </div>
+                    <p class="text-[11px] font-bold text-slate-100 leading-relaxed">
+                        ئاماژە بە ونبوونی دەفتەری ئۆتۆمبێلی ناوبراو، پاڵپشت بە نووسراوی 
+                        <span class="text-amber-300 font-black underline">{{ $transaction->lost_directorate_name ?: 'بەڕێوەبەرایەتی ونبووەکان' }}</span>
+                        ژمارە ( <span class="font-mono text-white text-xs font-black px-1.5 py-0.2 bg-black/40 rounded border border-amber-500/40">{{ $transaction->lost_letter_number ?: '-' }}</span> ) 
+                        لە ڕێکەوتی ( <span class="font-mono text-white text-xs font-black px-1.5 py-0.2 bg-black/40 rounded border border-amber-500/40">{{ $transaction->lost_letter_date ? $transaction->lost_letter_date->format('Y-m-d') : '-' }}</span> ).
+                    </p>
+                </div>
+            </div>
+            @endif
+
             <!-- دابەشکردنی ناوەوە: زۆربەی زانیارییەکان لە لایەک (ڕاست) و بڕیاری وردبینی لە لایەکەی تر (چەپ) -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start text-xs">
                 
@@ -2313,6 +2380,16 @@
                         </div>
                         @endif
                     </div>
+
+                    @if($transaction->is_booklet_lost || !empty($transaction->lost_letter_number))
+                    <div class="bg-amber-500/20 border-2 border-amber-500/60 rounded-xl p-2.5 text-xs font-bold text-amber-200 flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-400 text-base shrink-0"></i>
+                        <div class="leading-tight">
+                            <span class="font-black text-amber-300 block">دەفتەری ئەم مامەڵەیە ونبووە:</span>
+                            <span class="text-[11px] font-mono text-slate-200">نووسراوی ژمارە {{ $transaction->lost_letter_number ?? '-' }} لە {{ $transaction->lost_letter_date ? $transaction->lost_letter_date->format('Y-m-d') : '-' }}</span>
+                        </div>
+                    </div>
+                    @endif
 
                     <!-- فۆرمی پەسەندکردنی کۆتایی -->
                     <form action="{{ route('transactions.audit', $transaction->id) }}" method="POST" class="space-y-3">

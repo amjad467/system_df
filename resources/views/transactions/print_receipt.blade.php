@@ -592,6 +592,17 @@
                 </div>
             </div>
 
+            <!-- Lost Booklet Official Note for Pledge (ئاماژە بە ونبوونی دەفتەر) -->
+            @php
+                $pledgeLostTx = ($transaction->is_booklet_lost || !empty($transaction->lost_letter_number)) ? $transaction : ($linkedPledge && ($linkedPledge->is_booklet_lost || !empty($linkedPledge->lost_letter_number)) ? $linkedPledge : null);
+            @endphp
+            @if($pledgeLostTx)
+                <div class="border-2 border-black p-2 my-2 bg-gray-50 text-xs font-black text-black leading-relaxed text-right">
+                    <span class="underline">تێبینی:</span>
+                    <span>ئاماژە بە ونبوونی دەفتەری ئۆتۆمبێلی ناوبراو، پاڵپشت بە نووسراوی {{ $pledgeLostTx->lost_directorate_name ?: 'بەڕێوەبەرایەتی ونبووەکان' }} ژمارە ( <span class="font-mono text-sm underline font-extrabold">{{ $pledgeLostTx->lost_letter_number ?: '..................' }}</span> ) لە ڕێکەوتی ( <span class="font-mono text-sm underline font-extrabold">{{ $pledgeLostTx->lost_letter_date ? $pledgeLostTx->lost_letter_date->format('Y-m-d') : '..................' }}</span> ).</span>
+                </div>
+            @endif
+
             <!-- Bottom Signatures Section (لیژنەی کەشف و پشکنین) -->
             <div class="border-t-2 border-black pt-2.5 mt-auto">
                 <div class="grid grid-cols-3 gap-6 text-center">

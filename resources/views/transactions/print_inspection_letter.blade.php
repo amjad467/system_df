@@ -163,6 +163,14 @@
             </table>
         </div>
 
+        <!-- Lost Booklet Official Note (ئاماژە بە ونبوونی دەفتەر) -->
+        @if($transaction->is_booklet_lost || !empty($transaction->lost_letter_number))
+            <div class="border-2 border-black p-2.5 my-3 bg-gray-50 text-xs font-black text-black leading-relaxed text-right">
+                <span class="underline font-bold">تێبینی:</span>
+                <span>ئاماژە بە ونبوونی دەفتەری ئۆتۆمبێلی ناوبراو، پاڵپشت بە نووسراوی {{ $transaction->lost_directorate_name ?: 'بەڕێوەبەرایەتی ونبووەکان' }} ژمارە ( <span class="font-mono text-sm underline font-black">{{ $transaction->lost_letter_number ?: '..................' }}</span> ) لە ڕێکەوتی ( <span class="font-mono text-sm underline font-black">{{ $transaction->lost_letter_date ? $transaction->lost_letter_date->format('Y-m-d') : '..................' }}</span> ).</span>
+            </div>
+        @endif
+
         <!-- Director Signature Block -->
         <div class="flex justify-end pt-4 pb-2 pl-8">
             <div class="text-center font-black space-y-1">
