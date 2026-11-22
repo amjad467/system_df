@@ -344,8 +344,8 @@
                         </a>
                     @endif
 
-                    <!-- Reports Dropdown: محاسبة ٦٦ & دەفتەرە بەسەرچووەکان (Consolidated to save horizontal space) -->
-                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('reports.accounting_66') || auth()->user()->hasPermission('reports.expired_booklets')))
+                    <!-- Reports Dropdown: محاسبة ٦٦ & دەفتەرە بەسەرچووەکان (تەنها بۆ ئەدمین و ئەرشیف) -->
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
                         <div class="relative" x-data="{ openReportsMenu: false }">
                             <button @click="openReportsMenu = !openReportsMenu" type="button" 
                                     class="px-2.5 py-1.5 rounded-xl text-xs sm:text-[13px] font-extrabold transition flex items-center gap-1.5 {{ request()->routeIs('reports.*') || request()->routeIs('transactions.expired_booklets') ? 'bg-sky-100 text-sky-900 border border-sky-300 dark:bg-sky-500/15 dark:text-sky-400 dark:border-sky-500/30 shadow-sm' : 'text-slate-800 font-extrabold hover:text-sky-700 hover:bg-white hover:border-slate-300 border border-transparent shadow-none hover:shadow-sm dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800 dark:hover:border-slate-700' }}">
@@ -363,12 +363,10 @@
                                         <span>محاسبة ٦٦</span>
                                     </a>
                                 @endif
-                                @if(auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('reports.expired_booklets'))
-                                    <a href="{{ route('transactions.expired_booklets') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('transactions.expired_booklets') ? 'bg-rose-600 text-white' : 'text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10' }}">
-                                        <i class="fa-solid fa-calendar-xmark w-4 text-center text-rose-600 dark:text-rose-400"></i>
-                                        <span>دەفتەرە بەسەرچووەکان</span>
-                                    </a>
-                                @endif
+                                <a href="{{ route('transactions.expired_booklets') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('transactions.expired_booklets') ? 'bg-rose-600 text-white' : 'text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10' }}">
+                                    <i class="fa-solid fa-calendar-xmark w-4 text-center text-rose-600 dark:text-rose-400"></i>
+                                    <span>دەفتەرە بەسەرچووەکان</span>
+                                </a>
                                 <a href="{{ route('reports.unreturned_mrur') }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('reports.unreturned_mrur*') ? 'bg-amber-500 text-slate-900' : 'text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10' }}">
                                     <div class="flex items-center gap-2.5">
                                         <i class="fa-solid fa-file-circle-question w-4 text-center text-amber-500"></i>
@@ -378,12 +376,10 @@
                                         {{ \App\Models\Transaction::where(fn($q) => $q->whereNull('no_nusraw_mrur')->orWhere('no_nusraw_mrur', '0')->orWhere('no_nusraw_mrur', ''))->count() }}
                                     </span>
                                 </a>
-                                @if(auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('reports.citizens_multiple_cars'))
-                                    <a href="{{ route('reports.citizens_multiple_cars') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('reports.citizens_multiple_cars*') ? 'bg-indigo-600 text-white' : 'text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10' }}">
-                                        <i class="fa-solid fa-users-viewfinder w-4 text-center text-indigo-500"></i>
-                                        <span>هاوڵاتیانی فرە ئۆتۆمبێل</span>
-                                    </a>
-                                @endif
+                                <a href="{{ route('reports.citizens_multiple_cars') }}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold transition {{ request()->routeIs('reports.citizens_multiple_cars*') ? 'bg-indigo-600 text-white' : 'text-indigo-700 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-500/10' }}">
+                                    <i class="fa-solid fa-users-viewfinder w-4 text-center text-indigo-500"></i>
+                                    <span>هاوڵاتیانی فرە ئۆتۆمبێل</span>
+                                </a>
                             </div>
                         </div>
                     @endif
@@ -694,10 +690,18 @@
                         </a>
                     @endif
 
-                    <!-- دەفتەرە بەسەرچووەکان (Allowed via Permission & Archiver/Admin) -->
-                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('reports.expired_booklets')))
+                    <!-- ڕاپۆرتەکان (دەفتەرە بەسەرچووەکان، بێ مرور، فرە ئۆتۆمبێل) - تەنها بۆ ئەدمین و ئەرشیف -->
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
                         <a href="{{ route('transactions.expired_booklets') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-300 hover:bg-rose-600 hover:text-white flex items-center justify-center">
                             <i class="fa-solid fa-calendar-xmark ml-1.5 text-rose-500"></i> بەسەرچووەکان
+                        </a>
+
+                        <a href="{{ route('reports.unreturned_mrur') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-400 dark:border-amber-500/40 text-amber-600 dark:text-amber-300 hover:bg-amber-600 hover:text-white flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-file-circle-question text-amber-500"></i> بێ مرور ({{ \App\Models\Transaction::where(fn($q) => $q->whereNull('no_nusraw_mrur')->orWhere('no_nusraw_mrur', '0')->orWhere('no_nusraw_mrur', ''))->count() }})
+                        </a>
+
+                        <a href="{{ route('reports.citizens_multiple_cars') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-indigo-300 dark:border-indigo-500/40 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-600 hover:text-white flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-users-viewfinder text-indigo-500"></i> فرە ئۆتۆمبێل
                         </a>
                     @endif
 
@@ -705,18 +709,6 @@
                     @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('reports.accounting_66')))
                         <a href="{{ route('reports.accounting_66') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-500/40 text-amber-600 dark:text-amber-300 hover:bg-amber-600 hover:text-white flex items-center justify-center">
                             <i class="fa-solid fa-file-invoice-dollar ml-1.5 text-amber-500"></i> محاسبة ٦٦
-                        </a>
-                    @endif
-
-                    <!-- نووسراوە بێ مرورەکان -->
-                    <a href="{{ route('reports.unreturned_mrur') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-400 dark:border-amber-500/40 text-amber-600 dark:text-amber-300 hover:bg-amber-600 hover:text-white flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-file-circle-question text-amber-500"></i> بێ مرور ({{ \App\Models\Transaction::where(fn($q) => $q->whereNull('no_nusraw_mrur')->orWhere('no_nusraw_mrur', '0')->orWhere('no_nusraw_mrur', ''))->count() }})
-                    </a>
-
-                    <!-- هاوڵاتیانی فرە ئۆتۆمبێل -->
-                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('reports.citizens_multiple_cars')))
-                        <a href="{{ route('reports.citizens_multiple_cars') }}" class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-indigo-300 dark:border-indigo-500/40 text-indigo-600 dark:text-indigo-300 hover:bg-indigo-600 hover:text-white flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-users-viewfinder text-indigo-500"></i> فرە ئۆتۆمبێل
                         </a>
                     @endif
 

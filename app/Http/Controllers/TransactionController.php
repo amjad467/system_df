@@ -616,8 +616,8 @@ class TransactionController extends Controller
 
     public function expiredBookletsReport(Request $request)
     {
-        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'archiver' && auth()->user()->role !== 'booklet' && !auth()->user()->hasPermission('reports.expired_booklets')) {
-            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی دەفتەرە بەسەرچووەکان تەنها بۆ ئەدمین، ئەرشیف و بەشی دەفتەرە!');
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'archiver') {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی دەفتەرە بەسەرچووەکان تەنها بۆ ئەدمین و ئەرشیفە!');
         }
 
         $status = $request->get('status', 'expired'); // 'expired', 'expiring_soon', 'all'
@@ -719,6 +719,10 @@ class TransactionController extends Controller
 
     public function unreturnedTrafficLettersReport(Request $request)
     {
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'archiver') {
+            return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی نووسراوە بێ مرورەکان تەنها بۆ ئەدمین و ئەرشیفە!');
+        }
+
         $search = $request->get('search');
         $directorateId = $request->get('directorate_id');
         $year = $request->get('year');
@@ -848,7 +852,7 @@ class TransactionController extends Controller
     public function citizensMultipleCarsReport(Request $request)
     {
         $user = auth()->user();
-        if (!$user->isAdmin() && $user->role !== 'archiver' && !$user->hasPermission('reports.citizens_multiple_cars')) {
+        if (!$user->isAdmin() && $user->role !== 'archiver') {
             return redirect()->route('dashboard')->with('error', 'دەسەڵاتی بینینی ئەم ڕاپۆرتە تەنها بۆ ئەدمین و ئەرشیفە!');
         }
 
@@ -1047,6 +1051,10 @@ class TransactionController extends Controller
      */
     public function citizenCarsDetailsApi(Request $request)
     {
+        if (!auth()->user()->isAdmin() && auth()->user()->role !== 'archiver') {
+            return response()->json(['success' => false, 'message' => 'دەسەڵاتی بینینی ئەم زانیارییە تەنها بۆ ئەدمین و ئەرشیفە!'], 403);
+        }
+
         $name = trim($request->get('name', ''));
         $phone = trim($request->get('phone', ''));
 
@@ -1132,7 +1140,7 @@ class TransactionController extends Controller
     public function exportCitizensMultipleCarsCsv(Request $request)
     {
         $user = auth()->user();
-        if (!$user->isAdmin() && $user->role !== 'archiver' && !$user->hasPermission('reports.citizens_multiple_cars')) {
+        if (!$user->isAdmin() && $user->role !== 'archiver') {
             return redirect()->route('dashboard')->with('error', 'دەسەڵاتی داگرتنی ئەم ڕاپۆرتەت نییە!');
         }
 

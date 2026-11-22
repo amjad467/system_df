@@ -21,8 +21,8 @@ class BookletNoticeController extends Controller
             abort(401);
         }
 
-        if (!$user->isAdmin() && $user->role !== 'archiver' && $user->role !== 'booklet' && !$user->hasPermission('reports.expired_booklets')) {
-            abort(403, 'دەسەڵاتی بینینی ئەم بەشە تەنها بۆ ئەدمین، ئەرشیف و بەشی دەفتەرە!');
+        if (!$user->isAdmin() && $user->role !== 'archiver') {
+            abort(403, 'دەسەڵاتی بینینی ئەم بەشە تەنها بۆ ئەدمین و ئەرشیفە!');
         }
     }
 
