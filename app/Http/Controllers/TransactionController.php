@@ -2373,8 +2373,8 @@ class TransactionController extends Controller
             return redirect()->back()->with('error', 'سەبمیتکردنی کۆتایی مامەڵە لە دەسەڵاتی تۆدا نییە بەپێی پێرمشنەکان!');
         }
 
-        // 4. Transaction types allowed for archiving: Booklet issue, renewal, name change, booklet change, cancellation, name & booklet change
-        $allowedSubmitTypes = [1, 2, 3, 4, 5, 7];
+        // 4. Transaction types allowed for archiving: Booklet issue, renewal, name change, booklet change, cancellation, name & booklet change, inspection
+        $allowedSubmitTypes = [1, 2, 3, 4, 5, 7, 8];
         if (!in_array((int)$transaction->transaction_type_id, $allowedSubmitTypes)) {
             $typeName = $transaction->transactionType->name_kurdish ?? 'دیاری نەکراو';
             return redirect()->back()->with('error', "ئەم جۆرە مامەڵەیە [{$typeName}] سەبمیتی کۆتایی ئەرشیفی نییە.");
@@ -2448,6 +2448,12 @@ class TransactionController extends Controller
             "مامەڵەی ({$transaction->visitor_name}) بە بارکۆدی {$transaction->barcode} بە تەواوەتی سەبمیت و ئەرشیفکرا.",
             route('transactions.show', $transaction->id)
         );
+
+        if ((int)$transaction->transaction_type_id === 8 || ($transaction->transactionType && str_contains($transaction->transactionType->name_kurdish, 'پشکنین'))) {
+            return redirect()->back()
+                ->with('success', 'مامەڵەی پشکنین بە سەرکەوتوویی سەبمیت و ئەرشیفکرا.')
+                ->with('archive_inspection_prompt_letter', true);
+        }
 
         return redirect()->back()->with('success', 'مامەڵەکە بە سەرکەوتوویی نێردرا بۆ ستێپی کۆتایی (سەبمیت و ئەرشیفکرا).');
     }

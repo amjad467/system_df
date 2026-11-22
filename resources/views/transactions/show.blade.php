@@ -102,7 +102,7 @@
 
     $linkedPledge = $linkedPledge ?? $transaction->getLinkedPledgeOrParent();
     $isArchiverOrAdmin = auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('transactions.submit'));
-    $canSubmitThisType = in_array($typeId, [1, 2, 3, 4, 5, 7]);
+    $canSubmitThisType = in_array($typeId, [1, 2, 3, 4, 5, 7, 8]);
 @endphp
 
 <div class="max-w-5xl mx-auto space-y-6 pb-24" x-data="{ 
@@ -113,6 +113,7 @@
     showRevertModal: false,
     showAuditModal: false,
     showSubmitModal: false,
+    showArchiveInspectionPromptModal: {{ session('archive_inspection_prompt_letter') ? 'true' : 'false' }},
     showAuditPromptModal: {{ session('audit_completed_prompt_letter') ? 'true' : 'false' }},
     showPaymentPromptModal: {{ session('payment_completed_prompt_receipt') ? 'true' : 'false' }},
     showInspectionPromptModal: {{ session('inspection_completed_prompt_print') ? 'true' : 'false' }},
@@ -317,17 +318,19 @@
                                     <span>پسوولەی پارەدان (۳۷/أ)</span>
                                 </a>
                             @endif
-                            <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" 
-                               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-sky-300 hover:bg-slate-800 hover:text-white transition">
-                                <i class="fa-solid fa-file-circle-check text-sky-400 w-4 text-center"></i>
-                                <span>نووسراوی پشکنین</span>
-                            </a>
                         </div>
                     @endif
 
                     <!-- دەفتەر و نوسراوە فەرمییەکان -->
                     <div class="space-y-1 pt-1.5 border-t border-slate-800">
                         <span class="text-[10px] font-bold text-slate-400 px-2 block">دەفتەر و نوسراوە فەرمییەکان:</span>
+                        @if(($transaction->is_submitted || auth()->user()->isAdmin() || auth()->user()->role === 'archiver') && ((int)$transaction->transaction_type_id === 8 || ($transaction->transactionType && str_contains($transaction->transactionType->name_kurdish, 'پشکنین')) || auth()->user()->hasPermission('prints.inspection_letter')))
+                            <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" 
+                               class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-sky-300 hover:bg-slate-800 hover:text-white transition">
+                                <i class="fa-solid fa-file-circle-check text-sky-400 w-4 text-center"></i>
+                                <span>نووسراوی پشکنین</span>
+                            </a>
+                        @endif
                         @if($transaction->booklet_number)
                             <a href="{{ route('transactions.print_booklet', $transaction->id) }}" target="_blank" 
                                class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-indigo-300 font-bold hover:bg-indigo-600 hover:text-white transition">
@@ -1390,20 +1393,22 @@
                         @endif
                     @endif
 
-                    <!-- قۆناغی پارەدان و ئەرشیف - چاپی پسوولە و نووسراوی پشکنین (خاڵی ۸: بەردەستبوون لە پارەدان و ئەرشیف) -->
-                    @if($transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier' || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.receipt') || auth()->user()->hasPermission('prints.inspection_letter')))
-                        @if(!$transaction->is_submitted || auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.receipt') || auth()->user()->hasPermission('prints.inspection_letter'))
+                    <!-- قۆناغی پارەدان - چاپی پسوولە -->
+                    @if($transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier' || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.receipt')))
+                        @if(!$transaction->is_submitted || auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.receipt'))
                             @if(auth()->user()->isAdmin() || auth()->user()->role === 'cashier' || auth()->user()->hasPermission('prints.receipt'))
                                 <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center">
                                     <i class="fa-solid fa-receipt ml-1.5"></i> {{ ($linkedPledge && $linkedPledge->is_paid) ? 'چاپی هەردوو پسوولەی ۳۷/أ (۲ پەڕە)' : 'چاپی پسوولەی ۳۷/أ' }}
                                 </a>
                             @endif
-                            @if(auth()->user()->isAdmin() || auth()->user()->role === 'cashier' || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.inspection_letter'))
-                                <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نووسراوی پشکنین">
-                                    <i class="fa-solid fa-file-circle-check ml-1.5"></i> چاپی نووسراوی پشکنین
-                                </a>
-                            @endif
                         @endif
+                    @endif
+
+                    <!-- قۆناغی ئەرشیف - چاپی نووسراوی پشکنین (تەنها لە ئەرشیف نەک لە قۆناغی پارەدان) -->
+                    @if($transaction->is_submitted && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.inspection_letter')))
+                        <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center" title="چاپی نووسراوی پشکنین">
+                            <i class="fa-solid fa-file-circle-check ml-1.5"></i> چاپی نووسراوی پشکنین
+                        </a>
                     @endif
 
                     <!-- Step 5: Booklet Complete (Booklet / Admin) - ONLY if requiresBooklet() & NOT pledge/cancel/inspect -->
@@ -2012,6 +2017,46 @@
         </div>
     </div>
 
+    <!-- MODAL: Prompt Inspection Letter Print after Archive Submit (خاڵی داواکراو: داوای چاپی نووسراوی پشکنین لە کاتی سەبمیتی ئەرشیف) -->
+    <div x-show="showArchiveInspectionPromptModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border-2 border-sky-500/60 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl" @click.away="showArchiveInspectionPromptModal = false">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                <h3 class="text-base font-black text-sky-300 flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center">
+                        <i class="fa-solid fa-file-circle-check"></i>
+                    </span>
+                    <span>سەبمیتی پشکنین تەواوبوو - چاپی نووسراوی فەرمی</span>
+                </h3>
+                <button type="button" @click="showArchiveInspectionPromptModal = false" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-3.5 bg-sky-950/40 border border-sky-500/30 rounded-xl text-sky-200 text-xs font-bold leading-relaxed space-y-1">
+                <p>مامەڵەی پشکنین بە سەرکەوتوویی سەبمیت و ئەرشیفکرا.</p>
+                <p class="text-[11px] text-sky-300/80 font-normal">تکایە ئێستا نووسراوی فەرمی پشکنین چاپ بکە بۆ ئەوەی ڕەوانەی لایەنی پەیوەندیدار بکرێت:</p>
+            </div>
+
+            <div class="space-y-2 pt-1">
+                <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank"
+                   @click="showArchiveInspectionPromptModal = false"
+                   class="w-full px-4 py-3 bg-sky-600 hover:bg-sky-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-between">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-print text-base"></i>
+                        <span>چاپی نووسراوی فەرمی پشکنین</span>
+                    </span>
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-slate-700/60">
+                <button type="button" @click="showArchiveInspectionPromptModal = false" class="px-5 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition">
+                    داخستن
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL 2: Booklet Number Modal -->
     <div x-show="showBookletModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
@@ -2552,6 +2597,13 @@
                     </div>
                 @endif
 
+                @if((int)$transaction->transaction_type_id === 8 || ($transaction->transactionType && str_contains($transaction->transactionType->name_kurdish, 'پشکنین')))
+                    <div class="p-3 bg-sky-500/10 border border-sky-500/30 rounded-xl text-sky-300 text-xs font-semibold flex items-center gap-2">
+                        <i class="fa-solid fa-file-circle-check text-sky-400 text-sm"></i>
+                        <span>تێبینی: دوای پەسەندکردن و سەبمیت، داوای چاپی نووسراوی فەرمی پشکنینت لێدەکرێت.</span>
+                    </div>
+                @endif
+
                 <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[11px] text-amber-300 flex items-center gap-2">
                     <i class="fa-solid fa-circle-info text-amber-400 text-sm"></i>
                     <span>تێبینی: دوای ئەنجامدانی سەبمیت، مامەڵەکە ئەرشیف دەبێت و چاپەکان تەنها لە دەسەڵاتی ئەدمین دەمێننەوە.</span>
@@ -2678,18 +2730,20 @@
                         </button>
                     @endif
 
-                    <!-- 5. چاپی وەسڵی ۳۷/أ و نووسراوی پشکنین (Cashier / Archiver / Admin - خاڵی ۸) -->
-                    @if($transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier' || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.receipt') || auth()->user()->hasPermission('prints.inspection_letter')))
+                    <!-- 5. چاپی وەسڵی ۳۷/أ -->
+                    @if($transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier' || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.receipt')))
                         @if((!$transaction->is_submitted || auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.receipt')) && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier' || auth()->user()->hasPermission('prints.receipt')))
                             <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow transition flex items-center gap-1">
                                 <i class="fa-solid fa-receipt"></i> {{ ($linkedPledge && $linkedPledge->is_paid) ? 'چاپی هەردوو ۳۷/أ (۲ پەڕە)' : 'چاپی ۳۷/أ' }}
                             </a>
                         @endif
-                        @if(auth()->user()->isAdmin() || auth()->user()->role === 'cashier' || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.inspection_letter'))
-                            <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نووسراوی پشکنین">
-                                <i class="fa-solid fa-file-circle-check"></i> نوسراوی پشکنین
-                            </a>
-                        @endif
+                    @endif
+
+                    <!-- نووسراوی پشکنین (تەنها لە قۆناغی ئەرشیف نەک لە قۆناغی پارەدان) -->
+                    @if($transaction->is_submitted && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.inspection_letter')))
+                        <a href="{{ route('transactions.print_inspection_letter', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نووسراوی پشکنین">
+                            <i class="fa-solid fa-file-circle-check"></i> نوسراوی پشکنین
+                        </a>
                     @endif
 
                     <!-- 6. تۆمارکردنی دەفتەر (Booklet / Admin - ڕێگری لە پووچەڵ، بەڵێننامە و پشکنین) -->
