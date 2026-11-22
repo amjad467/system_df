@@ -812,60 +812,69 @@
                     </div>
                 </div>
 
-                <!-- 4. Passport / Document Number & 5. Issue Date Grid -->
-                <div class="grid grid-cols-2 gap-2">
+                <!-- Informational Banner for Cancellation (پووچەڵکردنەوە) -->
+                <div x-show="typeId == 5" x-cloak class="p-2.5 rounded-xl bg-sky-50 dark:bg-slate-800/80 border border-sky-200 dark:border-slate-700 text-xs text-sky-800 dark:text-sky-300 font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-sky-500"></i>
+                    <span>لە مامەڵەی پووچەڵکردنەوەدا پێویست بە پاسپۆرت، بەروار، شوێن و ناونیشان ناکات.</span>
+                </div>
+
+                <!-- 4. Passport / Document Number, 5. Issue Date, 6. Issue Place, 7. Residence (Hide for Cancellation) -->
+                <div x-show="typeId != 5" x-cloak class="space-y-2.5">
+                    <!-- 4. Passport / Document Number & 5. Issue Date Grid -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">ژمارەی بەڵگەنامە / پاسپۆرت</label>
+                            <input type="text" 
+                                   name="passport_number" 
+                                   x-model="passportNumber" 
+                                   placeholder="A12345678" 
+                                   dir="ltr" 
+                                   class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">بەرواری بەڵگەنامە</label>
+                            <input type="date" 
+                                   name="passport_issue_date" 
+                                   x-model="passportIssueDate" 
+                                   dir="ltr" 
+                                   class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono">
+                        </div>
+                    </div>
+
+                    <!-- 6. Issue Place -->
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">ژمارەی بەڵگەنامە / پاسپۆرت</label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300">شوێنی دەرچوونی بەڵگەنامە</label>
+                            <button type="button" 
+                                    @click="showPassportPlaceModal = true" 
+                                    class="text-[10px] text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-bold flex items-center gap-1 transition cursor-pointer">
+                                <i class="fa-solid fa-plus-circle"></i>
+                                <span>زیادکردن</span>
+                            </button>
+                        </div>
+                        <select name="passport_issue_place" 
+                                x-model="passportIssuePlace" 
+                                class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 focus:border-sky-500 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold transition focus:outline-none">
+                            <option value="">-- هەڵبژاردنی شوێن --</option>
+                            <template x-for="p in passportPlaces" :key="p.id">
+                                <option :value="p.name" :selected="passportIssuePlace == p.name" x-text="p.name"></option>
+                            </template>
+                        </select>
+                    </div>
+
+                    <!-- 7. Driver Address / Residence -->
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                            <i class="fa-solid fa-house-chimney text-slate-400 ml-1"></i>
+                            <span>شوێنی دانیشتووی شۆفێر (ناونیشان)</span>
+                        </label>
                         <input type="text" 
-                               name="passport_number" 
-                               x-model="passportNumber" 
-                               placeholder="A12345678" 
-                               dir="ltr" 
-                               class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono">
+                               name="address" 
+                               x-model="address" 
+                               placeholder="مثلاً: سلێمانی - بەختیاری" 
+                               class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100">
                     </div>
-
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">بەرواری بەڵگەنامە</label>
-                        <input type="date" 
-                               name="passport_issue_date" 
-                               x-model="passportIssueDate" 
-                               dir="ltr" 
-                               class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono">
-                    </div>
-                </div>
-
-                <!-- 6. Issue Place -->
-                <div>
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300">شوێنی دەرچوونی بەڵگەنامە</label>
-                        <button type="button" 
-                                @click="showPassportPlaceModal = true" 
-                                class="text-[10px] text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-bold flex items-center gap-1 transition cursor-pointer">
-                            <i class="fa-solid fa-plus-circle"></i>
-                            <span>زیادکردن</span>
-                        </button>
-                    </div>
-                    <select name="passport_issue_place" 
-                            x-model="passportIssuePlace" 
-                            class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 focus:border-sky-500 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold transition focus:outline-none">
-                        <option value="">-- هەڵبژاردنی شوێن --</option>
-                        <template x-for="p in passportPlaces" :key="p.id">
-                            <option :value="p.name" :selected="passportIssuePlace == p.name" x-text="p.name"></option>
-                        </template>
-                    </select>
-                </div>
-
-                <!-- 7. Driver Address / Residence -->
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                        <i class="fa-solid fa-house-chimney text-slate-400 ml-1"></i>
-                        <span>شوێنی دانیشتووی شۆفێر (ناونیشان)</span>
-                    </label>
-                    <input type="text" 
-                           name="address" 
-                           x-model="address" 
-                           placeholder="مثلاً: سلێمانی - بەختیاری" 
-                           class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100">
                 </div>
             </div>
         </div>

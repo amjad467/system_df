@@ -1497,6 +1497,13 @@ class TransactionController extends Controller
                 $validated['bary_gshty_eng'] = null;
             }
 
+            if ($typeId === 5) {
+                $validated['passport_number'] = null;
+                $validated['passport_issue_date'] = null;
+                $validated['passport_issue_place'] = null;
+                $validated['address'] = null;
+            }
+
             $transactionData = array_merge($validated, [
                 'barcode' => $barcode,
                 'is_bus' => $isBus,
@@ -1743,6 +1750,13 @@ class TransactionController extends Controller
             $validated['kamukurty_eng'] = null;
             $validated['bary_gshty'] = null;
             $validated['bary_gshty_eng'] = null;
+        }
+
+        if ($typeId === 5) {
+            $validated['passport_number'] = null;
+            $validated['passport_issue_date'] = null;
+            $validated['passport_issue_place'] = null;
+            $validated['address'] = null;
         }
 
         // Preserve archive fields if omitted by data entry
