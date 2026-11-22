@@ -244,6 +244,79 @@ class Transaction extends Model
     }
 
     /**
+     * Retrieve the previous booklet transaction (for cancellation or renewals).
+     */
+    public function getPreviousBookletTransaction(): ?Transaction
+    {
+        if ($this->parent_transaction_id) {
+            $parent = $this->parentTransaction;
+            if ($parent && (int)$parent->transaction_type_id !== 5) {
+                return $parent;
+            }
+        }
+
+        if (!empty($this->chassis_number) && $this->chassis_number !== '-') {
+            $cleanChassis = strtoupper(str_replace([' ', '-'], '', $this->chassis_number));
+            $prev = self::where(function ($q) use ($cleanChassis) {
+                $q->whereRaw("UPPER(REPLACE(REPLACE(chassis_number, ' ', ''), '-', '')) = ?", [$cleanChassis])
+                  ->orWhere('chassis_number', $this->chassis_number);
+            })
+            ->where('id', '!=', $this->id)
+            ->where('transaction_type_id', '!=', 5)
+            ->latest('id')
+            ->first();
+
+            if ($prev) {
+                return $prev;
+            }
+        }
+
+        if (!empty($this->plate_number) && $this->plate_number !== '00000') {
+            return self::where('plate_number', $this->plate_number)
+                ->where('id', '!=', $this->id)
+                ->where('transaction_type_id', '!=', 5)
+                ->latest('id')
+                ->first();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get resolved customs letter number (from own cancellation record or previous booklet issue).
+     */
+    public function getResolvedCustomsLetterNumber(): ?string
+    {
+        if (!empty($this->no_nusraw_puchal)) {
+            return $this->no_nusraw_puchal;
+        }
+
+        $prev = $this->getPreviousBookletTransaction();
+        if ($prev && !empty($prev->no_nusraw_gumrg)) {
+            return $prev->no_nusraw_gumrg;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get resolved customs letter date (from own cancellation record or previous booklet issue).
+     */
+    public function getResolvedCustomsLetterDate(): ?\Carbon\Carbon
+    {
+        if ($this->date_nusraw_puchal) {
+            return $this->date_nusraw_puchal;
+        }
+
+        $prev = $this->getPreviousBookletTransaction();
+        if ($prev) {
+            return $prev->date_nusraw_gumrg ?? $prev->transaction_date;
+        }
+
+        return null;
+    }
+
+    /**
      * Get human readable Kurdish description of current stage and status.
      */
     public function getCurrentStageName(): string

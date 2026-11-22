@@ -812,10 +812,41 @@
                     </div>
                 </div>
 
-                <!-- Informational Banner for Cancellation (پووچەڵکردنەوە) -->
-                <div x-show="typeId == 5" x-cloak class="p-2.5 rounded-xl bg-sky-50 dark:bg-slate-800/80 border border-sky-200 dark:border-slate-700 text-xs text-sky-800 dark:text-sky-300 font-bold flex items-center gap-2">
-                    <i class="fa-solid fa-circle-info text-sky-500"></i>
-                    <span>لە مامەڵەی پووچەڵکردنەوەدا پێویست بە پاسپۆرت، بەروار، شوێن و ناونیشان ناکات.</span>
+                <!-- Informational Banner and Customs Letter for Cancellation (پووچەڵکردنەوە) -->
+                <div x-show="typeId == 5" x-cloak class="space-y-2.5">
+                    <div class="p-2.5 rounded-xl bg-sky-50 dark:bg-slate-800/80 border border-sky-200 dark:border-slate-700 text-xs text-sky-800 dark:text-sky-300 font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-sky-500"></i>
+                        <span>لە مامەڵەی پووچەڵکردنەوەدا پێویست بە پاسپۆرت، بەروار، شوێن و ناونیشان ناکات.</span>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-300 dark:border-rose-500/40 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black text-rose-800 dark:text-rose-300 flex items-center gap-2">
+                                <i class="fa-solid fa-file-contract text-rose-500"></i>
+                                <span>زانیاری نووسراوی گومرگ (کاتی دەرهێنانی دەفتەر)</span>
+                            </span>
+                            <span class="text-[10px] text-rose-600 dark:text-rose-400 font-bold">ئەگەر هەبێت خۆی پڕدەبێتەوە، ئەگەریش نەبوو لێرە دەتوانیت تۆماری بکەیت</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">ژمارەی نووسراوی گومرگ</label>
+                                <input type="text" 
+                                       name="no_nusraw_puchal" 
+                                       x-model="noNusrawPuchal" 
+                                       placeholder="نموونە: 29357" 
+                                       dir="ltr" 
+                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">بەرواری نووسراوی گومرگ</label>
+                                <input type="date" 
+                                       name="date_nusraw_puchal" 
+                                       x-model="dateNusrawPuchal" 
+                                       dir="ltr" 
+                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 4. Passport / Document Number, 5. Issue Date, 6. Issue Place, 7. Residence (Hide for Cancellation) -->
@@ -1341,6 +1372,10 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
         lostLetterNumber: initialTx ? (initialTx.lost_letter_number || '') : '',
         lostLetterDate: initialTx ? (initialTx.lost_letter_date ? String(initialTx.lost_letter_date).substring(0, 10) : '') : '',
         lostDirectorateName: initialTx ? (initialTx.lost_directorate_name || 'بەڕێوەبەرایەتی ونبووەکان') : 'بەڕێوەبەرایەتی ونبووەکان',
+
+        // Customs Letter for Cancellation (نووسراوی گومرگ بۆ پووچەڵکردنەوە)
+        noNusrawPuchal: initialTx ? (initialTx.no_nusraw_puchal || initialTx.no_nusraw_gumrg || '') : '',
+        dateNusrawPuchal: initialTx ? (initialTx.date_nusraw_puchal ? String(initialTx.date_nusraw_puchal).substring(0, 10) : (initialTx.date_nusraw_gumrg ? String(initialTx.date_nusraw_gumrg).substring(0, 10) : '{{ date("Y-m-d") }}')) : '{{ date("Y-m-d") }}',
 
         // Chassis status & Active Booklet Duplicate Check (Req 1)
         isCheckingChassis: false,
@@ -1898,6 +1933,20 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             if (record.lost_letter_number) this.lostLetterNumber = record.lost_letter_number;
             if (record.lost_letter_date) this.lostLetterDate = String(record.lost_letter_date).substring(0, 10);
             if (record.lost_directorate_name) this.lostDirectorateName = record.lost_directorate_name;
+
+            // Auto-populate customs letter for cancellation if available
+            if (record.no_nusraw_gumrg) {
+                this.noNusrawPuchal = record.no_nusraw_gumrg;
+            } else if (record.no_nusraw_puchal) {
+                this.noNusrawPuchal = record.no_nusraw_puchal;
+            }
+            if (record.date_nusraw_gumrg) {
+                this.dateNusrawPuchal = String(record.date_nusraw_gumrg).substring(0, 10);
+            } else if (record.date_nusraw_puchal) {
+                this.dateNusrawPuchal = String(record.date_nusraw_puchal).substring(0, 10);
+            } else if (record.transaction_date) {
+                this.dateNusrawPuchal = String(record.transaction_date).substring(0, 10);
+            }
 
             this.calculateFees();
         },

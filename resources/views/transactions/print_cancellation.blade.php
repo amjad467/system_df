@@ -103,15 +103,24 @@
             </div>
         </div>
 
+        @php
+            $customsNo = $transaction->getResolvedCustomsLetterNumber() ?: ($transaction->no_nusraw_puchal ?: '..............................');
+            $customsDate = $transaction->getResolvedCustomsLetterDate() 
+                ? $transaction->getResolvedCustomsLetterDate()->format('d-m-Y') 
+                : ($transaction->date_nusraw_puchal 
+                    ? $transaction->date_nusraw_puchal->format('d-m-Y') 
+                    : ($transaction->transaction_date ? $transaction->transaction_date->format('d-m-Y') : date('d-m-Y')));
+        @endphp
+
         <!-- Date & Number Bar -->
         <div class="border-b-2 border-dashed border-black pb-2 flex items-center justify-between text-sm font-bold">
             <div>
                 <span>ژمارە: </span>
-                <span class="font-mono text-base">{{ $transaction->no_nusraw_puchal ?: '..............................' }}</span>
+                <span class="font-mono text-base">{{ $customsNo }}</span>
             </div>
             <div>
                 <span>ڕێکەوتی: </span>
-                <span dir="ltr" class="inline-block font-mono text-base font-bold">{{ $transaction->date_nusraw_puchal ? $transaction->date_nusraw_puchal->format('d-m-Y') : ($transaction->transaction_date ? $transaction->transaction_date->format('d-m-Y') : date('d-m-Y')) }}</span>
+                <span dir="ltr" class="inline-block font-mono text-base font-bold">{{ $customsDate }}</span>
             </div>
         </div>
 
@@ -133,10 +142,6 @@
 
         <!-- Official Letter Body -->
         <div class="text-base font-bold leading-relaxed px-2 py-3 text-justify">
-            @php
-                $customsNo = $transaction->no_nusraw_puchal ?? '2020000';
-                $customsDate = $transaction->date_nusraw_puchal ? $transaction->date_nusraw_puchal->format('d-m-Y') : ($transaction->transaction_date ? $transaction->transaction_date->format('d-m-Y') : date('d-m-Y'));
-            @endphp
             <p>
                 دوابەدوای نووسراومان ژمارە ( <span class="font-mono text-lg font-black">{{ $customsNo }}</span> ) لە ( <span class="font-mono text-lg font-black">{{ $customsDate }}</span> ) نیشانەی ڕەفتارنەکردن هەڵبگرن لەسەر ئۆتۆمبێلی کە خەسڵەتەکانی لەخوارەوە دیاریکراوە و خاوەنەکەی سەردانی بەڕێوەبەرایەتی کردووە دەفتەری ڕێگەپێدانی پووچەڵکردۆتەوە@if($transaction->is_booklet_lost || !empty($transaction->lost_letter_number)) (کە دەفتەرەکەی ونبووە بەپێی نووسراوی {{ $transaction->lost_directorate_name ?: 'بەڕێوەبەرایەتی ونبووەکان' }} ژمارە {{ $transaction->lost_letter_number }} لە ڕێکەوتی {{ $transaction->lost_letter_date ? $transaction->lost_letter_date->format('d-m-Y') : '' }})@endif، ڕێگەی پێبدات لەهەر کارێکی یاسایی ئەنجامی بدات بۆ ئۆتۆمبێلەکەی بۆ ئاگاداریتان .
             </p>

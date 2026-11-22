@@ -846,6 +846,26 @@ class TransactionController extends Controller
         return redirect()->back()->with('success', "ژمارەی نووسراوی هاتوچۆ [{$transaction->no_nusraw_mrur}] بۆ مامەڵەی [{$transaction->barcode}] بە سەرکەوتوویی تۆمارکرا.");
     }
 
+    public function updateCustomsLetter(Request $request, Transaction $transaction)
+    {
+        $validated = $request->validate([
+            'no_nusraw_puchal' => 'required|string|max:100',
+            'date_nusraw_puchal' => 'required|date',
+        ], [
+            'no_nusraw_puchal.required' => 'تکایە ژمارەی نووسراوی گومرگ بنووسە.',
+            'date_nusraw_puchal.required' => 'تکایە بەرواری نووسراوی گومرگ دیاری بکە.',
+        ]);
+
+        $transaction->update([
+            'no_nusraw_puchal' => trim($validated['no_nusraw_puchal']),
+            'date_nusraw_puchal' => $validated['date_nusraw_puchal'],
+        ]);
+
+        AuditLogger::log('نوێکردنەوەی نووسراوی گومرگ', Transaction::class, $transaction->id, "ژمارەی نووسراو: {$transaction->no_nusraw_puchal}");
+
+        return redirect()->back()->with('success', 'زانیاری نووسراوی گومرگ بە سەرکەوتوویی تۆمارکرا / نوێکرایەوە.');
+    }
+
     /**
      * Report of citizens who own multiple vehicles with registered booklets (Excluding Cancelled).
      */
@@ -1531,6 +1551,18 @@ class TransactionController extends Controller
             ]);
 
             $tx = Transaction::create($transactionData);
+
+            // Auto-resolve customs letter from previous booklet for Cancellation if not explicitly provided
+            if ($typeId === 5 && empty($tx->no_nusraw_puchal)) {
+                $resolvedNo = $tx->getResolvedCustomsLetterNumber();
+                $resolvedDate = $tx->getResolvedCustomsLetterDate();
+                if ($resolvedNo) {
+                    $tx->update([
+                        'no_nusraw_puchal' => $resolvedNo,
+                        'date_nusraw_puchal' => $resolvedDate ?? now()->toDateString(),
+                    ]);
+                }
+            }
 
             AuditLogger::log('دروستکردنی مامەڵەی نوێ', Transaction::class, $tx->id, "بارکۆد: {$barcode} - ناوی هاووڵاتی: {$tx->visitor_name}", null, $transactionData);
             NotificationService::send(null, 'inspector', 'مامەڵەی نوێ دروستکرا', "مامەڵەیەکی نوێ بە بارکۆدی {$barcode} تومارکرا و ئامادەیە بۆ کەشف.", route('transactions.show', $tx->id));

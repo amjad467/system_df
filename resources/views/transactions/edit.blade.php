@@ -285,17 +285,17 @@
             @endif
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-rose-200 mb-1.5">ژمارەی نووسراوی گومرگ @if(auth()->user()?->role === 'data_entry')(ناچالاککراوە لە داتائەنتەری)@endif</label>
-                    <input type="text" name="no_nusraw_puchal" value="{{ old('no_nusraw_puchal', $transaction->no_nusraw_puchal) }}" 
-                           @if(auth()->user()?->role === 'data_entry') disabled @endif
+                    <label class="block text-xs font-semibold text-rose-200 mb-1.5">ژمارەی نووسراوی گومرگ (کاتی دەرهێنانی دەفتەر)</label>
+                    <input type="text" name="no_nusraw_puchal" 
+                           value="{{ old('no_nusraw_puchal', $transaction->no_nusraw_puchal ?: $transaction->getResolvedCustomsLetterNumber()) }}" 
                            placeholder="ژمارەی فەرمی نووسراوی گومرگ" dir="ltr"
-                           class="w-full bg-slate-900 border border-rose-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-rose-500 focus:outline-none @if(auth()->user()?->role === 'data_entry') cursor-not-allowed opacity-70 @endif">
+                           class="w-full bg-slate-900 border border-rose-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-rose-500 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-rose-200 mb-1.5">بەرواری نووسراوی گومرگ @if(auth()->user()?->role === 'data_entry')(ناچالاککراوە لە داتائەنتەری)@endif</label>
-                    <input type="date" name="date_nusraw_puchal" value="{{ old('date_nusraw_puchal', $transaction->date_nusraw_puchal?->format('Y-m-d')) }}"
-                           @if(auth()->user()?->role === 'data_entry') disabled @endif
-                           class="w-full bg-slate-900 border border-rose-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-rose-500 focus:outline-none @if(auth()->user()?->role === 'data_entry') cursor-not-allowed opacity-70 @endif">
+                    <label class="block text-xs font-semibold text-rose-200 mb-1.5">بەرواری نووسراوی گومرگ</label>
+                    <input type="date" name="date_nusraw_puchal" 
+                           value="{{ old('date_nusraw_puchal', $transaction->date_nusraw_puchal?->format('Y-m-d') ?: ($transaction->getResolvedCustomsLetterDate()?->format('Y-m-d') ?: '')) }}"
+                           class="w-full bg-slate-900 border border-rose-700/60 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-rose-500 focus:outline-none">
                 </div>
             </div>
         </div>

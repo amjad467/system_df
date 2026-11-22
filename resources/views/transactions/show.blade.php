@@ -113,6 +113,7 @@
     showRevertModal: false,
     showAuditModal: false,
     showSubmitModal: false,
+    showCustomsLetterModal: false,
     showArchiveInspectionPromptModal: {{ session('archive_inspection_prompt_letter') ? 'true' : 'false' }},
     showAuditPromptModal: {{ session('audit_completed_prompt_letter') ? 'true' : 'false' }},
     showPaymentPromptModal: {{ session('payment_completed_prompt_receipt') ? 'true' : 'false' }},
@@ -1540,16 +1541,32 @@
                 @endif
 
                 @if($transaction->isCancellation() || $transaction->no_nusraw_puchal)
-                    <div class="flex justify-between py-1 border-b border-rose-500/40 bg-rose-950/30 px-2 rounded">
-                        <span class="text-rose-300 font-bold">ژمارەی نووسراوی گومرگ:</span>
-                        <span class="font-mono text-white font-black">{{ $transaction->no_nusraw_puchal ?? '-' }}</span>
-                    </div>
-                    @if($transaction->date_nusraw_puchal)
-                        <div class="flex justify-between py-1 border-b border-rose-500/40 bg-rose-950/30 px-2 rounded">
-                            <span class="text-rose-300 font-bold">بەرواری نووسراوی گومرگ:</span>
-                            <span class="font-mono text-white font-bold">{{ $transaction->date_nusraw_puchal->format('Y-m-d') }}</span>
+                    @php
+                        $resolvedCustomsNo = $transaction->getResolvedCustomsLetterNumber();
+                        $resolvedCustomsDate = $transaction->getResolvedCustomsLetterDate();
+                    @endphp
+                    <div class="p-2.5 rounded-xl border border-rose-500/40 bg-rose-950/30 space-y-2 my-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-rose-300 font-black text-xs flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-contract text-rose-400"></i>
+                                <span>نووسراوی گومرگ (کاتی دەرهێنانی دەفتەر):</span>
+                            </span>
+                            <button type="button" @click="showCustomsLetterModal = true" class="text-[11px] font-bold text-rose-300 hover:text-white bg-rose-600/40 hover:bg-rose-600 px-2 py-0.5 rounded-lg border border-rose-500/40 transition flex items-center gap-1">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                                <span>{{ $resolvedCustomsNo ? 'دەستکاری نووسراو' : 'تۆمارکردنی نووسراو' }}</span>
+                            </button>
                         </div>
-                    @endif
+                        <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+                            <div class="flex justify-between py-1 px-2 rounded bg-black/30 border border-rose-500/20">
+                                <span class="text-slate-400">ژمارەی نووسراو:</span>
+                                <span class="font-mono text-white font-black">{{ $resolvedCustomsNo ?? 'تۆمار نەکراوە' }}</span>
+                            </div>
+                            <div class="flex justify-between py-1 px-2 rounded bg-black/30 border border-rose-500/20">
+                                <span class="text-slate-400">بەرواری نووسراو:</span>
+                                <span class="font-mono text-white font-bold">{{ $resolvedCustomsDate ? $resolvedCustomsDate->format('Y-m-d') : '-' }}</span>
+                            </div>
+                        </div>
+                    </div>
                 @endif
 
                 @if($transaction->is_booklet_lost || $transaction->lost_letter_number)
@@ -2054,6 +2071,49 @@
                     داخستن
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Update / Enter Customs Letter for Cancellation (تۆمارکردن یان دەستکاریکردنی نووسراوی گومرگ) -->
+    <div x-show="showCustomsLetterModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-rose-500/50 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl" @click.away="showCustomsLetterModal = false">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-file-contract text-rose-400"></i>
+                    <span>تۆمارکردن / دەستکاریکردنی نووسراوی گومرگ</span>
+                </h3>
+                <button type="button" @click="showCustomsLetterModal = false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form action="{{ route('transactions.update_customs_letter', $transaction->id) }}" method="POST" class="space-y-4">
+                @csrf
+                <div class="p-3 bg-rose-950/40 border border-rose-500/30 rounded-xl text-rose-200 text-xs leading-relaxed">
+                    ئەم ژمارە و بەروارە لەسەر نووسراوی فەرمی پووچەڵکردنەوە دادەنرێت لە ڕستەی (دوابەدوای نووسراومان ژمارە ... لە ...).
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-200 mb-1">ژمارەی نووسراوی گومرگ *</label>
+                    <input type="text" name="no_nusraw_puchal" required
+                           value="{{ old('no_nusraw_puchal', $transaction->no_nusraw_puchal ?: $transaction->getResolvedCustomsLetterNumber()) }}"
+                           placeholder="نموونە: 29357" dir="ltr"
+                           class="w-full bg-slate-950 border border-slate-700 focus:border-rose-400 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-100 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-200 mb-1">بەرواری نووسراوی گومرگ *</label>
+                    <input type="date" name="date_nusraw_puchal" required
+                           value="{{ old('date_nusraw_puchal', $transaction->date_nusraw_puchal?->format('Y-m-d') ?: ($transaction->getResolvedCustomsLetterDate()?->format('Y-m-d') ?: date('Y-m-d'))) }}"
+                           class="w-full bg-slate-950 border border-slate-700 focus:border-rose-400 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-100 focus:outline-none">
+                </div>
+
+                <div class="flex items-center justify-end space-x-2 space-x-reverse pt-2 border-t border-slate-800">
+                    <button type="button" @click="showCustomsLetterModal = false" class="px-4 py-2 bg-slate-800 text-slate-400 hover:text-slate-200 text-xs font-bold rounded-xl transition">داخستن</button>
+                    <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-save"></i>
+                        <span>پاشەکەوتکردن</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -2564,14 +2624,14 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-200 mb-1">ژمارەی نووسراوی گومرگ *</label>
                                 <input type="text" name="no_nusraw_puchal" required
-                                       value="{{ old('no_nusraw_puchal', $transaction->no_nusraw_puchal) }}"
+                                       value="{{ old('no_nusraw_puchal', $transaction->no_nusraw_puchal ?: $transaction->getResolvedCustomsLetterNumber()) }}"
                                        placeholder="ژمارەی فەرمی نووسراو" dir="ltr"
                                        class="w-full bg-slate-950 border border-rose-500/60 focus:border-rose-400 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-200 mb-1">بەرواری نووسراوی گومرگ *</label>
                                 <input type="date" name="date_nusraw_puchal" required
-                                       value="{{ old('date_nusraw_puchal', $transaction->date_nusraw_puchal?->format('Y-m-d') ?? date('Y-m-d')) }}"
+                                       value="{{ old('date_nusraw_puchal', $transaction->date_nusraw_puchal?->format('Y-m-d') ?: ($transaction->getResolvedCustomsLetterDate()?->format('Y-m-d') ?: date('Y-m-d'))) }}"
                                        class="w-full bg-slate-950 border border-rose-500/60 focus:border-rose-400 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30">
                             </div>
                         </div>
