@@ -300,6 +300,34 @@
             </div>
         </div>
 
+        <!-- 2.2 Customs Letter & Archive Box Section (For Booklet Transactions: Issue, Renewal, etc.) -->
+        <div x-show="!isCancellation() && isFullBookletForm()" class="bg-indigo-950/30 border border-indigo-500/40 rounded-2xl p-6 shadow-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-indigo-500/30 pb-2">
+                <h3 class="text-base font-bold text-indigo-400 flex items-center">
+                    <i class="fa-solid fa-file-contract ml-2"></i> زانیاری نووسراوی گومرگ و بۆکسی ئەرشیف
+                </h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">ژمارەی بۆکسی ئەرشیف (Box File)</label>
+                    <input type="number" name="NO_boxfile" value="{{ old('NO_boxfile', $transaction->NO_boxfile) }}" min="1" dir="ltr"
+                           placeholder="نموونە: 125"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">ژمارەی نووسراوی گومرگ</label>
+                    <input type="text" name="no_nusraw_gumrg" value="{{ old('no_nusraw_gumrg', $transaction->no_nusraw_gumrg) }}" dir="ltr"
+                           placeholder="نموونە: 29357"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">بەرواری نووسراوی گومرگ</label>
+                    <input type="date" name="date_nusraw_gumrg" value="{{ old('date_nusraw_gumrg', $transaction->date_nusraw_gumrg?->format('Y-m-d')) }}"
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-indigo-500 focus:outline-none">
+                </div>
+            </div>
+        </div>
+
         <!-- 3. Vehicle Specifications -->
         <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl space-y-4">
             <h3 class="text-base font-bold text-sky-400 border-b border-slate-700 pb-2 flex items-center">

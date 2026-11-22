@@ -283,7 +283,7 @@ class Transaction extends Model
     }
 
     /**
-     * Get resolved customs letter number (from own cancellation record or previous booklet issue).
+     * Get resolved customs letter number (from own cancellation record, own booklet record, or previous booklet issue).
      */
     public function getResolvedCustomsLetterNumber(): ?string
     {
@@ -291,16 +291,25 @@ class Transaction extends Model
             return $this->no_nusraw_puchal;
         }
 
+        if (!empty($this->no_nusraw_gumrg)) {
+            return $this->no_nusraw_gumrg;
+        }
+
         $prev = $this->getPreviousBookletTransaction();
-        if ($prev && !empty($prev->no_nusraw_gumrg)) {
-            return $prev->no_nusraw_gumrg;
+        if ($prev) {
+            if (!empty($prev->no_nusraw_gumrg)) {
+                return $prev->no_nusraw_gumrg;
+            }
+            if (!empty($prev->no_nusraw_puchal)) {
+                return $prev->no_nusraw_puchal;
+            }
         }
 
         return null;
     }
 
     /**
-     * Get resolved customs letter date (from own cancellation record or previous booklet issue).
+     * Get resolved customs letter date (from own cancellation record, own booklet record, or previous booklet issue).
      */
     public function getResolvedCustomsLetterDate(): ?\Carbon\Carbon
     {
@@ -308,9 +317,13 @@ class Transaction extends Model
             return $this->date_nusraw_puchal;
         }
 
+        if ($this->date_nusraw_gumrg) {
+            return $this->date_nusraw_gumrg;
+        }
+
         $prev = $this->getPreviousBookletTransaction();
         if ($prev) {
-            return $prev->date_nusraw_gumrg ?? $prev->transaction_date;
+            return $prev->date_nusraw_gumrg ?? $prev->date_nusraw_puchal ?? $prev->transaction_date;
         }
 
         return null;

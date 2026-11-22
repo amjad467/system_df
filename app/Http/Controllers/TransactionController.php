@@ -1435,6 +1435,8 @@ class TransactionController extends Controller
             'kamukurty_eng' => 'nullable|string',
             'bary_gshty' => 'nullable|string',
             'bary_gshty_eng' => 'nullable|string',
+            'no_nusraw_gumrg' => 'nullable|string',
+            'date_nusraw_gumrg' => 'nullable|date',
             'no_nusraw_puchal' => 'nullable|string',
             'date_nusraw_puchal' => 'nullable|date',
             'NO_boxfile' => 'nullable|integer|min:0',
@@ -1756,6 +1758,8 @@ class TransactionController extends Controller
             'kamukurty_eng' => 'nullable|string',
             'bary_gshty' => 'nullable|string',
             'bary_gshty_eng' => 'nullable|string',
+            'no_nusraw_gumrg' => 'nullable|string',
+            'date_nusraw_gumrg' => 'nullable|date',
             'no_nusraw_puchal' => 'nullable|string',
             'date_nusraw_puchal' => 'nullable|date',
             'NO_boxfile' => 'nullable|integer|min:0',
@@ -1807,6 +1811,12 @@ class TransactionController extends Controller
         }
         if (!$request->has('date_nusraw_puchal')) {
             unset($validated['date_nusraw_puchal']);
+        }
+        if (!$request->has('no_nusraw_gumrg')) {
+            unset($validated['no_nusraw_gumrg']);
+        }
+        if (!$request->has('date_nusraw_gumrg')) {
+            unset($validated['date_nusraw_gumrg']);
         }
         if (!$request->has('NO_boxfile')) {
             unset($validated['NO_boxfile']);
@@ -2434,15 +2444,21 @@ class TransactionController extends Controller
             'submitted_at' => now(),
         ];
 
-        // 5. Box file number validation: REQUIRED for all 6 main archive types (1, 2, 3, 4, 5, 7)
+        // 5. Box file number and Customs letter validation: REQUIRED for all 5 main archive types (1, 2, 3, 4, 7)
         if (in_array((int)$transaction->transaction_type_id, [1, 2, 3, 4, 7])) {
             $request->validate([
                 'NO_boxfile' => 'required|numeric|min:1',
+                'no_nusraw_gumrg' => 'required|string|max:100',
+                'date_nusraw_gumrg' => 'required|date',
             ], [
                 'NO_boxfile.required' => 'داخڵکردنی ژمارەی بۆکس فایلی ئەرشیف داواکراوە (ئیجبارییە)!',
                 'NO_boxfile.numeric' => 'ژمارەی بۆکس دەبێت بە ژمارە بێت.',
+                'no_nusraw_gumrg.required' => 'تکایە ژمارەی نووسراوی گومرگ بنووسە لە قۆناغی ئەرشیف.',
+                'date_nusraw_gumrg.required' => 'تکایە بەرواری نووسراوی گومرگ دیاری بکە لە قۆناغی ئەرشیف.',
             ]);
             $updateData['NO_boxfile'] = (int)$request->NO_boxfile;
+            $updateData['no_nusraw_gumrg'] = trim($request->no_nusraw_gumrg);
+            $updateData['date_nusraw_gumrg'] = $request->date_nusraw_gumrg;
         } elseif ((int)$transaction->transaction_type_id === 5) {
             // Type 5: پووچەڵکردنەوەی دەفتەر -> نووسراوی گومرگ و بەروار و بۆکسی پووچەڵ
             $request->validate([
@@ -2463,6 +2479,12 @@ class TransactionController extends Controller
             if ($request->filled('NO_boxfile')) {
                 $updateData['NO_boxfile'] = (int)$request->NO_boxfile;
             }
+            if ($request->filled('no_nusraw_gumrg')) {
+                $updateData['no_nusraw_gumrg'] = trim($request->no_nusraw_gumrg);
+            }
+            if ($request->filled('date_nusraw_gumrg')) {
+                $updateData['date_nusraw_gumrg'] = $request->date_nusraw_gumrg;
+            }
         }
 
         $transaction->update($updateData);
@@ -2475,6 +2497,8 @@ class TransactionController extends Controller
                 'submitted_by' => auth()->user()?->name ?? 'کارمەند',
                 'submitted_at' => now(),
                 'NO_boxfile' => $updateData['NO_boxfile'] ?? null,
+                'no_nusraw_gumrg' => $updateData['no_nusraw_gumrg'] ?? null,
+                'date_nusraw_gumrg' => $updateData['date_nusraw_gumrg'] ?? null,
             ]);
             AuditLogger::log('ئەرشیفکردنی بەڵێننامەی بەستراو', Transaction::class, $linked->id, "بەڵێننامەی بەستراو ئەرشیفکرا لەگەڵ دەرهێنانی دەفتەر");
         }

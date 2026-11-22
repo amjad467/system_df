@@ -1587,6 +1587,21 @@
                     </div>
                 @endif
 
+                <!-- نووسراوی گومرگ (دەرهێنان) -->
+                @if($transaction->no_nusraw_gumrg || in_array((int)$transaction->transaction_type_id, [1, 2, 3, 4, 7]))
+                    <div class="flex justify-between items-center py-1.5 border-b border-slate-700/40 bg-slate-900/40 px-2 rounded">
+                        <span class="text-slate-300 font-bold flex items-center">
+                            <i class="fa-solid fa-file-contract text-emerald-400 ml-1.5"></i> نووسراوی گومرگ (دەرهێنان):
+                        </span>
+                        <div class="font-mono text-xs flex items-center gap-2">
+                            <span class="text-white font-black">{{ $transaction->no_nusraw_gumrg ?? 'دیارینەکراوە' }}</span>
+                            @if($transaction->date_nusraw_gumrg)
+                                <span class="text-slate-400">({{ $transaction->date_nusraw_gumrg->format('Y-m-d') }})</span>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
                 <!-- ژمارەی بۆکسی دەرهێنان و بۆکسی پووچەڵ -->
                 <div class="flex justify-between items-center py-1.5 border-b border-slate-700/40 bg-slate-900/40 px-2 rounded">
                     <span class="text-slate-300 font-bold flex items-center">
@@ -2597,11 +2612,11 @@
                 @csrf
 
                 @if(in_array((int)$transaction->transaction_type_id, [1, 2, 3, 4, 7]))
-                    <!-- Types 1, 2, 3, 4, 7: Box file number is MANDATORY (خاڵی ٥: داخڵکردنی ژمارەی بۆکس داواکراوە) -->
+                    <!-- Types 1, 2, 3, 4, 7: Box file number and Customs Letter are MANDATORY -->
                     <div class="p-4 bg-indigo-950/40 border border-indigo-500/40 rounded-xl space-y-3">
                         <div class="flex items-center gap-2 text-indigo-300 text-xs font-bold">
-                            <i class="fa-solid fa-box text-base"></i>
-                            <span>تایبەت بە [{{ $typeName }}]: داخڵکردنی ژمارەی بۆکس فایلی ئەرشیف داواکراوە (ئیجبارییە)</span>
+                            <i class="fa-solid fa-box-archive text-base"></i>
+                            <span>تایبەت بە [{{ $typeName }}]: داخڵکردنی ژمارەی بۆکس و نووسراوی گومرگ (ئیجبارییە)</span>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-200 mb-1.5">
@@ -2611,6 +2626,21 @@
                                    value="{{ old('NO_boxfile', $transaction->NO_boxfile) }}"
                                    placeholder="نموونە: 125" dir="ltr"
                                    class="w-full bg-slate-950 border border-indigo-500/60 focus:border-indigo-400 rounded-xl px-3.5 py-2.5 text-sm font-mono font-bold text-slate-100 text-center tracking-wider focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-indigo-500/30">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-200 mb-1">ژمارەی نووسراوی گومرگ *</label>
+                                <input type="text" name="no_nusraw_gumrg" required
+                                       value="{{ old('no_nusraw_gumrg', $transaction->no_nusraw_gumrg) }}"
+                                       placeholder="نموونە: 29357" dir="ltr"
+                                       class="w-full bg-slate-950 border border-indigo-500/60 focus:border-indigo-400 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-200 mb-1">بەرواری نووسراوی گومرگ *</label>
+                                <input type="date" name="date_nusraw_gumrg" required
+                                       value="{{ old('date_nusraw_gumrg', $transaction->date_nusraw_gumrg?->format('Y-m-d') ?? ($transaction->transaction_date ? $transaction->transaction_date->format('Y-m-d') : date('Y-m-d'))) }}"
+                                       class="w-full bg-slate-950 border border-indigo-500/60 focus:border-indigo-400 rounded-xl px-3 py-2 text-xs font-mono font-bold text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/30">
+                            </div>
                         </div>
                     </div>
                 @elseif((int)$transaction->transaction_type_id === 5)
