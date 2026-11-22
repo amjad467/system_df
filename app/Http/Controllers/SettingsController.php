@@ -91,8 +91,10 @@ class SettingsController extends Controller
         $directorates = \App\Models\TrafficDirectorate::all();
         $directors = \App\Models\Director::all();
         $passportIssuePlaces = \App\Models\PassportIssuePlace::orderBy('name')->get();
+        $carMakes = \App\Models\CarMake::orderBy('name_kurdish')->get();
+        $carColors = \App\Models\CarColor::orderBy('id')->get();
 
-        return view('settings.lookups', compact('transactionTypes', 'directorates', 'directors', 'passportIssuePlaces'));
+        return view('settings.lookups', compact('transactionTypes', 'directorates', 'directors', 'passportIssuePlaces', 'carMakes', 'carColors'));
     }
 
     /**

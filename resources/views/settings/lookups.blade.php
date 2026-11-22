@@ -53,6 +53,20 @@
             <i class="fa-solid fa-map-location-dot"></i>
             <span>شوێنەکانی دەرچوونی پاسپۆرت ({{ $passportIssuePlaces->count() }})</span>
         </button>
+
+        <button type="button" @click="activeTab = 'carMakes'"
+                :class="activeTab === 'carMakes' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'bg-slate-800/80 text-slate-400 hover:text-white'"
+                class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2">
+            <i class="fa-solid fa-car"></i>
+            <span>مارکەی ئۆتۆمبێل ({{ $carMakes->count() }})</span>
+        </button>
+
+        <button type="button" @click="activeTab = 'carColors'"
+                :class="activeTab === 'carColors' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'bg-slate-800/80 text-slate-400 hover:text-white'"
+                class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2">
+            <i class="fa-solid fa-palette"></i>
+            <span>ڕەنگەکانی ئۆتۆمبێل ({{ $carColors->count() }})</span>
+        </button>
     </div>
 
     <!-- Tab 1: Transaction Types -->
@@ -360,6 +374,156 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 5: Car Makes (مارکەکانی ئۆتۆمبێل) -->
+    <div x-show="activeTab === 'carMakes'" x-cloak class="space-y-6" x-data="{ makeSearch: '' }">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Add Form -->
+            <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl">
+                <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle text-emerald-400"></i> زیادکردنی مارکەی نوێ
+                </h3>
+                <form action="{{ route('lookup.car_make') }}" method="POST" class="space-y-3">
+                    @csrf
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">ناوی کوردی مارکە *</label>
+                        <input type="text" name="name_kurdish" required placeholder="بۆ نموونە: چێری"
+                               class="w-full bg-slate-900 text-sm text-slate-100 rounded-xl border border-slate-700 px-3 py-2 focus:outline-none focus:border-indigo-500 font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">ناوی ئینگلیزی مارکە *</label>
+                        <input type="text" name="name_english" required placeholder="CHERY" dir="ltr"
+                               class="w-full bg-slate-900 text-sm text-slate-100 rounded-xl border border-slate-700 px-3 py-2 focus:outline-none focus:border-indigo-500 uppercase font-mono font-bold">
+                    </div>
+                    <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-lg transition">
+                        تۆمارکردن
+                    </button>
+                </form>
+            </div>
+
+            <!-- List Table with Live Search -->
+            <div class="lg:col-span-2 bg-slate-800/90 border border-slate-700/80 rounded-2xl overflow-hidden shadow-xl flex flex-col">
+                <div class="p-4 border-b border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <span class="font-bold text-sm text-white flex items-center gap-2">
+                        <i class="fa-solid fa-car text-sky-400"></i>
+                        <span>لیستی مارکەکانی ئۆتۆمبێل</span>
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <input type="text" x-model="makeSearch" placeholder="گەڕان بەپێی ناوی کوردی یان ئینگلیزی..."
+                               class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 w-64">
+                        <span class="text-xs text-slate-400 font-mono">{{ $carMakes->count() }} مارکە</span>
+                    </div>
+                </div>
+                <div class="overflow-y-auto max-h-[550px]">
+                    <table class="w-full text-right text-xs">
+                        <thead class="bg-slate-900/80 text-slate-400 sticky top-0 z-10">
+                            <tr>
+                                <th class="p-3">#</th>
+                                <th class="p-3">ناوی مارکە (کوردی)</th>
+                                <th class="p-3">ناوی مارکە (ئینگلیزی)</th>
+                                <th class="p-3 text-left">کردار (سڕینەوە)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700/60">
+                            @foreach($carMakes as $make)
+                                <tr class="hover:bg-slate-700/30 text-slate-200 transition"
+                                    x-show="!makeSearch || '{{ strtolower($make->name_kurdish . ' ' . $make->name_english) }}'.includes(makeSearch.toLowerCase().trim())">
+                                    <td class="p-3 font-mono text-slate-400">{{ $loop->iteration }}</td>
+                                    <td class="p-3 font-bold text-white text-sm">{{ $make->name_kurdish }}</td>
+                                    <td class="p-3 font-mono text-sky-400 text-xs">{{ $make->name_english }}</td>
+                                    <td class="p-3 text-left">
+                                        <form action="{{ route('lookup.car_make.destroy', $make->id) }}" method="POST" class="inline" onsubmit="return confirm('ئایا دڵنیایت لە سڕینەوەی مارکەی [{{ $make->name_kurdish }}]؟')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="p-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl text-xs transition flex items-center gap-1" title="سڕینەوە">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                                <span class="hidden sm:inline">سڕینەوە</span>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 6: Car Colors (ڕەنگەکانی ئۆتۆمبێل) -->
+    <div x-show="activeTab === 'carColors'" x-cloak class="space-y-6" x-data="{ colorSearch: '' }">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Add Form -->
+            <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-5 shadow-xl">
+                <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle text-amber-400"></i> زیادکردنی ڕەنگی نوێ
+                </h3>
+                <form action="{{ route('lookup.car_color') }}" method="POST" class="space-y-3">
+                    @csrf
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">ناوی کوردی ڕەنگ *</label>
+                        <input type="text" name="name_kurdish" required placeholder="بۆ نموونە: شینی نەوتی"
+                               class="w-full bg-slate-900 text-sm text-slate-100 rounded-xl border border-slate-700 px-3 py-2 focus:outline-none focus:border-indigo-500 font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">ناوی ئینگلیزی ڕەنگ (ئارەزوومەندانە)</label>
+                        <input type="text" name="name_english" placeholder="DARK BLUE" dir="ltr"
+                               class="w-full bg-slate-900 text-sm text-slate-100 rounded-xl border border-slate-700 px-3 py-2 focus:outline-none focus:border-indigo-500 uppercase font-mono font-bold">
+                    </div>
+                    <button type="submit" class="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg transition">
+                        تۆمارکردن
+                    </button>
+                </form>
+            </div>
+
+            <!-- List Table with Live Search -->
+            <div class="lg:col-span-2 bg-slate-800/90 border border-slate-700/80 rounded-2xl overflow-hidden shadow-xl flex flex-col">
+                <div class="p-4 border-b border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <span class="font-bold text-sm text-white flex items-center gap-2">
+                        <i class="fa-solid fa-palette text-amber-400"></i>
+                        <span>لیستی ڕەنگەکانی ئۆتۆمبێل</span>
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <input type="text" x-model="colorSearch" placeholder="گەڕان لە ڕەنگەکان..."
+                               class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 w-64">
+                        <span class="text-xs text-slate-400 font-mono">{{ $carColors->count() }} ڕەنگ</span>
+                    </div>
+                </div>
+                <div class="overflow-y-auto max-h-[550px]">
+                    <table class="w-full text-right text-xs">
+                        <thead class="bg-slate-900/80 text-slate-400 sticky top-0 z-10">
+                            <tr>
+                                <th class="p-3">#</th>
+                                <th class="p-3">ناوی ڕەنگ (کوردی)</th>
+                                <th class="p-3">ناوی ڕەنگ (ئینگلیزی)</th>
+                                <th class="p-3 text-left">کردار (سڕینەوە)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-700/60">
+                            @foreach($carColors as $color)
+                                <tr class="hover:bg-slate-700/30 text-slate-200 transition"
+                                    x-show="!colorSearch || '{{ strtolower($color->name_kurdish . ' ' . $color->name_english) }}'.includes(colorSearch.toLowerCase().trim())">
+                                    <td class="p-3 font-mono text-slate-400">{{ $loop->iteration }}</td>
+                                    <td class="p-3 font-bold text-white text-sm">{{ $color->name_kurdish }}</td>
+                                    <td class="p-3 font-mono text-amber-400 text-xs">{{ $color->name_english }}</td>
+                                    <td class="p-3 text-left">
+                                        <form action="{{ route('lookup.car_color.destroy', $color->id) }}" method="POST" class="inline" onsubmit="return confirm('ئایا دڵنیایت لە سڕینەوەی ڕەنگی [{{ $color->name_kurdish }}]؟')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="p-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl text-xs transition flex items-center gap-1" title="سڕینەوە">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                                <span class="hidden sm:inline">سڕینەوە</span>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

@@ -387,5 +387,45 @@ class LookupController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function destroyCarMake(Request $request, CarMake $carMake)
+    {
+        $name = $carMake->name_kurdish;
+        $id = $carMake->id;
+
+        try {
+            \App\Models\Transaction::where('car_make_id', $id)->update(['car_make_id' => null]);
+        } catch (\Throwable $e) {}
+
+        $carMake->delete();
+        Cache::forget('all_car_makes');
+        AuditLogger::log('سڕینەوەی مارکەی ئۆتۆمبێل', CarMake::class, $id, $name);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => "مارکەی [{$name}] بە سەرکەوتوویی سڕایەوە."]);
+        }
+
+        return redirect()->back()->with('success', "مارکەی [{$name}] بە سەرکەوتوویی سڕایەوە.");
+    }
+
+    public function destroyCarColor(Request $request, CarColor $carColor)
+    {
+        $name = $carColor->name_kurdish;
+        $id = $carColor->id;
+
+        try {
+            \App\Models\Transaction::where('car_color_id', $id)->update(['car_color_id' => null]);
+        } catch (\Throwable $e) {}
+
+        $carColor->delete();
+        Cache::forget('all_car_colors');
+        AuditLogger::log('سڕینەوەی ڕەنگی ئۆتۆمبێل', CarColor::class, $id, $name);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => "ڕەنگی [{$name}] بە سەرکەوتوویی سڕایەوە."]);
+        }
+
+        return redirect()->back()->with('success', "ڕەنگی [{$name}] بە سەرکەوتوویی سڕایەوە.");
+    }
 }
 

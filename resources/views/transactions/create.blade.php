@@ -934,14 +934,22 @@
                        placeholder="بگەڕێ لە مارکەکانی پێشوو (تۆیۆتا، نیسان، BMW...)" 
                        class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold focus:border-sky-500">
                 
-                <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pt-1">
+                <div class="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto pt-1">
                     <template x-for="m in modalFilteredMakes" :key="m.id">
-                        <button type="button" 
-                                @click="selectCarMake(m); showCarMakeModal = false;" 
-                                class="text-[11px] px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-sky-50 dark:hover:bg-sky-950/50 hover:border-sky-400 text-slate-800 dark:text-slate-200 flex items-center gap-1.5 transition cursor-pointer">
-                            <span class="font-bold" x-text="m.name_kurdish"></span>
-                            <span class="text-[10px] text-slate-400 font-mono" x-text="m.name_english"></span>
-                        </button>
+                        <div class="inline-flex items-center border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-lg overflow-hidden group hover:border-sky-400 transition">
+                            <button type="button" 
+                                    @click="selectCarMake(m); showCarMakeModal = false;" 
+                                    class="text-[11px] px-2.5 py-1 text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-sky-950/50 flex items-center gap-1.5 transition cursor-pointer">
+                                <span class="font-bold" x-text="m.name_kurdish"></span>
+                                <span class="text-[10px] text-slate-400 font-mono" x-text="m.name_english"></span>
+                            </button>
+                            <button type="button" 
+                                    @click.stop="deleteCarMake(m)" 
+                                    title="سڕینەوەی ئەم مارکەیە"
+                                    class="px-1.5 py-1 text-slate-300 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-r border-slate-200 dark:border-slate-800 transition">
+                                <i class="fa-solid fa-trash-can text-[10px]"></i>
+                            </button>
+                        </div>
                     </template>
                 </div>
             </div>
@@ -968,18 +976,60 @@
         </div>
     </div>
 
-    <!-- INLINE MODAL: Quick Add Car Color (Req 2A) -->
+    <!-- INLINE MODAL: Quick Add & Manage Car Color (Req 2A) -->
     <div x-show="showCarColorModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="modal-interactive bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+        <div class="modal-interactive bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl max-w-lg w-full p-5 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                     <i class="fa-solid fa-palette text-amber-500"></i>
-                    <span>زیادکردنی ڕەنگی نوێ</span>
+                    <span>بەڕێوەبردن و زیادکردنی ڕەنگی ئۆتۆمبێل</span>
                 </h3>
                 <button type="button" @click="showCarColorModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
-            <div class="space-y-3">
+            <!-- Existing Colors Search & List (سێرچ و سڕینەوەی ڕەنگە هەبووەکان) -->
+            <div class="space-y-2 bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                <div class="flex items-center justify-between text-xs">
+                    <label class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-magnifying-glass text-amber-500"></i>
+                        <span>گەڕان لە لیستی ڕەنگە هەبووەکانی پێشوو</span>
+                    </label>
+                    <span class="text-[10px] text-slate-400 font-mono" x-text="allColors.length + ' ڕەنگ'"></span>
+                </div>
+                <input type="text" 
+                       x-model="modalColorSearch" 
+                       placeholder="بگەڕێ لە ڕەنگەکانی پێشوو (سپی، ڕەش، سوور...)" 
+                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold focus:border-amber-500">
+                
+                <div class="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto pt-1">
+                    <template x-for="c in modalFilteredColors" :key="c.id">
+                        <div class="inline-flex items-center border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-lg overflow-hidden group hover:border-amber-400 transition">
+                            <button type="button" 
+                                    @click="selectCarColor(c); showCarColorModal = false;" 
+                                    class="text-[11px] px-2.5 py-1 text-slate-800 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/50 flex items-center gap-1.5 transition cursor-pointer">
+                                <span class="font-bold" x-text="c.name_kurdish"></span>
+                                <span class="text-[10px] text-slate-400 font-mono" x-text="c.name_english"></span>
+                            </button>
+                            <button type="button" 
+                                    @click.stop="deleteCarColor(c)" 
+                                    title="سڕینەوەی ئەم ڕەنگە"
+                                    class="px-1.5 py-1 text-slate-300 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-r border-slate-200 dark:border-slate-800 transition">
+                                <i class="fa-solid fa-trash-can text-[10px]"></i>
+                            </button>
+                        </div>
+                    </template>
+                    <div x-show="modalFilteredColors.length === 0" class="w-full text-center py-2 text-xs text-slate-400">
+                        هیچ ڕەنگێک نەدۆزرایەوە.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Truly New Color Form -->
+            <div class="space-y-3 pt-1 border-t border-slate-200 dark:border-slate-800">
+                <div class="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus-circle text-amber-500"></i>
+                    <span>یاخود تۆمارکردنی ڕەنگی نوێ (ئەگەر لە سەرەوە نەبوو):</span>
+                </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">ناوی کوردی ڕەنگ *</label>
                     <input type="text" x-model="newColorKurdish" placeholder="بۆ نموونە: ڕەساسی تۆخ، مەرەکەبی..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-100 font-bold">
@@ -1127,6 +1177,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
         allColors: colorsList || [],
         filteredColors: colorsList || [],
         showCarColorModal: false,
+        modalColorSearch: '',
         newColorKurdish: '',
         newColorEnglish: '',
 
@@ -1157,11 +1208,29 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
 
         get modalFilteredMakes() {
             const q = (this.modalMakeSearch || '').trim().toLowerCase();
-            if (!q) return this.allMakes.slice(0, 20);
+            if (!q) return this.allMakes.slice(0, 30);
             return this.allMakes.filter(m => 
                 (m.name_kurdish && m.name_kurdish.toLowerCase().includes(q)) ||
                 (m.name_english && m.name_english.toLowerCase().includes(q))
-            ).slice(0, 30);
+            ).slice(0, 50);
+        },
+
+        get modalFilteredColors() {
+            const normalize = (s) => (s || '').toLowerCase()
+                .replace(/[يى]/g, 'ی')
+                .replace(/ك/g, 'ک')
+                .replace(/ة/g, 'ە')
+                .replace(/ڕ/g, 'ر')
+                .replace(/ۆ/g, 'و')
+                .replace(/ڵ/g, 'ل')
+                .replace(/ێ/g, 'ی')
+                .trim();
+            const q = normalize(this.modalColorSearch);
+            if (!q) return this.allColors.slice(0, 50);
+            return this.allColors.filter(c => 
+                normalize(c.name_kurdish).includes(q) ||
+                (c.name_english && c.name_english.toLowerCase().includes(q))
+            ).slice(0, 80);
         },
 
         init() {
@@ -1351,6 +1420,57 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             this.selectedColorKurdish = color.name_kurdish;
             this.missingField = (this.missingField === 'carColorId') ? '' : this.missingField;
             this.onCarColorChange();
+        },
+
+        deleteCarMake(make) {
+            if (!confirm(`ئایا دڵنیایت لە سڕینەوەی جۆری مارکەی [${make.name_kurdish}] لە سیستەم؟`)) return;
+            fetch(`/lookup/car-make/${make.id}`, {
+                method: "DELETE",
+                headers: {
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    this.allMakes = this.allMakes.filter(m => m.id != make.id);
+                    this.filterMakes(this.selectedMakeKurdish);
+                    if (this.carMakeId == make.id) {
+                        this.carMakeId = '';
+                        this.selectedMakeKurdish = '';
+                        this.carMakeEng = '';
+                    }
+                } else {
+                    alert(data.message || 'هەڵەیەک ڕوویدا لە سڕینەوەی مارکە.');
+                }
+            })
+            .catch(() => alert('هەڵەی پەیوەندی بە سێرڤەر بۆ سڕینەوەی مارکە.'));
+        },
+
+        deleteCarColor(color) {
+            if (!confirm(`ئایا دڵنیایت لە سڕینەوەی ڕەنگی [${color.name_kurdish}] لە سیستەم؟`)) return;
+            fetch(`/lookup/car-color/${color.id}`, {
+                method: "DELETE",
+                headers: {
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    this.allColors = this.allColors.filter(c => c.id != color.id);
+                    this.filterColors(this.selectedColorKurdish);
+                    if (this.carColorId == color.id) {
+                        this.carColorId = '';
+                        this.selectedColorKurdish = '';
+                    }
+                } else {
+                    alert(data.message || 'هەڵەیەک ڕوویدا لە سڕینەوەی ڕەنگ.');
+                }
+            })
+            .catch(() => alert('هەڵەی پەیوەندی بە سێرڤەر بۆ سڕینەوەی ڕەنگ.'));
         },
 
         onChassisInput(e) {
