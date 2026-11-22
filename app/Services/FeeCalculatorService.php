@@ -128,7 +128,7 @@ class FeeCalculatorService
         $totalPay = $payYears + $stamp + $form + $fine + $inspection;
 
         return [
-            'num_years' => $numYears,
+            'num_years' => $isNoDateType ? 0 : $numYears,
             'pay_amount_years' => $payYears,
             'pay_stamp' => $stamp,
             'pay_form' => $form,

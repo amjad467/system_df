@@ -1484,6 +1484,7 @@ class TransactionController extends Controller
 
             // Clean up fields for Cancellation (5) and Inspection (8) / Pledge (6)
             if (in_array($typeId, [5, 6, 8])) {
+                $validated['num_years'] = 0;
                 $validated['visitor_name_eng'] = null;
                 $validated['second_driver_name'] = null;
                 $validated['second_driver_name_eng'] = null;
@@ -1739,6 +1740,7 @@ class TransactionController extends Controller
 
         // Clean up fields for Cancellation (5) and Inspection (8) / Pledge (6)
         if (in_array($typeId, [5, 6, 8])) {
+            $validated['num_years'] = 0;
             $validated['visitor_name_eng'] = null;
             $validated['second_driver_name'] = null;
             $validated['second_driver_name_eng'] = null;

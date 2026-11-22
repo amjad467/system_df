@@ -746,7 +746,7 @@
                     <!-- 12. ووردەکاری: جۆری مامەڵە و ساڵ -->
                     <div id="f-dtl-txtype" class="calibrated-field font-black" data-fid="f-dtl-txtype" data-name-ku="ووردەکاری: جۆری مامەڵە" style="top: 76mm; right: 66mm; font-size: 13.5px;">
                         جۆری مامەڵە: <span>{{ $transaction->transactionType->name_kurdish ?? '' }}</span>
-                        @if($transaction->requiresBooklet() || $transaction->num_years > 0)
+                        @if(!$transaction->isCancellationOrInspection() && $transaction->requiresBooklet() && $transaction->num_years > 0)
                             <span class="mr-1">(بڕی ساڵ: <strong>{{ toKurdishDigits($transaction->num_years) }} ساڵ</strong>)</span>
                         @endif
                     </div>

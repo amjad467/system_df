@@ -204,7 +204,7 @@
             @php
                 $canUserEditThis = $transaction->canBeEditedByUser(auth()->user());
             @endphp
-            @if($canUserEditThis)
+            @if($canUserEditThis && !$transaction->is_audited && !$transaction->is_paid)
                 <a href="{{ route('transactions.edit', $transaction->id) }}" 
                    class="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white text-xs font-black rounded-xl shadow-lg shadow-amber-500/25 transition-all duration-200 flex items-center gap-1.5 shrink-0 border border-amber-300/40 hover:scale-[1.03] active:scale-95 group" 
                    title="دەستکاریکردن یان گۆڕینی زانیارییەکانی ئەم مامەڵەیە">
