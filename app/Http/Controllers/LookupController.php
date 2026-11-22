@@ -230,6 +230,26 @@ class LookupController extends Controller
         return response()->json(['success' => true, 'item' => $plateType]);
     }
 
+    public function destroyPlateType(Request $request, PlateType $plateType)
+    {
+        $name = $plateType->name_kurdish;
+        $id = $plateType->id;
+
+        try {
+            \App\Models\Transaction::where('plate_type_id', $id)->update(['plate_type_id' => null]);
+        } catch (\Throwable $e) {}
+
+        $plateType->delete();
+        Cache::forget('all_plate_types');
+        AuditLogger::log('سڕینەوەی جۆری تابلۆ', PlateType::class, $id, $name);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => "جۆری تابلۆی [{$name}] بە سەرکەوتوویی سڕایەوە."]);
+        }
+
+        return redirect()->back()->with('success', "جۆری تابلۆی [{$name}] بە سەرکەوتوویی سڕایەوە.");
+    }
+
     // 4. Car Makes
     public function storeCarMake(Request $request)
     {

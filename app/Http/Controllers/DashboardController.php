@@ -122,7 +122,7 @@ class DashboardController extends Controller
                     COUNT(CASE WHEN (is_paid = true OR is_paid = 1) AND (is_booklet_completed = false OR is_booklet_completed = 0 OR is_booklet_completed IS NULL) AND cancelled_at IS NULL THEN 1 END) as pending_booklet,
                     COUNT(CASE WHEN (is_paid = true OR is_paid = 1) AND (is_booklet_completed = true OR is_booklet_completed = 1 OR transaction_type_id IN (5,6,8)) AND (is_submitted = false OR is_submitted = 0 OR is_submitted IS NULL) AND cancelled_at IS NULL THEN 1 END) as pending_submit,
                     COUNT(CASE WHEN (is_booklet_completed = true OR is_booklet_completed = 1) AND cancelled_at IS NULL THEN 1 END) as completed_booklets,
-                    COUNT(CASE WHEN (is_booklet_completed = true OR is_booklet_completed = 1) AND end_date IS NOT NULL AND end_date < '{$todayStr}' AND cancelled_at IS NULL AND (is_cancelled IS NULL OR is_cancelled = 0) AND transaction_type_id IN (1, 2, 3, 4, 7) AND NOT EXISTS (
+                    COUNT(CASE WHEN (is_booklet_completed = true OR is_booklet_completed = 1) AND end_date IS NOT NULL AND end_date < '{$todayStr}' AND cancelled_at IS NULL AND (is_cancelled IS NULL OR is_cancelled = false) AND transaction_type_id IN (1, 2, 3, 4, 7) AND NOT EXISTS (
                         SELECT 1 FROM transactions as t_newer 
                         WHERE t_newer.plate_number = transactions.plate_number 
                           AND t_newer.id > transactions.id 
@@ -130,7 +130,7 @@ class DashboardController extends Controller
                     ) THEN 1 END) as expired_booklets,
                     COUNT(CASE WHEN (is_returned = true OR is_returned = 1) THEN 1 END) as returned_count,
                     COUNT(CASE WHEN (no_nusraw_mrur IS NULL OR no_nusraw_mrur = '0' OR no_nusraw_mrur = '') THEN 1 END) as unreturned_mrur,
-                    COUNT(CASE WHEN (is_booklet_completed = true OR is_booklet_completed = 1) AND end_date >= '{$todayStr}' AND cancelled_at IS NULL AND (is_cancelled IS NULL OR is_cancelled = 0) AND transaction_type_id IN (1, 2, 3, 4, 7) AND NOT EXISTS (
+                    COUNT(CASE WHEN (is_booklet_completed = true OR is_booklet_completed = 1) AND end_date >= '{$todayStr}' AND cancelled_at IS NULL AND (is_cancelled IS NULL OR is_cancelled = false) AND transaction_type_id IN (1, 2, 3, 4, 7) AND NOT EXISTS (
                         SELECT 1 FROM transactions as t_newer 
                         WHERE t_newer.plate_number = transactions.plate_number 
                           AND t_newer.id > transactions.id 

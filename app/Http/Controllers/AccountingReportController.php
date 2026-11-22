@@ -114,8 +114,19 @@ class AccountingReportController extends Controller
 
     private function prepareReportData(Request $request): array
     {
+        @ini_set('memory_limit', '512M');
+
         // Only include transactions that have an issued 37-A receipt OR real financial revenue
-        $query = Transaction::with(['transactionType', 'trafficDirectorate'])
+        $query = Transaction::select([
+                'id', 'visitor_name', 'plate_number', 'receipt_37a_number', 'transaction_type_id', 'traffic_directorate_id',
+                'num_years', 'transaction_date', 'paid_at', 'created_at',
+                'pay_amount_years', 'pay_inspection', 'pay_stamp', 'pay_form', 'total_pay',
+                'is_cancelled', 'cancelled_at'
+            ])
+            ->with([
+                'transactionType:id,name_kurdish',
+                'trafficDirectorate:id,name_kurdish'
+            ])
             ->where(function ($q) {
                 $q->where(function ($sub) {
                     $sub->whereNotNull('receipt_37a_number')
@@ -136,6 +147,14 @@ class AccountingReportController extends Controller
         $dateFrom = $request->get('date_from');
         $dateTo = $request->get('date_to');
         $dateType = $request->get('date_type', 'any'); // 'any', 'paid_at', 'transaction_date'
+        $numFromRaw = $request->get('num_from', $request->get('receipt_from'));
+        $numToRaw = $request->get('num_to', $request->get('receipt_to'));
+        $searchTerm = $request->get('search');
+
+        // Default to 'today' if no filter or search has been specified, to avoid memory exhaustion
+        if (empty($preset) && empty($dateFrom) && empty($dateTo) && empty($numFromRaw) && empty($numToRaw) && empty($searchTerm)) {
+            $preset = 'today';
+        }
 
         // Quick presets calculate exact start/end dates if not manually overridden
         if ($preset && empty($dateFrom) && empty($dateTo)) {

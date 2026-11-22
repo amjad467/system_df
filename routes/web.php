@@ -127,6 +127,8 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/lookup/plate-type', [LookupController::class, 'storePlateType'])->name('lookup.plate_type');
     Route::put('/lookup/plate-type/{plateType}', [LookupController::class, 'updatePlateType'])->name('lookup.plate_type.update');
+    Route::delete('/lookup/plate-type/{plateType}', [LookupController::class, 'destroyPlateType'])->name('lookup.plate_type.destroy');
+    Route::delete('/settings/lookups/plate-types/{plateType}', [LookupController::class, 'destroyPlateType'])->name('settings.lookups.plate_types.destroy');
 
     Route::post('/lookup/car-make', [LookupController::class, 'storeCarMake'])->name('lookup.car_make');
     Route::post('/settings/lookups/car-makes', [LookupController::class, 'storeCarMake'])->name('settings.lookups.car_makes.store');

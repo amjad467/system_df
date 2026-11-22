@@ -425,7 +425,7 @@ class Transaction extends Model
             ->whereNotNull('transactions.end_date')
             ->whereNull('transactions.cancelled_at')
             ->where(function($q) {
-                $q->whereNull('transactions.is_cancelled')->orWhere('transactions.is_cancelled', 0);
+                $q->whereNull('transactions.is_cancelled')->orWhere('transactions.is_cancelled', false);
             })
             ->where('transactions.end_date', '<', now()->startOfDay())
             ->whereNotExists(function($q) {
@@ -446,7 +446,7 @@ class Transaction extends Model
             ->whereNotNull('transactions.end_date')
             ->whereNull('transactions.cancelled_at')
             ->where(function($q) {
-                $q->whereNull('transactions.is_cancelled')->orWhere('transactions.is_cancelled', 0);
+                $q->whereNull('transactions.is_cancelled')->orWhere('transactions.is_cancelled', false);
             })
             ->where('transactions.end_date', '>=', $now)
             ->where('transactions.end_date', '<=', $soon)

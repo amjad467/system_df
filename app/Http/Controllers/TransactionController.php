@@ -634,7 +634,7 @@ class TransactionController extends Controller
             ->whereNotNull('end_date')
             ->whereNull('cancelled_at')
             ->where(function($q) {
-                $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                $q->whereNull('is_cancelled')->orWhere('is_cancelled', false);
             })
             ->whereNotExists(function($q) {
                 $q->select(\Illuminate\Support\Facades\DB::raw(1))
@@ -873,7 +873,7 @@ class TransactionController extends Controller
                 )
                 ->whereNull('deleted_at')
                 ->where(function ($q) {
-                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', false);
                 })
                 ->whereNull('cancelled_at')
                 ->where('transaction_type_id', '!=', 5)
@@ -906,7 +906,7 @@ class TransactionController extends Controller
                 )
                 ->whereNull('deleted_at')
                 ->where(function ($q) {
-                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', false);
                 })
                 ->whereNull('cancelled_at')
                 ->where('transaction_type_id', '!=', 5)
@@ -940,7 +940,7 @@ class TransactionController extends Controller
                 )
                 ->whereNull('deleted_at')
                 ->where(function ($q) {
-                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', false);
                 })
                 ->whereNull('cancelled_at')
                 ->where('transaction_type_id', '!=', 5)
@@ -980,7 +980,7 @@ class TransactionController extends Controller
             $matchingCitizens = DB::table('transactions')
                 ->whereNull('deleted_at')
                 ->where(function ($q) {
-                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', false);
                 })
                 ->whereNull('cancelled_at')
                 ->where('transaction_type_id', '!=', 5)
@@ -1057,7 +1057,7 @@ class TransactionController extends Controller
         $query = Transaction::with(['carMake', 'carColor', 'plateType', 'transactionType'])
             ->whereNull('deleted_at')
             ->where(function ($q) {
-                $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                $q->whereNull('is_cancelled')->orWhere('is_cancelled', false);
             })
             ->whereNull('cancelled_at')
             ->where('transaction_type_id', '!=', 5);
@@ -1155,7 +1155,7 @@ class TransactionController extends Controller
                 )
                 ->whereNull('deleted_at')
                 ->where(function ($q) {
-                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', false);
                 })
                 ->whereNull('cancelled_at')
                 ->where('transaction_type_id', '!=', 5)
@@ -1188,7 +1188,7 @@ class TransactionController extends Controller
                 )
                 ->whereNull('deleted_at')
                 ->where(function ($q) {
-                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', false);
                 })
                 ->whereNull('cancelled_at')
                 ->where('transaction_type_id', '!=', 5)
@@ -1221,7 +1221,7 @@ class TransactionController extends Controller
                 )
                 ->whereNull('deleted_at')
                 ->where(function ($q) {
-                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', false);
                 })
                 ->whereNull('cancelled_at')
                 ->where('transaction_type_id', '!=', 5)
@@ -1259,7 +1259,7 @@ class TransactionController extends Controller
             $matchingCitizens = DB::table('transactions')
                 ->whereNull('deleted_at')
                 ->where(function ($q) {
-                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', 0);
+                    $q->whereNull('is_cancelled')->orWhere('is_cancelled', false);
                 })
                 ->whereNull('cancelled_at')
                 ->where('transaction_type_id', '!=', 5)
