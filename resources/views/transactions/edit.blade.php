@@ -379,6 +379,58 @@
                            class="w-5 h-5 rounded border-slate-600 text-amber-500 focus:ring-amber-500 cursor-pointer">
                 </label>
             </div>
+
+            <!-- LOST BOOKLET SECTION (حاڵەتی ونبوونی دەفتەر) -->
+            <div class="mt-3 pt-3 border-t border-slate-700/60">
+                <div class="rounded-xl border transition p-3"
+                     :class="isBookletLost ? 'bg-amber-500/15 border-amber-500/80 text-amber-100 ring-1 ring-amber-500/40' : 'bg-slate-900/60 border-slate-700 text-slate-300'">
+                    <label class="flex items-center justify-between cursor-pointer select-none">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center transition"
+                                 :class="isBookletLost ? 'bg-amber-500 text-white shadow-sm' : 'bg-slate-800 text-slate-400'">
+                                <i class="fa-solid fa-file-circle-question text-sm"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold block">دەفتەرەکەی ونبووە؟ (نووسراوی ونبووەکان)</span>
+                                <span class="text-[11px] text-slate-400">ئاماژە بە ونبوونی دەفتەر لەسەر فیشەکە و نووسراوی پووچەڵکردنەوە</span>
+                            </div>
+                        </div>
+                        <input type="checkbox" 
+                               name="is_booklet_lost" 
+                               value="1" 
+                               x-model="isBookletLost" 
+                               @change="if(isBookletLost && !lostLetterDate) lostLetterDate = '{{ date('Y-m-d') }}'"
+                               class="w-5 h-5 rounded border-slate-600 text-amber-500 focus:ring-amber-500 cursor-pointer">
+                    </label>
+
+                    <div x-show="isBookletLost" x-cloak class="mt-3 pt-2.5 border-t border-amber-500/30 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-bold text-amber-200 mb-1">ژمارەی نووسراوی ونبووەکان *</label>
+                            <input type="text" 
+                                   name="lost_letter_number" 
+                                   x-model="lostLetterNumber" 
+                                   placeholder="بۆ نموونە: 1452/و" 
+                                   dir="ltr"
+                                   class="w-full bg-slate-900 border border-amber-500/60 rounded-xl px-3 py-1.5 text-xs text-slate-100 font-mono font-bold focus:border-amber-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-amber-200 mb-1">بەرواری نووسراوی ونبووەکان *</label>
+                            <input type="date" 
+                                   name="lost_letter_date" 
+                                   x-model="lostLetterDate" 
+                                   class="w-full bg-slate-900 border border-amber-500/60 rounded-xl px-3 py-1.5 text-xs text-slate-100 font-mono font-bold focus:border-amber-500 focus:outline-none">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-bold text-slate-400 mb-1">ناوی بەڕێوەبەرایەتی دەرهێنەری نووسراوی ونبوون</label>
+                            <input type="text" 
+                                   name="lost_directorate_name" 
+                                   x-model="lostDirectorateName" 
+                                   placeholder="بەڕێوەبەرایەتی ونبووەکان" 
+                                   class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-100 font-bold focus:border-amber-500 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 4. Dynamic Duration & Dates Section -->
@@ -500,6 +552,10 @@
             numYears: '{{ $transaction->num_years }}',
             plateTypeId: '{{ $transaction->plate_type_id }}',
             isBus: {{ $transaction->is_bus ? 'true' : 'false' }},
+            isBookletLost: {{ $transaction->is_booklet_lost ? 'true' : 'false' }},
+            lostLetterNumber: '{{ old("lost_letter_number", $transaction->lost_letter_number ?? "") }}',
+            lostLetterDate: '{{ old("lost_letter_date", $transaction->lost_letter_date?->format("Y-m-d") ?? "") }}',
+            lostDirectorateName: '{{ old("lost_directorate_name", $transaction->lost_directorate_name ?? "بەڕێوەبەرایەتی ونبووەکان") }}',
             carMakeId: '{{ $transaction->car_make_id }}',
             carColorId: '{{ $transaction->car_color_id }}',
             passportIssuePlace: '{{ old("passport_issue_place", $transaction->passport_issue_place) }}',

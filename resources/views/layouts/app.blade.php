@@ -895,7 +895,7 @@
     </div>
 
     <!-- Main Content -->
-    <main class="flex-1 max-w-[1680px] w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 safe-pb md:pb-8">
+    <main class="flex-1 {{ request()->routeIs('transactions.create') ? 'w-full px-2 sm:px-4' : 'max-w-[1680px] w-full mx-auto px-3 sm:px-6 lg:px-8' }} py-3 sm:py-5 safe-pb md:pb-8">
         @yield('content')
     </main>
 

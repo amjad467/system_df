@@ -37,6 +37,8 @@ class Transaction extends Model
         'is_cancelled' => 'boolean',
         'is_returned' => 'boolean',
         'is_bus' => 'boolean',
+        'is_booklet_lost' => 'boolean',
+        'lost_letter_date' => 'date',
     ];
 
     public function getIsCancelledAttribute(): bool

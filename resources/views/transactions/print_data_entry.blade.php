@@ -250,6 +250,13 @@
             </table>
         </div>
 
+        @if($mainTx->is_booklet_lost || !empty($mainTx->lost_letter_number))
+            <div class="border-2 border-black p-2 my-1.5 bg-amber-50 text-xs font-black text-black">
+                <span class="underline">تێبینی ونبوونی دەفتەر:</span>
+                <span>ئاماژە بە ونبوونی دەفتەری گومرگی ئۆتۆمبێلی ناوبراو، پاڵپشت بە نووسراوی {{ $mainTx->lost_directorate_name ?: 'بەڕێوەبەرایەتی ونبووەکان' }} ژمارە ( <strong class="font-mono">{{ $mainTx->lost_letter_number }}</strong> ) لە ڕێکەوتی ( <strong class="font-mono">{{ $mainTx->lost_letter_date ? $mainTx->lost_letter_date->format('Y-m-d') : '' }}</strong> ).</span>
+            </div>
+        @endif
+
         <!-- Section 2: Physical Stage Checkpoints Grid -->
         <div class="space-y-1 pt-1">
             <h4 class="text-xs font-black border-b border-black pb-0.5">

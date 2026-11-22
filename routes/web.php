@@ -86,6 +86,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/transactions/{transaction}/revert-audit', [TransactionController::class, 'revertAudit'])->name('transactions.revert_audit');
     Route::post('/transactions/{transaction}/revert-step', [TransactionController::class, 'revertStep'])->name('transactions.revert_step');
     Route::post('/transactions/{transaction}/create-pledge', [TransactionController::class, 'createRelatedPledge'])->name('transactions.create_pledge');
+    Route::post('/transactions/{transaction}/update-lost-booklet', [TransactionController::class, 'updateLostBooklet'])->name('transactions.update_lost_booklet');
     Route::delete('/transactions/{transaction}', [TransactionController::class, 'destroy'])->name('transactions.destroy');
     Route::post('/transactions/{id}/restore', [TransactionController::class, 'restore'])->name('transactions.restore');
     Route::delete('/transactions/{id}/force-delete', [TransactionController::class, 'forceDelete'])->name('transactions.force_delete');

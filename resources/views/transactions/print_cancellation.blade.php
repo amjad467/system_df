@@ -138,7 +138,7 @@
                 $customsDate = $transaction->date_nusraw_puchal ? $transaction->date_nusraw_puchal->format('d-m-Y') : ($transaction->transaction_date ? $transaction->transaction_date->format('d-m-Y') : date('d-m-Y'));
             @endphp
             <p>
-                دوابەدوای نووسراومان ژمارە ( <span class="font-mono text-lg font-black">{{ $customsNo }}</span> ) لە ( <span class="font-mono text-lg font-black">{{ $customsDate }}</span> ) نیشانەی ڕەفتارنەکردن هەڵبگرن لەسەر ئۆتۆمبێلی کە خەسڵەتەکانی لەخوارەوە دیاریکراوە و خاوەنەکەی سەردانی بەڕێوەبەرایەتی کردووە دەفتەری ڕێگەپێدانی پووچەڵکردۆتەوە، ڕێگەی پێبدات لەهەر کارێکی یاسایی ئەنجامی بدات بۆ ئۆتۆمبێلەکەی بۆ ئاگاداریتان .
+                دوابەدوای نووسراومان ژمارە ( <span class="font-mono text-lg font-black">{{ $customsNo }}</span> ) لە ( <span class="font-mono text-lg font-black">{{ $customsDate }}</span> ) نیشانەی ڕەفتارنەکردن هەڵبگرن لەسەر ئۆتۆمبێلی کە خەسڵەتەکانی لەخوارەوە دیاریکراوە و خاوەنەکەی سەردانی بەڕێوەبەرایەتی کردووە دەفتەری ڕێگەپێدانی پووچەڵکردۆتەوە@if($transaction->is_booklet_lost || !empty($transaction->lost_letter_number)) (کە دەفتەرەکەی ونبووە بەپێی نووسراوی {{ $transaction->lost_directorate_name ?: 'بەڕێوەبەرایەتی ونبووەکان' }} ژمارە {{ $transaction->lost_letter_number }} لە ڕێکەوتی {{ $transaction->lost_letter_date ? $transaction->lost_letter_date->format('d-m-Y') : '' }})@endif، ڕێگەی پێبدات لەهەر کارێکی یاسایی ئەنجامی بدات بۆ ئۆتۆمبێلەکەی بۆ ئاگاداریتان .
             </p>
             <p class="text-center font-black mt-3">له‌گه‌ڵ ڕێزدا...</p>
         </div>

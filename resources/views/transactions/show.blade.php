@@ -1505,6 +1505,24 @@
                     @endif
                 @endif
 
+                @if($transaction->is_booklet_lost || $transaction->lost_letter_number)
+                    <div class="p-2.5 rounded-xl border border-amber-500/60 bg-amber-950/30 space-y-1 my-1">
+                        <div class="flex items-center justify-between text-xs font-black text-amber-300">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-circle-question text-amber-400"></i>
+                                <span>دەفتەری ونبوو (نووسراوی ونبووەکان)</span>
+                            </span>
+                            <span class="text-[10px] bg-amber-500 text-slate-900 px-1.5 py-0.2 rounded font-bold">ونبوو</span>
+                        </div>
+                        <div class="text-[11px] text-slate-300 space-y-0.5">
+                            <p>ژمارەی نووسراو: <strong class="font-mono text-white">{{ $transaction->lost_letter_number ?? '-' }}</strong></p>
+                            @if($transaction->lost_letter_date)
+                                <p>بەرواری نووسراو: <strong class="font-mono text-white">{{ $transaction->lost_letter_date->format('Y-m-d') }}</strong></p>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
                 <!-- ژمارەی بۆکسی دەرهێنان و بۆکسی پووچەڵ -->
                 <div class="flex justify-between items-center py-1.5 border-b border-slate-700/40 bg-slate-900/40 px-2 rounded">
                     <span class="text-slate-300 font-bold flex items-center">

@@ -1411,6 +1411,10 @@ class TransactionController extends Controller
             'date_nusraw_puchal' => 'nullable|date',
             'NO_boxfile' => 'nullable|integer|min:0',
             'NO_boxfile_puchal' => 'nullable|integer|min:0',
+            'is_booklet_lost' => 'nullable|boolean',
+            'lost_letter_number' => 'nullable|string|max:100',
+            'lost_letter_date' => 'nullable|date',
+            'lost_directorate_name' => 'nullable|string|max:255',
         ], [
             'chassis_number.max' => 'ژمارەی شاسی نابێت لە ١٧ پیت و ژمارە زیاتربێت!',
             'chassis_number.required' => 'تکایە ژمارەی شاسی بنووسە!',
@@ -1708,6 +1712,10 @@ class TransactionController extends Controller
             'date_nusraw_puchal' => 'nullable|date',
             'NO_boxfile' => 'nullable|integer|min:0',
             'NO_boxfile_puchal' => 'nullable|integer|min:0',
+            'is_booklet_lost' => 'nullable|boolean',
+            'lost_letter_number' => 'nullable|string|max:100',
+            'lost_letter_date' => 'nullable|date',
+            'lost_directorate_name' => 'nullable|string|max:255',
         ]);
 
         $numYears = (int)($request->input('num_years', 1));
@@ -1819,6 +1827,25 @@ class TransactionController extends Controller
 
         return redirect()->route('transactions.show', $transaction->id)
             ->with('success', $successMsg);
+    }
+
+    public function updateLostBooklet(Request $request, Transaction $transaction)
+    {
+        $validated = $request->validate([
+            'is_booklet_lost' => 'required|boolean',
+            'lost_letter_number' => 'nullable|string|max:100',
+            'lost_letter_date' => 'nullable|date',
+            'lost_directorate_name' => 'nullable|string|max:255',
+        ]);
+
+        if (empty($validated['lost_directorate_name'])) {
+            $validated['lost_directorate_name'] = 'بەڕێوەبەرایەتی ونبووەکان';
+        }
+
+        $transaction->update($validated);
+        AuditLogger::log('نوێکردنەوەی دۆخی ونبوونی دەفتەر', Transaction::class, $transaction->id, "ژمارەی نووسراو: {$transaction->lost_letter_number}");
+
+        return redirect()->back()->with('success', 'زانیاری ونبوونی دەفتەر و نووسراوی ونبووەکان بە سەرکەوتوویی نوێکرایەوە.');
     }
 
     public function returnTransaction(Request $request, Transaction $transaction)

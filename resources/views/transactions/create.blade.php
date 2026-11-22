@@ -196,7 +196,7 @@
         {{ \Illuminate\Support\Js::from($passportPlacesList) }}
      )" 
      @keydown.window.alt.s.prevent="submitForm()"
-     class="max-w-7xl mx-auto space-y-4 pb-12 text-slate-800 dark:text-slate-100">
+     class="w-full space-y-4 pb-12 text-slate-800 dark:text-slate-100">
 
     <!-- Validation Error Alert Banner -->
     <div x-show="validationError" 
@@ -650,6 +650,62 @@
                                @change="calculateFees()" 
                                class="w-4 h-4 rounded border-slate-400 dark:border-slate-700 text-amber-500 focus:ring-amber-500 cursor-pointer">
                     </label>
+                </div>
+
+                <!-- LOST BOOKLET OPTION (حاڵەتی ونبوونی دەفتەر لەکاتی پووچەڵکردنەوەدا) -->
+                <div class="pt-1">
+                    <div class="rounded-xl border transition p-2.5"
+                         :class="isBookletLost ? 'bg-amber-500/15 border-amber-500/80 text-amber-950 dark:text-amber-100 ring-1 ring-amber-500/40' : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'">
+                        <label class="flex items-center justify-between cursor-pointer select-none">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-lg flex items-center justify-center transition"
+                                     :class="isBookletLost ? 'bg-amber-500 text-white shadow-sm' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'">
+                                    <i class="fa-solid fa-file-circle-question text-xs"></i>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-black block flex items-center gap-1.5">
+                                        <span>دەفتەرەکەی ونبووە؟ (نووسراوی ونبووەکان)</span>
+                                        <span x-show="typeId == 5" class="text-[9px] px-1.5 py-0.2 bg-amber-500 text-white rounded font-bold">تایبەت بە پووچەڵکردنەوە</span>
+                                    </span>
+                                    <span class="text-[10px] text-slate-500 dark:text-slate-400">بۆ تۆمارکردنی نووسراوی بەڕێوەبەرایەتی ونبووەکان لەسەر فیشەکە</span>
+                                </div>
+                            </div>
+                            <input type="checkbox" 
+                                   name="is_booklet_lost" 
+                                   value="1" 
+                                   x-model="isBookletLost" 
+                                   @change="if(isBookletLost && !lostLetterDate) lostLetterDate = '{{ date('Y-m-d') }}'"
+                                   class="w-4 h-4 rounded border-slate-400 dark:border-slate-700 text-amber-600 focus:ring-amber-500 cursor-pointer">
+                        </label>
+
+                        <!-- Lost Letter Input Fields -->
+                        <div x-show="isBookletLost" x-cloak class="mt-2.5 pt-2 border-t border-amber-500/30 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-700 dark:text-slate-300 mb-0.5">ژمارەی نووسراوی ونبووەکان *</label>
+                                <input type="text" 
+                                       name="lost_letter_number" 
+                                       x-model="lostLetterNumber" 
+                                       placeholder="بۆ نموونە: 1452/و" 
+                                       dir="ltr"
+                                       class="w-full bg-white dark:bg-slate-950 border border-amber-500/60 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-100 font-mono font-bold focus:border-amber-500">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-700 dark:text-slate-300 mb-0.5">بەرواری نووسراوی ونبووەکان *</label>
+                                <input type="date" 
+                                       name="lost_letter_date" 
+                                       x-model="lostLetterDate" 
+                                       class="w-full bg-white dark:bg-slate-950 border border-amber-500/60 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-100 font-mono font-bold focus:border-amber-500">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 mb-0.5">بەڕێوەبەرایەتی دەرهێنەری نووسراو</label>
+                                <input type="text" 
+                                       name="lost_directorate_name" 
+                                       x-model="lostDirectorateName" 
+                                       placeholder="بەڕێوەبەرایەتی ونبووەکان" 
+                                       class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-100 font-bold focus:border-amber-500">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1271,6 +1327,12 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
         editingColorKurdish: '',
         editingColorEnglish: '',
 
+        // Lost Booklet State (حاڵەتی ونبوونی دەفتەر)
+        isBookletLost: initialTx ? Boolean(initialTx.is_booklet_lost) : false,
+        lostLetterNumber: initialTx ? (initialTx.lost_letter_number || '') : '',
+        lostLetterDate: initialTx ? (initialTx.lost_letter_date ? String(initialTx.lost_letter_date).substring(0, 10) : '') : '',
+        lostDirectorateName: initialTx ? (initialTx.lost_directorate_name || 'بەڕێوەبەرایەتی ونبووەکان') : 'بەڕێوەبەرایەتی ونبووەکان',
+
         // Chassis status & Active Booklet Duplicate Check (Req 1)
         isCheckingChassis: false,
         chassisFound: initialTx ? true : false,
@@ -1820,6 +1882,13 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             if (record.piston_count) this.pistonCount = record.piston_count;
             if (record.salana_number) this.salanaNumber = record.salana_number;
             if (record.traffic_directorate_id) this.directorateId = record.traffic_directorate_id;
+
+            if (typeof record.is_booklet_lost !== 'undefined') {
+                this.isBookletLost = Boolean(record.is_booklet_lost);
+            }
+            if (record.lost_letter_number) this.lostLetterNumber = record.lost_letter_number;
+            if (record.lost_letter_date) this.lostLetterDate = String(record.lost_letter_date).substring(0, 10);
+            if (record.lost_directorate_name) this.lostDirectorateName = record.lost_directorate_name;
 
             this.calculateFees();
         },
