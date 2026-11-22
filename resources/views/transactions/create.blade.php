@@ -468,7 +468,7 @@
                                 x-model="plateTypeId" 
                                 @change="calculateFees()" 
                                 class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 focus:border-sky-500 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none">
-                            @foreach($plateTypes as $pt)
+                            @foreach($plateTypes->unique('clean_kurdish_name') as $pt)
                                 <option value="{{ $pt->id }}">{{ $pt->clean_kurdish_name }}</option>
                             @endforeach
                         </select>
@@ -546,24 +546,53 @@
                                class="w-full bg-white dark:bg-slate-950 border focus:border-sky-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-mono font-bold transition">
                     </div>
 
-                    <div>
+                    <!-- CAR COLOR: SEARCHABLE COMBOBOX -->
+                    <div class="relative" x-data="{ openColorDropdown: false }">
                         <div class="flex items-center justify-between mb-1">
                             <label class="text-[11px] font-bold text-slate-700 dark:text-slate-300">ڕەنگ *</label>
                             <button type="button" @click="showCarColorModal = true" class="text-[10px] text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 font-bold">
                                 <i class="fa-solid fa-plus-circle"></i> نوێ
                             </button>
                         </div>
-                        <select name="car_color_id" 
-                                id="input_carColorId"
-                                x-model="carColorId" 
-                                @change="onCarColorChange()" 
-                                :class="missingField === 'carColorId' ? 'border-rose-500 ring-2 ring-rose-500/30' : 'border-slate-300 dark:border-slate-700'"
-                                class="w-full bg-white dark:bg-slate-950 border focus:border-sky-500 rounded-lg px-2 py-1.5 text-xs text-slate-900 dark:text-slate-100 focus:outline-none">
-                            <option value="">هەڵبژێرە...</option>
-                            <template x-for="c in allColors" :key="c.id">
-                                <option :value="c.id" :selected="carColorId == c.id" x-text="c.name_kurdish"></option>
+
+                        <!-- Hidden input for form submission -->
+                        <input type="hidden" name="car_color_id" :value="carColorId">
+
+                        <!-- Searchable Input trigger -->
+                        <div class="relative">
+                            <input type="text" 
+                                   id="input_carColorId"
+                                   x-model="selectedColorKurdish" 
+                                   @focus="openColorDropdown = true; filterColors(selectedColorKurdish)" 
+                                   @input="openColorDropdown = true; filterColors($event.target.value)" 
+                                   placeholder="بگەڕێ یان بنووسە (سپی، ڕەش...)" 
+                                   :class="missingField === 'carColorId' ? 'border-rose-500 ring-2 ring-rose-500/30' : 'border-slate-300 dark:border-slate-700'"
+                                   class="w-full bg-white dark:bg-slate-950 border focus:border-sky-500 rounded-lg pr-2.5 pl-8 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold transition">
+                            
+                            <button type="button" 
+                                    @click="openColorDropdown = !openColorDropdown; if(openColorDropdown) filterColors(selectedColorKurdish)" 
+                                    class="absolute left-2.5 top-2 text-slate-400 hover:text-sky-500 text-xs">
+                                <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                            </button>
+                        </div>
+
+                        <!-- Searchable Dropdown List -->
+                        <div x-show="openColorDropdown" 
+                             @click.away="openColorDropdown = false" 
+                             x-cloak 
+                             class="absolute z-50 left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl shadow-2xl max-h-56 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                            <template x-for="c in filteredColors" :key="c.id">
+                                <div @click="selectCarColor(c); openColorDropdown = false;" 
+                                     class="px-3 py-2 hover:bg-sky-50 dark:hover:bg-slate-800 cursor-pointer flex items-center justify-between text-xs transition"
+                                     :class="carColorId == c.id ? 'bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 font-bold' : ''">
+                                    <span class="font-bold text-slate-900 dark:text-white" x-text="c.name_kurdish"></span>
+                                    <span class="text-[10px] font-mono text-slate-400" x-text="c.name_english"></span>
+                                </div>
                             </template>
-                        </select>
+                            <div x-show="filteredColors.length === 0" class="p-3 text-center text-xs text-slate-400">
+                                هیچ ڕەنگێک نەدۆزرایەوە.
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -1077,6 +1106,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
         selectedMakeKurdish: '',
         modelYear: initialTx ? (initialTx.model_year || '') : '',
         carColorId: initialTx ? (initialTx.car_color_id || '') : '',
+        selectedColorKurdish: '',
         pistonCount: initialTx ? (initialTx.piston_count || 4) : 4,
         salanaNumber: initialTx ? (initialTx.salana_number || '') : '',
 
@@ -1095,6 +1125,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
 
         // Colors list & modal (Req 2A)
         allColors: colorsList || [],
+        filteredColors: colorsList || [],
         showCarColorModal: false,
         newColorKurdish: '',
         newColorEnglish: '',
@@ -1140,6 +1171,13 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
                 if (found) {
                     this.selectedMakeKurdish = found.name_kurdish;
                     if (!this.carMakeEng) this.carMakeEng = found.name_english;
+                }
+            }
+            // Initialize selected color Kurdish name if already set
+            if (this.carColorId) {
+                const foundColor = this.allColors.find(c => c.id == this.carColorId);
+                if (foundColor) {
+                    this.selectedColorKurdish = foundColor.name_kurdish;
                 }
             }
             if (this.plateNumber) {
@@ -1286,6 +1324,35 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             this.missingField = (this.missingField === 'carMakeId') ? '' : this.missingField;
         },
 
+        filterColors(query) {
+            const normalize = (s) => (s || '').toLowerCase()
+                .replace(/[يى]/g, 'ی')
+                .replace(/ك/g, 'ک')
+                .replace(/ة/g, 'ە')
+                .replace(/ڕ/g, 'ر')
+                .replace(/ۆ/g, 'و')
+                .replace(/ڵ/g, 'ل')
+                .replace(/ێ/g, 'ی')
+                .trim();
+
+            const q = normalize(query);
+            if (!q) {
+                this.filteredColors = this.allColors;
+                return;
+            }
+            this.filteredColors = this.allColors.filter(c => 
+                normalize(c.name_kurdish).includes(q) ||
+                (c.name_english && c.name_english.toLowerCase().includes(q))
+            );
+        },
+
+        selectCarColor(color) {
+            this.carColorId = color.id;
+            this.selectedColorKurdish = color.name_kurdish;
+            this.missingField = (this.missingField === 'carColorId') ? '' : this.missingField;
+            this.onCarColorChange();
+        },
+
         onChassisInput(e) {
             let val = e.target.value;
             if (/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/.test(val) && window.LangConvert) {
@@ -1383,7 +1450,15 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
                 }
             }
 
-            if (record.car_color_id) this.carColorId = record.car_color_id;
+            if (record.car_color_id) {
+                this.carColorId = record.car_color_id;
+                const foundColor = this.allColors.find(c => c.id == record.car_color_id);
+                if (foundColor) {
+                    this.selectedColorKurdish = foundColor.name_kurdish;
+                } else if (record.car_color_kurdish) {
+                    this.selectedColorKurdish = record.car_color_kurdish;
+                }
+            }
             if (record.model_year) this.modelYear = record.model_year;
             if (record.piston_count) this.pistonCount = record.piston_count;
             if (record.salana_number) this.salanaNumber = record.salana_number;
@@ -1575,7 +1650,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
                 const color = data.item || data.color;
                 if (data.success && color) {
                     this.allColors.unshift(color);
-                    this.carColorId = color.id;
+                    this.selectCarColor(color);
                     this.showCarColorModal = false;
                     this.newColorKurdish = '';
                     this.newColorEnglish = '';

@@ -316,8 +316,8 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-300 mb-1.5">جۆری تابلۆ *</label>
                     <select name="plate_type_id" x-model="plateTypeId" @change="calculateFees()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 focus:border-sky-500 focus:outline-none">
-                        @foreach($plateTypes as $pt)
-                            <option value="{{ $pt->id }}" {{ $transaction->plate_type_id == $pt->id ? 'selected' : '' }}>{{ $pt->name_kurdish }}</option>
+                        @foreach($plateTypes->unique('clean_kurdish_name') as $pt)
+                            <option value="{{ $pt->id }}" {{ $transaction->plate_type_id == $pt->id ? 'selected' : '' }}>{{ $pt->clean_kurdish_name }}</option>
                         @endforeach
                     </select>
                 </div>

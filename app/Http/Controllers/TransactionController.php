@@ -396,9 +396,9 @@ class TransactionController extends Controller
 
         $directorates = \Illuminate\Support\Facades\Cache::remember('all_traffic_directorates', 3600, fn() => TrafficDirectorate::all());
         $directors = \Illuminate\Support\Facades\Cache::remember('all_directors', 3600, fn() => Director::all());
-        $plateTypes = \Illuminate\Support\Facades\Cache::remember('all_plate_types', 3600, fn() => PlateType::all());
+        $plateTypes = \Illuminate\Support\Facades\Cache::remember('all_plate_types', 3600, fn() => PlateType::all()->unique('clean_kurdish_name')->values());
         $carMakes = \Illuminate\Support\Facades\Cache::remember('all_car_makes', 3600, fn() => CarMake::all());
-        $carColors = \Illuminate\Support\Facades\Cache::remember('all_car_colors', 3600, fn() => CarColor::all());
+        $carColors = \Illuminate\Support\Facades\Cache::remember('all_car_colors', 3600, fn() => CarColor::orderBy('id', 'asc')->get());
         $transactionTypes = \Illuminate\Support\Facades\Cache::remember('all_transaction_types', 3600, fn() => TransactionType::all());
         $passportIssuePlaces = \Illuminate\Support\Facades\Cache::remember('all_passport_issue_places', 3600, fn() => \App\Models\PassportIssuePlace::orderBy('name')->get());
 
@@ -1620,9 +1620,9 @@ class TransactionController extends Controller
 
         $directorates = \Illuminate\Support\Facades\Cache::remember('all_traffic_directorates', 3600, fn() => TrafficDirectorate::all());
         $directors = \Illuminate\Support\Facades\Cache::remember('all_directors', 3600, fn() => Director::all());
-        $plateTypes = \Illuminate\Support\Facades\Cache::remember('all_plate_types', 3600, fn() => PlateType::all());
+        $plateTypes = \Illuminate\Support\Facades\Cache::remember('all_plate_types', 3600, fn() => PlateType::all()->unique('clean_kurdish_name')->values());
         $carMakes = \Illuminate\Support\Facades\Cache::remember('all_car_makes', 3600, fn() => CarMake::all());
-        $carColors = \Illuminate\Support\Facades\Cache::remember('all_car_colors', 3600, fn() => CarColor::all());
+        $carColors = \Illuminate\Support\Facades\Cache::remember('all_car_colors', 3600, fn() => CarColor::orderBy('id', 'asc')->get());
         $transactionTypes = \Illuminate\Support\Facades\Cache::remember('all_transaction_types', 3600, fn() => TransactionType::all());
         $passportIssuePlaces = \Illuminate\Support\Facades\Cache::remember('all_passport_issue_places', 3600, fn() => \App\Models\PassportIssuePlace::orderBy('name')->get());
 

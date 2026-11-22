@@ -42,13 +42,13 @@ class DatabaseSeeder extends Seeder
 
         // 4. Plate Types
         $plateTypes = [
-            ['name_kurdish' => 'تایبەت', 'name_english' => 'Private'],
-            ['name_kurdish' => 'بار', 'name_english' => 'Cargo/Truck'],
-            ['name_kurdish' => 'کرێ', 'name_english' => 'Taxi/Commercial'],
-            ['name_kurdish' => 'پاسی نەفەر', 'name_english' => 'Passenger Bus'],
+            1 => ['name_kurdish' => 'تایبەت', 'name_english' => 'Private'],
+            2 => ['name_kurdish' => 'بار', 'name_english' => 'Cargo/Truck'],
+            3 => ['name_kurdish' => 'کرێ', 'name_english' => 'Taxi/Commercial'],
+            4 => ['name_kurdish' => 'پاسی نەفەر', 'name_english' => 'Passenger Bus'],
         ];
-        foreach ($plateTypes as $pt) {
-            DB::table('plate_types')->updateOrInsert(['name_kurdish' => $pt['name_kurdish']], $pt);
+        foreach ($plateTypes as $id => $pt) {
+            DB::table('plate_types')->updateOrInsert(['id' => $id], array_merge(['id' => $id], $pt));
         }
 
         // 5. Car Makes
@@ -69,16 +69,16 @@ class DatabaseSeeder extends Seeder
 
         // 6. Car Colors
         $carColors = [
-            ['name_kurdish' => 'سپی', 'name_english' => 'White'],
-            ['name_kurdish' => 'ڕەش', 'name_english' => 'Black'],
-            ['name_kurdish' => 'نیلی / شین', 'name_english' => 'Blue'],
-            ['name_kurdish' => 'زێڕی / زەرد', 'name_english' => 'Yellow / Gold'],
-            ['name_kurdish' => 'ڕەساسی / زیوی', 'name_english' => 'Silver / Grey'],
-            ['name_kurdish' => 'سوور', 'name_english' => 'Red'],
-            ['name_kurdish' => 'سەوز', 'name_english' => 'Green'],
+            1 => ['name_kurdish' => 'سپی', 'name_english' => 'White'],
+            2 => ['name_kurdish' => 'ڕەش', 'name_english' => 'Black'],
+            3 => ['name_kurdish' => 'شین / نیلی', 'name_english' => 'Blue'],
+            4 => ['name_kurdish' => 'زەرد / زێڕی', 'name_english' => 'Yellow / Gold'],
+            5 => ['name_kurdish' => 'زیوی / ڕەساسی', 'name_english' => 'Silver / Grey'],
+            6 => ['name_kurdish' => 'سوور', 'name_english' => 'Red'],
+            7 => ['name_kurdish' => 'سەوز', 'name_english' => 'Green'],
         ];
-        foreach ($carColors as $cc) {
-            DB::table('car_colors')->updateOrInsert(['name_kurdish' => $cc['name_kurdish']], $cc);
+        foreach ($carColors as $id => $cc) {
+            DB::table('car_colors')->updateOrInsert(['id' => $id], array_merge(['id' => $id], $cc));
         }
 
         // 7. Transaction Types
