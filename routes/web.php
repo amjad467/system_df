@@ -133,12 +133,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/lookup/car-make', [LookupController::class, 'storeCarMake'])->name('lookup.car_make');
     Route::post('/settings/lookups/car-makes', [LookupController::class, 'storeCarMake'])->name('settings.lookups.car_makes.store');
     Route::put('/lookup/car-make/{carMake}', [LookupController::class, 'updateCarMake'])->name('lookup.car_make.update');
+    Route::put('/settings/lookups/car-makes/{carMake}', [LookupController::class, 'updateCarMake'])->name('settings.lookups.car_makes.update');
     Route::delete('/lookup/car-make/{carMake}', [LookupController::class, 'destroyCarMake'])->name('lookup.car_make.destroy');
     Route::delete('/settings/lookups/car-makes/{carMake}', [LookupController::class, 'destroyCarMake'])->name('settings.lookups.car_makes.destroy');
 
     Route::post('/lookup/car-color', [LookupController::class, 'storeCarColor'])->name('lookup.car_color');
     Route::post('/settings/lookups/car-colors', [LookupController::class, 'storeCarColor'])->name('settings.lookups.car_colors.store');
     Route::put('/lookup/car-color/{carColor}', [LookupController::class, 'updateCarColor'])->name('lookup.car_color.update');
+    Route::put('/settings/lookups/car-colors/{carColor}', [LookupController::class, 'updateCarColor'])->name('settings.lookups.car_colors.update');
     Route::delete('/lookup/car-color/{carColor}', [LookupController::class, 'destroyCarColor'])->name('lookup.car_color.destroy');
     Route::delete('/settings/lookups/car-colors/{carColor}', [LookupController::class, 'destroyCarColor'])->name('settings.lookups.car_colors.destroy');
 

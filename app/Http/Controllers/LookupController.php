@@ -274,19 +274,32 @@ class LookupController extends Controller
 
     public function updateCarMake(Request $request, CarMake $carMake)
     {
-        $validated = $request->validate([
-            'name_kurdish' => ['required', 'string', 'max:255', Rule::unique('car_makes', 'name_kurdish')->ignore($carMake->id)],
-            'name_english' => ['required', 'string', 'max:255', Rule::unique('car_makes', 'name_english')->ignore($carMake->id)],
-        ], [
+        $rules = [
+            'name_english' => ['required', 'string', 'max:255'],
+        ];
+        if ($request->has('name_kurdish') && filled($request->input('name_kurdish'))) {
+            $rules['name_kurdish'] = ['string', 'max:255', Rule::unique('car_makes', 'name_kurdish')->ignore($carMake->id)];
+        }
+
+        $validated = $request->validate($rules, [
             'name_kurdish.unique' => 'ئەم مارکە کوردییە پێشتر هەبووە!',
-            'name_english.unique' => 'ئەم مارکە ئینگلیزییە پێشتر هەبووە!'
+            'name_english.required' => 'تکایە ناوی ئینگلیزی بنووسە!',
         ]);
+
+        if (empty($validated['name_kurdish'])) {
+            $validated['name_kurdish'] = $carMake->name_kurdish;
+        }
+        $validated['name_english'] = strtoupper(trim($validated['name_english']));
 
         $carMake->update($validated);
         Cache::forget('all_car_makes');
         AuditLogger::log('دەستکاریکردنی ناوی مارکەی ئۆتۆمبێل', CarMake::class, $carMake->id, "{$carMake->name_kurdish} - {$carMake->name_english}");
 
-        return response()->json(['success' => true, 'item' => $carMake]);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'item' => $carMake, 'make' => $carMake]);
+        }
+
+        return redirect()->back()->with('success', "مارکەی [{$carMake->name_kurdish}] بە سەرکەوتوویی نوێکرایەوە.");
     }
 
     // 5. Car Colors
@@ -316,19 +329,32 @@ class LookupController extends Controller
 
     public function updateCarColor(Request $request, CarColor $carColor)
     {
-        $validated = $request->validate([
-            'name_kurdish' => ['required', 'string', 'max:255', Rule::unique('car_colors', 'name_kurdish')->ignore($carColor->id)],
-            'name_english' => ['required', 'string', 'max:255', Rule::unique('car_colors', 'name_english')->ignore($carColor->id)],
-        ], [
+        $rules = [
+            'name_english' => ['required', 'string', 'max:255'],
+        ];
+        if ($request->has('name_kurdish') && filled($request->input('name_kurdish'))) {
+            $rules['name_kurdish'] = ['string', 'max:255', Rule::unique('car_colors', 'name_kurdish')->ignore($carColor->id)];
+        }
+
+        $validated = $request->validate($rules, [
             'name_kurdish.unique' => 'ئەم ڕەنگە کوردییە پێشتر هەبووە!',
-            'name_english.unique' => 'ئەم ڕەنگە ئینگلیزییە پێشتر هەبووە!'
+            'name_english.required' => 'تکایە ناوی ئینگلیزی بنووسە!',
         ]);
+
+        if (empty($validated['name_kurdish'])) {
+            $validated['name_kurdish'] = $carColor->name_kurdish;
+        }
+        $validated['name_english'] = strtoupper(trim($validated['name_english']));
 
         $carColor->update($validated);
         Cache::forget('all_car_colors');
         AuditLogger::log('دەستکاریکردنی ناوی ڕەنگی ئۆتۆمبێل', CarColor::class, $carColor->id, "{$carColor->name_kurdish} - {$carColor->name_english}");
 
-        return response()->json(['success' => true, 'item' => $carColor]);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'item' => $carColor, 'color' => $carColor]);
+        }
+
+        return redirect()->back()->with('success', "ڕەنگی [{$carColor->name_kurdish}] بە سەرکەوتوویی نوێکرایەوە.");
     }
 
     // 6. Transaction Types

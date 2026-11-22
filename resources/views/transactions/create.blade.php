@@ -522,7 +522,17 @@
 
                 <!-- Car Make English - Editable (Req 2B) -->
                 <div x-show="isFullBookletForm()">
-                    <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">مارکە بە ئینگلیزی (با کارمەند خۆی بینوسێت)</label>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-[11px] font-bold text-slate-500 dark:text-slate-400">مارکە بە ئینگلیزی (با کارمەند خۆی بینوسێت)</label>
+                        <button type="button" 
+                                x-show="canSaveMakeEnglishPermanently()" 
+                                @click="saveCurrentMakeEnglishPermanently()" 
+                                class="text-[10px] text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 font-bold flex items-center gap-1 transition"
+                                title="ئەم ناوە ئینگلیزییە بۆ هەمیشە بۆ ئەم مارکەیە تۆمار بکە تا لە داهاتوودا خۆی بیهێنێت">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>پاشەکەوتکردن بۆ هەمیشە</span>
+                        </button>
+                    </div>
                     <input type="text" 
                            x-model="carMakeEng" 
                            dir="ltr"
@@ -934,6 +944,36 @@
                        placeholder="بگەڕێ لە مارکەکانی پێشوو (تۆیۆتا، نیسان، BMW...)" 
                        class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold focus:border-sky-500">
                 
+                <!-- Inline Make Edit Box (دەستکاریکردن یان نووسینی ناوی ئینگلیزی) -->
+                <div x-show="editingMake" x-cloak class="p-3 bg-amber-500/10 border border-amber-500/40 rounded-xl space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-amber-500 flex items-center gap-1.5">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            <span>دەستکاری ناوی مارکە: <strong x-text="editingMake?.name_kurdish"></strong></span>
+                        </span>
+                        <button type="button" @click="cancelEditMake()" class="text-xs text-slate-400 hover:text-rose-500">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 mb-0.5">ناوی کوردی مارکە</label>
+                            <input type="text" x-model="editingMakeKurdish" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-100 font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 mb-0.5">ناوی ئینگلیزی (بۆ ئەوەی خۆی بیهێنێت) *</label>
+                            <input type="text" x-model="editingMakeEnglish" dir="ltr" placeholder="ENGLISH NAME..." class="w-full bg-white dark:bg-slate-900 border border-amber-500/60 rounded-lg px-2 py-1 text-xs text-sky-500 font-mono uppercase font-bold">
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-1">
+                        <button type="button" @click="cancelEditMake()" class="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-xs font-bold">پەشیمانبوونەوە</button>
+                        <button type="button" @click="saveEditMake()" class="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs font-bold flex items-center gap-1 shadow">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>پاشەکەوتکردن</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto pt-1">
                     <template x-for="m in modalFilteredMakes" :key="m.id">
                         <div class="inline-flex items-center border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-lg overflow-hidden group hover:border-sky-400 transition">
@@ -941,7 +981,14 @@
                                     @click="selectCarMake(m); showCarMakeModal = false;" 
                                     class="text-[11px] px-2.5 py-1 text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-sky-950/50 flex items-center gap-1.5 transition cursor-pointer">
                                 <span class="font-bold" x-text="m.name_kurdish"></span>
-                                <span class="text-[10px] text-slate-400 font-mono" x-text="m.name_english"></span>
+                                <span class="text-[10px] text-slate-400 font-mono" x-show="m.name_english" x-text="m.name_english"></span>
+                                <span x-show="!m.name_english" class="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-500 border border-amber-500/30">بێ ئینگلیزی</span>
+                            </button>
+                            <button type="button" 
+                                    @click.stop="startEditMake(m)" 
+                                    title="دەستکاری ناوی ئینگلیزی یان کوردی"
+                                    class="px-1.5 py-1 text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/40 border-r border-slate-200 dark:border-slate-800 transition">
+                                <i class="fa-solid fa-pen-to-square text-[10px]"></i>
                             </button>
                             <button type="button" 
                                     @click.stop="deleteCarMake(m)" 
@@ -1001,6 +1048,36 @@
                        placeholder="بگەڕێ لە ڕەنگەکانی پێشوو (سپی، ڕەش، سوور...)" 
                        class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-100 font-bold focus:border-amber-500">
                 
+                <!-- Inline Color Edit Box (دەستکاریکردن یان نووسینی ناوی ئینگلیزی) -->
+                <div x-show="editingColor" x-cloak class="p-3 bg-amber-500/10 border border-amber-500/40 rounded-xl space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-amber-500 flex items-center gap-1.5">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            <span>دەستکاری ناوی ڕەنگ: <strong x-text="editingColor?.name_kurdish"></strong></span>
+                        </span>
+                        <button type="button" @click="cancelEditColor()" class="text-xs text-slate-400 hover:text-rose-500">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 mb-0.5">ناوی کوردی ڕەنگ</label>
+                            <input type="text" x-model="editingColorKurdish" class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-100 font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 dark:text-slate-400 mb-0.5">ناوی ئینگلیزی (بۆ ئەوەی خۆی بیهێنێت) *</label>
+                            <input type="text" x-model="editingColorEnglish" dir="ltr" placeholder="ENGLISH COLOR..." class="w-full bg-white dark:bg-slate-900 border border-amber-500/60 rounded-lg px-2 py-1 text-xs text-amber-500 font-mono uppercase font-bold">
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-1">
+                        <button type="button" @click="cancelEditColor()" class="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded text-xs font-bold">پەشیمانبوونەوە</button>
+                        <button type="button" @click="saveEditColor()" class="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs font-bold flex items-center gap-1 shadow">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>پاشەکەوتکردن</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto pt-1">
                     <template x-for="c in modalFilteredColors" :key="c.id">
                         <div class="inline-flex items-center border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-lg overflow-hidden group hover:border-amber-400 transition">
@@ -1008,7 +1085,14 @@
                                     @click="selectCarColor(c); showCarColorModal = false;" 
                                     class="text-[11px] px-2.5 py-1 text-slate-800 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-amber-950/50 flex items-center gap-1.5 transition cursor-pointer">
                                 <span class="font-bold" x-text="c.name_kurdish"></span>
-                                <span class="text-[10px] text-slate-400 font-mono" x-text="c.name_english"></span>
+                                <span class="text-[10px] text-slate-400 font-mono" x-show="c.name_english" x-text="c.name_english"></span>
+                                <span x-show="!c.name_english" class="text-[9px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-500 border border-amber-500/30">بێ ئینگلیزی</span>
+                            </button>
+                            <button type="button" 
+                                    @click.stop="startEditColor(c)" 
+                                    title="دەستکاری ناوی ئینگلیزی یان کوردی"
+                                    class="px-1.5 py-1 text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/40 border-r border-slate-200 dark:border-slate-800 transition">
+                                <i class="fa-solid fa-pen-to-square text-[10px]"></i>
                             </button>
                             <button type="button" 
                                     @click.stop="deleteCarColor(c)" 
@@ -1172,6 +1256,9 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
         modalMakeSearch: '',
         newMakeKurdish: '',
         newMakeEnglish: '',
+        editingMake: null,
+        editingMakeKurdish: '',
+        editingMakeEnglish: '',
 
         // Colors list & modal (Req 2A)
         allColors: colorsList || [],
@@ -1180,6 +1267,9 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
         modalColorSearch: '',
         newColorKurdish: '',
         newColorEnglish: '',
+        editingColor: null,
+        editingColorKurdish: '',
+        editingColorEnglish: '',
 
         // Chassis status & Active Booklet Duplicate Check (Req 1)
         isCheckingChassis: false,
@@ -1471,6 +1561,153 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
                 }
             })
             .catch(() => alert('هەڵەی پەیوەندی بە سێرڤەر بۆ سڕینەوەی ڕەنگ.'));
+        },
+
+        canSaveMakeEnglishPermanently() {
+            if (!this.carMakeId || !this.carMakeEng) return false;
+            const found = this.allMakes.find(m => m.id == this.carMakeId);
+            if (!found) return false;
+            return (found.name_english || '').trim().toUpperCase() !== this.carMakeEng.trim().toUpperCase();
+        },
+
+        saveCurrentMakeEnglishPermanently() {
+            if (!this.carMakeId || !this.carMakeEng) return;
+            const make = this.allMakes.find(m => m.id == this.carMakeId);
+            if (!make) return;
+
+            const english = this.carMakeEng.trim().toUpperCase();
+            fetch(`/settings/lookups/car-makes/${make.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    name_kurdish: make.name_kurdish,
+                    name_english: english
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.item) {
+                    make.name_english = data.item.name_english;
+                    this.carMakeEng = data.item.name_english;
+                    alert(`ناوی ئینگلیزی [${data.item.name_english}] بۆ هەمیشە بۆ مارکەی [${make.name_kurdish}] پاشەکەوتکرا! لەمەودوا خۆی دەیهێنێت.`);
+                } else {
+                    alert(data.message || 'هەڵەیەک ڕوویدا لە پاشەکەوتکردن.');
+                }
+            })
+            .catch(() => alert('هەڵەی پەیوەندی بە سێرڤەر.'));
+        },
+
+        startEditMake(make) {
+            this.editingMake = make;
+            this.editingMakeKurdish = make.name_kurdish || '';
+            this.editingMakeEnglish = make.name_english || '';
+        },
+
+        cancelEditMake() {
+            this.editingMake = null;
+            this.editingMakeKurdish = '';
+            this.editingMakeEnglish = '';
+        },
+
+        saveEditMake() {
+            if (!this.editingMake) return;
+            const id = this.editingMake.id;
+            const kurdish = (this.editingMakeKurdish || '').trim();
+            const english = (this.editingMakeEnglish || '').trim().toUpperCase();
+
+            if (!kurdish) {
+                alert('تکایە ناوی کوردی مارکە بنووسە!');
+                return;
+            }
+
+            fetch(`/settings/lookups/car-makes/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    name_kurdish: kurdish,
+                    name_english: english
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.item) {
+                    const idx = this.allMakes.findIndex(m => m.id == id);
+                    if (idx !== -1) {
+                        this.allMakes[idx].name_kurdish = data.item.name_kurdish;
+                        this.allMakes[idx].name_english = data.item.name_english;
+                    }
+                    if (this.carMakeId == id) {
+                        this.selectedMakeKurdish = data.item.name_kurdish;
+                        this.carMakeEng = data.item.name_english || '';
+                    }
+                    this.cancelEditMake();
+                } else {
+                    alert(data.message || 'هەڵەیەک ڕوویدا لە پاشەکەوتکردنی گۆڕانکاری.');
+                }
+            })
+            .catch(() => alert('هەڵەی پەیوەندی بە سێرڤەر.'));
+        },
+
+        startEditColor(color) {
+            this.editingColor = color;
+            this.editingColorKurdish = color.name_kurdish || '';
+            this.editingColorEnglish = color.name_english || '';
+        },
+
+        cancelEditColor() {
+            this.editingColor = null;
+            this.editingColorKurdish = '';
+            this.editingColorEnglish = '';
+        },
+
+        saveEditColor() {
+            if (!this.editingColor) return;
+            const id = this.editingColor.id;
+            const kurdish = (this.editingColorKurdish || '').trim();
+            const english = (this.editingColorEnglish || '').trim().toUpperCase();
+
+            if (!kurdish) {
+                alert('تکایە ناوی کوردی ڕەنگ بنووسە!');
+                return;
+            }
+
+            fetch(`/settings/lookups/car-colors/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    name_kurdish: kurdish,
+                    name_english: english
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.item) {
+                    const idx = this.allColors.findIndex(c => c.id == id);
+                    if (idx !== -1) {
+                        this.allColors[idx].name_kurdish = data.item.name_kurdish;
+                        this.allColors[idx].name_english = data.item.name_english;
+                    }
+                    if (this.carColorId == id) {
+                        this.selectedColorKurdish = data.item.name_kurdish;
+                    }
+                    this.cancelEditColor();
+                } else {
+                    alert(data.message || 'هەڵەیەک ڕوویدا لە پاشەکەوتکردنی گۆڕانکاری.');
+                }
+            })
+            .catch(() => alert('هەڵەی پەیوەندی بە سێرڤەر.'));
         },
 
         onChassisInput(e) {

@@ -493,8 +493,8 @@
                         <thead class="bg-slate-900/80 text-slate-400 sticky top-0 z-10">
                             <tr>
                                 <th class="p-3">#</th>
-                                <th class="p-3">ناوی مارکە (کوردی)</th>
-                                <th class="p-3">ناوی مارکە (ئینگلیزی)</th>
+                                <th class="p-3">دەستکاری ناوی مارکە (کوردی و ئینگلیزی)</th>
+                                <th class="p-3"></th>
                                 <th class="p-3 text-left">کردار (سڕینەوە)</th>
                             </tr>
                         </thead>
@@ -503,8 +503,23 @@
                                 <tr class="hover:bg-slate-700/30 text-slate-200 transition"
                                     x-show="!makeSearch || '{{ strtolower($make->name_kurdish . ' ' . $make->name_english) }}'.includes(makeSearch.toLowerCase().trim())">
                                     <td class="p-3 font-mono text-slate-400">{{ $loop->iteration }}</td>
-                                    <td class="p-3 font-bold text-white text-sm">{{ $make->name_kurdish }}</td>
-                                    <td class="p-3 font-mono text-sky-400 text-xs">{{ $make->name_english }}</td>
+                                    <td class="p-3" colspan="2">
+                                        <form action="{{ route('settings.lookups.car_makes.update', $make->id) }}" method="POST" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="text" name="name_kurdish" value="{{ $make->name_kurdish }}" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white font-bold w-full sm:w-48 focus:border-indigo-500 focus:outline-none">
+                                            <div class="relative flex-1">
+                                                <input type="text" name="name_english" value="{{ $make->name_english }}" placeholder="ناوی ئینگلیزی بنووسە..." dir="ltr" class="w-full bg-slate-900 border {{ empty($make->name_english) ? 'border-amber-500/80 bg-amber-950/20' : 'border-slate-700' }} rounded-xl px-3 py-1.5 text-xs text-sky-400 font-mono uppercase font-bold focus:border-indigo-500 focus:outline-none">
+                                                @if(empty($make->name_english))
+                                                    <span class="absolute left-2.5 top-1.5 text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">بێ ئینگلیزی</span>
+                                                @endif
+                                            </div>
+                                            <button type="submit" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition shadow flex items-center justify-center gap-1.5" title="پاشەکەوتکردن">
+                                                <i class="fa-solid fa-floppy-disk text-xs"></i>
+                                                <span>پاشەکەوت</span>
+                                            </button>
+                                        </form>
+                                    </td>
                                     <td class="p-3 text-left">
                                         <form action="{{ route('lookup.car_make.destroy', $make->id) }}" method="POST" class="inline" onsubmit="return confirm('ئایا دڵنیایت لە سڕینەوەی مارکەی [{{ $make->name_kurdish }}]؟')">
                                             @csrf
@@ -568,8 +583,8 @@
                         <thead class="bg-slate-900/80 text-slate-400 sticky top-0 z-10">
                             <tr>
                                 <th class="p-3">#</th>
-                                <th class="p-3">ناوی ڕەنگ (کوردی)</th>
-                                <th class="p-3">ناوی ڕەنگ (ئینگلیزی)</th>
+                                <th class="p-3">دەستکاری ناوی ڕەنگ (کوردی و ئینگلیزی)</th>
+                                <th class="p-3"></th>
                                 <th class="p-3 text-left">کردار (سڕینەوە)</th>
                             </tr>
                         </thead>
@@ -578,8 +593,23 @@
                                 <tr class="hover:bg-slate-700/30 text-slate-200 transition"
                                     x-show="!colorSearch || '{{ strtolower($color->name_kurdish . ' ' . $color->name_english) }}'.includes(colorSearch.toLowerCase().trim())">
                                     <td class="p-3 font-mono text-slate-400">{{ $loop->iteration }}</td>
-                                    <td class="p-3 font-bold text-white text-sm">{{ $color->name_kurdish }}</td>
-                                    <td class="p-3 font-mono text-amber-400 text-xs">{{ $color->name_english }}</td>
+                                    <td class="p-3" colspan="2">
+                                        <form action="{{ route('settings.lookups.car_colors.update', $color->id) }}" method="POST" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="text" name="name_kurdish" value="{{ $color->name_kurdish }}" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white font-bold w-full sm:w-48 focus:border-amber-500 focus:outline-none">
+                                            <div class="relative flex-1">
+                                                <input type="text" name="name_english" value="{{ $color->name_english }}" placeholder="ناوی ئینگلیزی بنووسە..." dir="ltr" class="w-full bg-slate-900 border {{ empty($color->name_english) ? 'border-amber-500/80 bg-amber-950/20' : 'border-slate-700' }} rounded-xl px-3 py-1.5 text-xs text-amber-400 font-mono uppercase font-bold focus:border-amber-500 focus:outline-none">
+                                                @if(empty($color->name_english))
+                                                    <span class="absolute left-2.5 top-1.5 text-[9px] px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">بێ ئینگلیزی</span>
+                                                @endif
+                                            </div>
+                                            <button type="submit" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition shadow flex items-center justify-center gap-1.5" title="پاشەکەوتکردن">
+                                                <i class="fa-solid fa-floppy-disk text-xs"></i>
+                                                <span>پاشەکەوت</span>
+                                            </button>
+                                        </form>
+                                    </td>
                                     <td class="p-3 text-left">
                                         <form action="{{ route('lookup.car_color.destroy', $color->id) }}" method="POST" class="inline" onsubmit="return confirm('ئایا دڵنیایت لە سڕینەوەی ڕەنگی [{{ $color->name_kurdish }}]؟')">
                                             @csrf
