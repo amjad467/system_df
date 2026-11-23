@@ -470,7 +470,7 @@
                     @endif
 
                     <!-- مامەڵەی نوێ (Compact & Clean Button) -->
-                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.create')))
+                    @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.create')) && auth()->user()->role !== 'inspector')
                         <a href="{{ route('transactions.create') }}" class="px-3.5 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-md shadow-emerald-600/30 flex items-center gap-1.5 transition active:scale-95 shrink-0">
                             <i class="fa-solid fa-plus-circle text-xs"></i>
                             <span>تۆماری نوێ</span>
@@ -915,7 +915,7 @@
                 @endif
 
                 <!-- 3. ناوەند: مامەڵەی نوێ یان سکانەر (Raised Center Action) -->
-                @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.create'))
+                @if((auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.create')) && auth()->user()->role !== 'inspector')
                     <a href="{{ route('transactions.create') }}" class="flex flex-col items-center justify-center -mt-4 group">
                         <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/40 group-active:scale-95 transition">
                             <i class="fa-solid fa-plus text-xl"></i>

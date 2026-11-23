@@ -103,6 +103,7 @@
     $linkedPledge = $linkedPledge ?? $transaction->getLinkedPledgeOrParent();
     $isArchiverOrAdmin = auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('transactions.submit'));
     $canSubmitThisType = in_array($typeId, [1, 2, 3, 4, 5, 7, 8]);
+    $auditCombinedPay = (int)($transaction->total_pay + ($linkedPledge ? $linkedPledge->total_pay : 0));
 @endphp
 
 <div class="max-w-5xl mx-auto space-y-6 pb-24" x-data="{ 
@@ -116,7 +117,7 @@
     showSubmitModal: false,
     showCustomsLetterModal: false,
     showArchiveInspectionPromptModal: {{ session('archive_inspection_prompt_letter') ? 'true' : 'false' }},
-    showAuditPromptModal: {{ session('audit_completed_prompt_letter') ? 'true' : 'false' }},
+    showAuditPromptModal: false,
     showPaymentPromptModal: {{ session('payment_completed_prompt_receipt') ? 'true' : 'false' }},
     showInspectionPromptModal: {{ session('inspection_completed_prompt_print') ? 'true' : 'false' }},
     showDataEntryPromptModal: {{ session('data_entry_completed_prompt_print') ? 'true' : 'false' }},
@@ -124,7 +125,8 @@
     linkedReceipt: '',
     hasLinked: {{ ($linkedPledge && !$linkedPledge->is_paid) ? 'true' : 'false' }},
     confirmAuditAmount: '',
-    expectedAuditAmount: '{{ (int)$transaction->total_pay }}'
+    expectedAuditAmount: '{{ $auditCombinedPay }}',
+    expectedSingleAuditAmount: '{{ (int)$transaction->total_pay }}'
 }">
     
     <!-- ========================================================================= -->
@@ -373,7 +375,7 @@
 
 
             <!-- 4. Follow-up Transaction Dropdown -->
-            @if(auth()->user()->isAdmin() || auth()->user()->role === 'data_entry')
+            @if((auth()->user()->isAdmin() || auth()->user()->role === 'data_entry') && auth()->user()->role !== 'inspector')
                 <div class="relative" x-data="{ openFollowUp: false }">
                     <button type="button" @click="openFollowUp = !openFollowUp" 
                             class="px-3 py-2 bg-slate-800 hover:bg-slate-750 text-sky-300 hover:text-white border border-slate-700 text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 shrink-0">
@@ -1346,17 +1348,6 @@
                                 </span>
                             @endif
 
-                            <!-- چاپی نوسراوی ئیداری لە قۆناغی وردبینی (تەنها بۆ ئەو جۆرەی کە پەیوەندیدارە) -->
-                            @if($transaction->isCancellation())
-                                <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوەی دەفتەر لە قۆناغی وردبینی">
-                                    <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نووسراوی پووچەڵکردنەوە
-                                </a>
-                            @elseif($transaction->isBookletIssue())
-                                <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن لە قۆناغی وردبینی">
-                                    <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نیشانەی ڕەفتارنەکردن
-                                </a>
-                            @endif
-
                             <button type="button" @click="returnStage = 'audit'; showReturnModal = true" class="px-4 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/20 transition flex items-center">
                                 <i class="fa-solid fa-rotate-left ml-1.5"></i> گەڕاندنەوە بەهۆی بوونی هەڵە
                             </button>
@@ -1369,17 +1360,6 @@
 
                     <!-- If Audited, but before Payment: Auditor/Admin can Revert Audit or Return to Previous Step -->
                     @if($transaction->is_audited && !$transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->hasPermission('transactions.audit')))
-                        <!-- نوسراوی ئیداری پاش پەسەندکردنی وردبینی (تەنها بۆ ئەو جۆرەی کە پەیوەندیدارە) -->
-                        @if($transaction->isCancellation())
-                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی پووچەڵکردنەوە">
-                                <i class="fa-solid fa-file-circle-xmark ml-1.5"></i> نووسراوی پووچەڵکردنەوە
-                            </a>
-                        @elseif($transaction->isBookletIssue())
-                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن">
-                                <i class="fa-solid fa-file-circle-exclamation ml-1.5"></i> نیشانەی ڕەفتارنەکردن
-                            </a>
-                        @endif
-
                         <form action="{{ route('transactions.revert_audit', $transaction->id) }}" method="POST" class="inline" onsubmit="return confirm('ئایا دڵنیایت لە هەڵوەشاندنەوەی پەسەندی وردبینی؟ مامەڵەکە دەگەڕێتەوە بۆ چاوەڕوانی وردبینی.');">
                             @csrf
                             <button type="submit" class="px-4 py-2 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-purple-700/25 transition flex items-center">
@@ -1551,7 +1531,7 @@
                     </div>
                 @endif
 
-                @if($transaction->isCancellation() || $transaction->no_nusraw_puchal)
+                @if($transaction->isCancellation())
                     @php
                         $resolvedCustomsNo = $transaction->getResolvedCustomsLetterNumber();
                         $resolvedCustomsDate = $transaction->getResolvedCustomsLetterDate();
@@ -1717,10 +1697,25 @@
                     <span class="text-slate-400">کەشف و تەخمین:</span>
                     <span class="font-mono text-slate-200">{{ number_format($transaction->pay_inspection) }} د.ع</span>
                 </div>
-                <div class="flex justify-between py-2 font-bold text-base border-t border-slate-700">
-                    <span class="text-white">کۆی تێکڕای پارەداوە:</span>
-                    <span class="font-mono text-emerald-400 font-extrabold">{{ number_format($transaction->total_pay) }} د.ع</span>
-                </div>
+                @if($linkedPledge)
+                    <div class="flex justify-between py-1 text-xs border-t border-slate-700/60 text-slate-300">
+                        <span>رسوماتی دەفتەر:</span>
+                        <span class="font-mono">{{ number_format($transaction->total_pay) }} د.ع</span>
+                    </div>
+                    <div class="flex justify-between py-1 text-xs text-amber-300">
+                        <span>رسوماتی بەڵێننامە:</span>
+                        <span class="font-mono">{{ number_format($linkedPledge->total_pay) }} د.ع</span>
+                    </div>
+                    <div class="flex justify-between py-2 font-black text-base border-t border-slate-700 text-emerald-400">
+                        <span>کۆی گشتی (دەفتەر + بەڵێننامە):</span>
+                        <span class="font-mono text-lg font-black">{{ number_format($transaction->total_pay + $linkedPledge->total_pay) }} د.ع</span>
+                    </div>
+                @else
+                    <div class="flex justify-between py-2 font-bold text-base border-t border-slate-700">
+                        <span class="text-white">کۆی تێکڕای پارەداوە:</span>
+                        <span class="font-mono text-emerald-400 font-extrabold">{{ number_format($transaction->total_pay) }} د.ع</span>
+                    </div>
+                @endif
                 <div class="flex justify-between py-1 text-xs">
                     <span class="text-slate-400">بارودۆخی پارەدان:</span>
                     @if($transaction->is_paid)
@@ -2430,9 +2425,12 @@
                     </span>
                 </div>
 
-                <div class="text-xs bg-emerald-950/50 border border-emerald-500/50 px-3 py-1 rounded-xl">
-                    <span class="text-slate-300 font-bold">کۆی بڕی پارە:</span>
-                    <strong class="font-mono text-emerald-400 text-base font-black mr-1">{{ number_format($transaction->total_pay) }} دینار</strong>
+                <div class="text-xs bg-emerald-950/50 border border-emerald-500/50 px-3 py-1.5 rounded-xl text-left">
+                    <span class="text-slate-300 font-bold">کۆی بڕی پارەی پەسەندکراو:</span>
+                    <strong class="font-mono text-emerald-400 text-base font-black mr-1">{{ number_format($auditCombinedPay) }} دینار</strong>
+                    @if($linkedPledge)
+                        <span class="text-[11px] text-slate-400 block font-normal">(دەفتەر: {{ number_format($transaction->total_pay) }} + بەڵێننامە: {{ number_format($linkedPledge->total_pay) }})</span>
+                    @endif
                 </div>
             </div>
 
@@ -2567,28 +2565,28 @@
                                     دووپاتکردنەوەی بڕی پارەکە: *
                                 </label>
                                 <button type="button" @click="confirmAuditAmount = expectedAuditAmount" class="text-[10px] text-purple-400 hover:text-purple-300 font-bold hover:underline">
-                                    خۆکار پڕی بکەوە
+                                    خۆکار پڕی بکەوە ({{ number_format($auditCombinedPay) }})
                                 </button>
                             </div>
                             <input type="text" 
                                    name="confirm_total_pay" 
                                    x-model="confirmAuditAmount" 
-                                   placeholder="نموونە: {{ number_format($transaction->total_pay) }}" 
+                                   placeholder="نموونە: {{ number_format($auditCombinedPay) }}" 
                                    required 
                                    autocomplete="off"
                                    class="w-full bg-slate-950 border border-slate-700 focus:border-purple-500 rounded-xl px-3 py-2 text-sm font-bold text-slate-100 text-center tracking-wider focus:outline-none focus:ring-2 focus:ring-purple-500/20" />
 
-                            <template x-if="confirmAuditAmount.length > 0 && confirmAuditAmount.replace(/\D/g, '') !== expectedAuditAmount">
+                            <template x-if="confirmAuditAmount.length > 0 && confirmAuditAmount.replace(/\D/g, '') !== expectedAuditAmount && confirmAuditAmount.replace(/\D/g, '') !== expectedSingleAuditAmount">
                                 <p class="text-[10px] text-rose-400 font-bold mt-1.5 flex items-center gap-1">
                                     <i class="fa-solid fa-circle-exclamation"></i>
-                                    بڕی پارەکە یەکسان نییە ({{ number_format($transaction->total_pay) }} دینار)
+                                    بڕی پارەکە یەکسان نییە ({{ number_format($auditCombinedPay) }} دینار)
                                 </p>
                             </template>
                         </div>
 
                         <div class="space-y-2 pt-1">
                             <button type="submit" 
-                                    :disabled="confirmAuditAmount.length > 0 && confirmAuditAmount.replace(/\D/g, '') !== expectedAuditAmount"
+                                    :disabled="confirmAuditAmount.length > 0 && confirmAuditAmount.replace(/\D/g, '') !== expectedAuditAmount && confirmAuditAmount.replace(/\D/g, '') !== expectedSingleAuditAmount"
                                     class="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs rounded-xl shadow-lg shadow-purple-600/30 transition flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <i class="fa-solid fa-clipboard-check"></i>
                                 <span>پەسەندکردنی کۆتایی وردبینی</span>
@@ -2796,9 +2794,15 @@
                     </span>
                 @endif
 
-                <span class="px-2.5 py-1 bg-slate-950 text-emerald-400 border border-slate-800 rounded-lg text-xs font-mono font-extrabold hidden sm:inline-block">
-                    {{ number_format($transaction->total_pay) }} د.ع
-                </span>
+                @if($linkedPledge)
+                    <span class="px-2.5 py-1 bg-slate-950 text-emerald-400 border border-slate-800 rounded-lg text-xs font-mono font-extrabold hidden sm:inline-block" title="کۆی گشتی: دەفتەر ({{ number_format($transaction->total_pay) }}) + بەڵێننامە ({{ number_format($linkedPledge->total_pay) }})">
+                        {{ number_format($transaction->total_pay + $linkedPledge->total_pay) }} د.ع
+                    </span>
+                @else
+                    <span class="px-2.5 py-1 bg-slate-950 text-emerald-400 border border-slate-800 rounded-lg text-xs font-mono font-extrabold hidden sm:inline-block">
+                        {{ number_format($transaction->total_pay) }} د.ع
+                    </span>
+                @endif
             </div>
 
             <!-- لای چەپ: بەتنە سەرەکییەکانی کارکردن بەپێی قۆناغ و دەسەڵاتی کارمەند -->
@@ -2845,18 +2849,6 @@
                         <a href="{{ route('transactions.print_pledge', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-black rounded-xl shadow transition flex items-center gap-1" title="چاپی بەڵێننامەی یاسایی">
                             <i class="fa-solid fa-file-contract"></i> بەڵێننامە (یاسایی)
                         </a>
-                    @endif
-
-                    @if($transaction->is_inspected && (!$transaction->is_submitted || auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.cancellation') || auth()->user()->hasPermission('prints.restriction')) && (auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->role === 'booklet' || auth()->user()->hasPermission('prints.cancellation') || auth()->user()->hasPermission('prints.restriction')))
-                        @if($transaction->isCancellation() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('prints.cancellation') || auth()->user()->role === 'auditor' || auth()->user()->role === 'booklet'))
-                            <a href="{{ route('transactions.print_cancellation', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-rose-700 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نووسراوی پووچەڵکردنەوە">
-                                <i class="fa-solid fa-file-circle-xmark"></i> نووسراوی پووچەڵکردنەوە
-                            </a>
-                        @elseif($transaction->isBookletIssue() && (auth()->user()->isAdmin() || auth()->user()->hasPermission('prints.restriction') || auth()->user()->role === 'auditor' || auth()->user()->role === 'booklet'))
-                            <a href="{{ route('transactions.print_restriction', $transaction->id) }}" target="_blank" class="px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1" title="چاپی نووسراوی دانانی نیشانەی ڕەفتارنەکردن">
-                                <i class="fa-solid fa-file-circle-exclamation"></i> نیشانەی ڕەفتارنەکردن
-                            </a>
-                        @endif
                     @endif
 
                     <!-- 4. وەرگرتنی پارە و وەسڵی ۳۷/أ (Cashier / Admin) -->

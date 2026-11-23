@@ -2195,11 +2195,14 @@ class TransactionController extends Controller
             return redirect()->back()->with('error', 'کاری تەخمین ئەنجام بدە دواتر وەرە وردبینی! ناتوانرێت ستێپی تەخمین تێپەڕێندرێت.');
         }
 
+        $linked = $transaction->getLinkedPledgeOrParent();
+
         if ($request->filled('confirm_total_pay')) {
             $entered = (float)preg_replace('/[^\d.]/', '', (string)$request->confirm_total_pay);
-            $actual = (float)$transaction->total_pay;
-            if (abs($entered - $actual) > 0.01) {
-                return redirect()->back()->with('error', 'بڕی پارەی دووپاتکراوە (' . number_format($entered) . ' د.ع) یەکسان نییە لەگەڵ کۆی گشتی مامەڵەکە (' . number_format($actual) . ' د.ع)!');
+            $actualCombined = (float)($transaction->total_pay + ($linked ? $linked->total_pay : 0));
+            $actualSingle = (float)$transaction->total_pay;
+            if (abs($entered - $actualCombined) > 0.01 && abs($entered - $actualSingle) > 0.01) {
+                return redirect()->back()->with('error', 'بڕی پارەی دووپاتکراوە (' . number_format($entered) . ' د.ع) یەکسان نییە لەگەڵ کۆی گشتی مامەڵەکە (' . number_format($actualCombined) . ' د.ع)!');
             }
         }
         $transaction->update([
@@ -2210,7 +2213,6 @@ class TransactionController extends Controller
             'return_reason' => null,
         ]);
 
-        $linked = $transaction->getLinkedPledgeOrParent();
         $auditMsg = 'وردبینی مامەڵەکە بە سەرکەوتوویی ئەنجامدرا.';
         if ($linked && !$linked->is_audited) {
             $linked->update([
@@ -2225,11 +2227,6 @@ class TransactionController extends Controller
             ]);
             AuditLogger::log('وردبینی هاوبەشی بەڵێننامە و دەرهێنان', Transaction::class, $linked->id, "وردبینی هاوبەش ئەنجامدرا بۆ: {$linked->barcode}");
             $auditMsg = 'وردبینی مامەڵەی سەرەکی و بەڵێننامەی بەستراوە بە یەک کردار بە سەرکەوتوویی پەسەندکرا.';
-        }
-
-        // Prompt official letter print for Booklet Issue (Type 1) and Cancellation (Type 5)
-        if (in_array((int)$transaction->transaction_type_id, [1, 5])) {
-            session()->flash('audit_completed_prompt_letter', true);
         }
 
         AuditLogger::log('وردبینیکردنی مامەڵە', Transaction::class, $transaction->id, "وردبینی پەسەندکرا بۆ بارکۆد: {$transaction->barcode}");

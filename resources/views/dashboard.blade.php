@@ -78,7 +78,7 @@
                     </div>
                 @endif
 
-                @if(auth()->user()->isAdmin() || in_array(auth()->user()->role, ['data_entry', 'inspector', 'booklet']))
+                @if(((auth()->user()->isAdmin() && ($activeRole ?? null) !== 'inspector') || in_array(auth()->user()->role, ['data_entry', 'booklet'])) && auth()->user()->role !== 'inspector')
                     <a href="{{ route('transactions.create') }}" 
                        class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg transition flex items-center gap-2 active:scale-95" title="تۆمارکردنی مامەڵەی نوێ (Alt+N)">
                         <i class="fa-solid fa-plus text-xs"></i>
@@ -1229,7 +1229,7 @@
                                     <i class="fa-solid fa-chevron-left text-[10px] text-slate-400"></i>
                                 </a>
                             @endif
-                            @if(auth()->user()->hasPermission('transactions.create'))
+                            @if(auth()->user()->hasPermission('transactions.create') && auth()->user()->role !== 'inspector' && ($activeRole ?? null) !== 'inspector')
                                 <a href="{{ route('transactions.create') }}" class="p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-between transition">
                                     <span><i class="fa-solid fa-plus-circle ml-1.5"></i> تۆمارکردنی نوێ</span>
                                     <i class="fa-solid fa-chevron-left text-[10px]"></i>
