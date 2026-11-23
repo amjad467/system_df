@@ -121,6 +121,7 @@
     showReturnModal: false, 
     returnStage: '{{ $transaction->is_inspected ? 'audit' : 'inspection' }}', 
     showRevertModal: false,
+    showDeleteModal: false,
     showAuditModal: false,
     showSubmitModal: false,
     showCustomsLetterModal: false,
@@ -141,7 +142,7 @@
     <!-- ========================================================================= -->
     <!-- 1. SLEEK ACTION & NAVIGATION TOOLBAR                                      -->
     <!-- ========================================================================= -->
-    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-2 sm:p-2.5 shadow-xl flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5 backdrop-blur-md">
+    <div class="relative z-40 bg-slate-900/90 border border-slate-800 rounded-2xl p-2 sm:p-2.5 shadow-xl flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5 backdrop-blur-md">
         <div class="flex items-center space-x-2 space-x-reverse shrink-0">
             @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver'))
                 <a href="{{ route('transactions.index') }}" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm border border-slate-700/60" title="گەڕانەوە بۆ لیستی مامەڵەکان">
@@ -228,7 +229,7 @@
             @endif
 
             <!-- 2. Master Prints Dropdown (Never Closes Unexpectedly & Complete Options) -->
-            <div class="relative" x-data="{ openPrintsMenu: false }">
+            <div class="relative" x-data="{ openPrintsMenu: false }" :class="openPrintsMenu ? 'z-50' : 'z-20'">
                 <button type="button" @click.stop="openPrintsMenu = !openPrintsMenu" 
                         class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-indigo-300 hover:text-white border border-indigo-500/40 hover:border-indigo-500/70 text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 shrink-0">
                     <i class="fa-solid fa-print text-indigo-400 text-xs"></i>
@@ -385,16 +386,16 @@
 
             <!-- 4. Follow-up Transaction Dropdown -->
             @if((auth()->user()->isAdmin() || auth()->user()->role === 'data_entry') && auth()->user()->role !== 'inspector')
-                <div class="relative" x-data="{ openFollowUp: false }">
-                    <button type="button" @click="openFollowUp = !openFollowUp" 
-                            class="px-3 py-2 bg-slate-800 hover:bg-slate-750 text-sky-300 hover:text-white border border-slate-700 text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 shrink-0">
+                <div class="relative" x-data="{ openFollowUp: false }" :class="openFollowUp ? 'z-50' : 'z-20'">
+                    <button type="button" @click.stop="openFollowUp = !openFollowUp" 
+                            class="px-3 py-1.5 bg-slate-800 hover:bg-slate-750 text-sky-300 hover:text-white border border-slate-700 text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 shrink-0">
                         <i class="fa-solid fa-arrows-split-up-and-left text-sky-400 text-xs"></i>
                         <span>مامەڵەی نوێ</span>
                         <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="openFollowUp ? 'rotate-180' : ''"></i>
                     </button>
 
-                    <div x-show="openFollowUp" @click.away="openFollowUp = false" x-cloak 
-                         class="absolute left-0 mt-2 w-56 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-1.5 z-50 space-y-1 text-xs text-right">
+                    <div x-show="openFollowUp" x-on:click.outside="openFollowUp = false" x-cloak 
+                         class="absolute left-0 top-full mt-2 w-56 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-1.5 z-[100] space-y-1 text-xs text-right ring-1 ring-white/10">
                         <a href="{{ route('transactions.create', ['from_transaction' => $transaction->id, 'target_type' => 2]) }}" class="flex items-center gap-2 p-2 rounded-lg text-slate-200 hover:bg-sky-600 hover:text-white transition">
                             <i class="fa-solid fa-rotate-right text-sky-400"></i>
                             <span>تازەکردنەوەی دەفتەر</span>
@@ -423,41 +424,46 @@
             @if($transaction->is_audited && !$transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->role === 'auditor' || auth()->user()->hasPermission('transactions.audit')))
                 <form action="{{ route('transactions.revert_audit', $transaction->id) }}" method="POST" class="inline" onsubmit="return confirm('ئایا دڵنیایت لە هەڵوەشاندنەوەی پەسەندی وردبینی؟ مامەڵەکە دەگەڕێتەوە بۆ چاوەڕوانی وردبینی.');">
                     @csrf
-                    <button type="submit" class="px-2.5 py-2 bg-purple-700/80 hover:bg-purple-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1 shrink-0" title="هەڵوەشاندنەوەی وردبینی">
+                    <button type="submit" class="px-2.5 py-1.5 bg-purple-700/80 hover:bg-purple-600 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1 shrink-0" title="هەڵوەشاندنەوەی وردبینی">
                         <i class="fa-solid fa-arrow-rotate-left"></i>
                         <span>هەڵوەشاندنەوە</span>
                     </button>
                 </form>
-                <button type="button" @click="returnStage = 'audit'; showReturnModal = true" class="px-2.5 py-2 bg-rose-600/80 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1 shrink-0" title="گەڕاندنەوە بۆ پێشتر">
+                <button type="button" @click="returnStage = 'audit'; showReturnModal = true" class="px-2.5 py-1.5 bg-rose-600/80 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1 shrink-0" title="گەڕاندنەوە بۆ پێشتر">
                     <i class="fa-solid fa-arrow-turn-down-left"></i>
                     <span>گەڕاندنەوە</span>
                 </button>
             @endif
 
-            <!-- 6. Admin Actions Dropdown (Reset & Soft Delete) -->
+            <!-- 6. Dedicated Admin Delete Button -->
             @if(auth()->check() && auth()->user()->isAdmin())
-                <div class="relative" x-data="{ openAdminMenu: false }">
-                    <button type="button" @click="openAdminMenu = !openAdminMenu" 
-                            class="px-2.5 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white border border-slate-700 text-xs font-bold rounded-xl shadow transition flex items-center gap-1 shrink-0" 
+                <button type="button" @click="showDeleteModal = true" 
+                        class="px-2.5 py-1.5 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 shrink-0" 
+                        title="سڕینەوەی ئەم مامەڵەیە (تەنها بۆ بەڕێوەبەر)">
+                    <i class="fa-solid fa-trash-can text-xs text-rose-400"></i>
+                    <span>سڕینەوە</span>
+                </button>
+
+                <!-- 7. Admin Actions Dropdown (Reset & Soft Delete) -->
+                <div class="relative" x-data="{ openAdminMenu: false }" :class="openAdminMenu ? 'z-50' : 'z-20'">
+                    <button type="button" @click.stop="openAdminMenu = !openAdminMenu" 
+                            class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white border border-slate-700 text-xs font-bold rounded-xl shadow transition flex items-center gap-1 shrink-0" 
                             title="کردارەکانی بەڕێوەبەر">
                         <i class="fa-solid fa-ellipsis-vertical text-slate-400"></i>
                     </button>
 
-                    <div x-show="openAdminMenu" @click.away="openAdminMenu = false" x-cloak 
-                         class="absolute left-0 mt-2 w-48 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-1.5 z-50 space-y-1 text-xs text-right">
+                    <div x-show="openAdminMenu" x-on:click.outside="openAdminMenu = false" x-cloak 
+                         class="absolute left-0 top-full mt-2 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-1.5 z-[100] space-y-1 text-xs text-right ring-1 ring-white/10">
                         <button type="button" @click="showRevertModal = true; openAdminMenu = false" 
                                 class="w-full text-right flex items-center gap-2 p-2 rounded-lg text-amber-400 hover:bg-slate-800 transition">
                             <i class="fa-solid fa-arrow-rotate-left w-4 text-center"></i>
                             <span>ڕێکخستنەوە (Reset)</span>
                         </button>
-                        <form action="{{ route('transactions.destroy', $transaction->id) }}" method="POST" onsubmit="return confirm('دڵنیایت لە سڕینەوەی کاتی (Soft Delete) ی ئەم مامەڵەیە؟')" class="w-full">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="w-full text-right flex items-center gap-2 p-2 rounded-lg text-rose-400 hover:bg-rose-950/50 transition">
-                                <i class="fa-solid fa-trash-can w-4 text-center"></i>
-                                <span>سڕینەوەی کاتی</span>
-                            </button>
-                        </form>
+                        <button type="button" @click="showDeleteModal = true; openAdminMenu = false" 
+                                class="w-full text-right flex items-center gap-2 p-2 rounded-lg text-rose-400 hover:bg-rose-950/50 transition">
+                            <i class="fa-solid fa-trash-can w-4 text-center"></i>
+                            <span>سڕینەوەی مامەڵە</span>
+                        </button>
                     </div>
                 </div>
             @endif
@@ -934,6 +940,24 @@
                                     {{ $transaction->isCancellationOrInspection() ? '-' : ($transaction->num_years ?? 1) . ' ساڵ' }}
                                     @if($transaction->start_date && $transaction->end_date)
                                         <span class="text-slate-300 font-mono text-[11px] block font-bold">{{ $transaction->start_date->format('Y-m-d') }} ➔ {{ $transaction->end_date->format('Y-m-d') }}</span>
+                                        @php
+                                            $todayDay = now()->startOfDay();
+                                            $endDay = $transaction->end_date->startOfDay();
+                                            $diffDays = (int)$todayDay->diffInDays($endDay, false);
+                                        @endphp
+                                        @if($diffDays < 0)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 mt-1 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                                <i class="fa-solid fa-triangle-exclamation"></i> بەسەرچووە (بە {{ abs($diffDays) }} ڕۆژ)
+                                            </span>
+                                        @elseif($diffDays === 0)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 mt-1 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                                <i class="fa-solid fa-clock"></i> ئەمڕۆ بەسەردەچێت (ڕۆژی کۆتایی)
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 mt-1 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                                <i class="fa-solid fa-calendar-check"></i> ماوە: {{ $diffDays }} ڕۆژ
+                                            </span>
+                                        @endif
                                     @endif
                                 </span>
                             </div>
@@ -2552,6 +2576,52 @@
             </form>
         </div>
     </div>
+
+    <!-- MODAL: Admin Delete Transaction Confirmation Modal (سڕینەوەی مامەڵە بۆ ئەدمین) -->
+    @if(auth()->check() && auth()->user()->isAdmin())
+    <div x-show="showDeleteModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[120] flex items-center justify-center p-4">
+        <div class="bg-slate-900 border-2 border-rose-500/80 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-right ring-4 ring-rose-500/20" @click.away="showDeleteModal = false">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-rose-400 flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>سڕینەوەی مامەڵە (تەنها ئەدمین)</span>
+                </h3>
+                <button @click="showDeleteModal = false" class="text-slate-400 hover:text-slate-200">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-3.5 bg-rose-950/40 border border-rose-500/40 rounded-xl space-y-2 text-xs">
+                <div class="text-rose-200 font-bold leading-relaxed">
+                    ئایا دڵنیایت لە سڕینەوەی ئەم مامەڵەیە؟ ئەگەر بە هەڵە تۆمارکرابێت یان پێویست نەبێت لێرەوە دەسڕدرێتەوە.
+                </div>
+                <div class="text-slate-300 font-mono text-[11px] bg-slate-950/80 p-2.5 rounded-lg border border-slate-800 space-y-1">
+                    <div>بارکۆد: <strong class="text-sky-400">{{ $transaction->barcode }}</strong></div>
+                    <div>هاووڵاتی: <strong class="text-white">{{ $transaction->visitor_name }}</strong></div>
+                    <div>تابلۆ: <strong class="text-amber-400">{{ $transaction->plate_number }}</strong></div>
+                    <div>جۆری مامەڵە: <strong class="text-slate-200">{{ $typeName }}</strong></div>
+                </div>
+                <p class="text-slate-400 text-[11px] leading-relaxed">
+                    تێبینی: ئەم مامەڵەیە دەخرێتە ئەرشیفی سڕدراوەکان (تەنەکەخۆڵ) و لە هەموو لیستەکان نامێنێت.
+                </p>
+            </div>
+
+            <form action="{{ route('transactions.destroy', $transaction->id) }}" method="POST">
+                @csrf
+                @method('DELETE')
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" @click="showDeleteModal = false" class="px-4 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-bold rounded-xl transition">
+                        پاشگەزبوونەوە
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/30 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span>بەڵێ، مامەڵەکە بسڕەوە</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
 
     <!-- MODAL 6: Auditor Verification Confirmation Modal (پەسەندکردنی وردبینی) -->
     <div x-show="showAuditModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-5 overflow-y-auto">

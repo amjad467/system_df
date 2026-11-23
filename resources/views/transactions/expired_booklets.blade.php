@@ -306,8 +306,12 @@
                 <tbody class="divide-y divide-slate-200 dark:divide-slate-800 font-medium">
                     @forelse($transactions as $tx)
                         @php
-                            $isPast = $tx->end_date && $tx->end_date->isPast();
-                            $daysDiff = $tx->end_date ? abs(now()->startOfDay()->diffInDays($tx->end_date->startOfDay(), false)) : 0;
+                            $todayDay = now()->startOfDay();
+                            $endDay = $tx->end_date ? $tx->end_date->startOfDay() : null;
+                            $rawDiff = $endDay ? (int)$todayDay->diffInDays($endDay, false) : 0;
+                            $isPast = $endDay && $endDay->lt($todayDay);
+                            $isToday = $endDay && $endDay->isSameDay($todayDay);
+                            $daysDiff = abs($rawDiff);
                             $normPhone = \App\Models\BookletNotice::normalizePhoneNumber($tx->phone_number);
                             $waMsg = urlencode(\App\Models\BookletNotice::generateDefaultMessage($tx->visitor_name ?? '', $tx->plate_number ?? '', $tx->booklet_number, $tx->end_date?->format('Y-m-d')));
                         @endphp
@@ -377,9 +381,13 @@
                                     <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 dark:bg-rose-500/20 text-rose-800 dark:text-rose-300 border border-rose-300 dark:border-rose-500/30">
                                         <i class="fa-solid fa-triangle-exclamation text-[10px]"></i> بەسەرچووە ({{ $daysDiff }} ڕۆژ)
                                     </span>
-                                @else
+                                @elseif($isToday)
                                     <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30">
-                                        <i class="fa-solid fa-clock text-[10px]"></i> ماوە: {{ $daysDiff }} ڕۆژ
+                                        <i class="fa-solid fa-clock text-[10px]"></i> ئەمڕۆ بەسەردەچێت
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30">
+                                        <i class="fa-solid fa-calendar-check text-[10px]"></i> ماوە: {{ $daysDiff }} ڕۆژ
                                     </span>
                                 @endif
                             </td>

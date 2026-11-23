@@ -256,7 +256,7 @@
                     ];
                 @endphp
                 <button type="button" 
-                        @click="typeId = {{ $tt->id }}; calculateFees(); validationError = '';" 
+                        @click="selectType({{ $tt->id }})" 
                         :class="typeId == {{ $tt->id }} 
                             ? '{{ $style['active'] }} scale-[1.03] font-black' 
                             : '{{ $style['day_inactive'] }} {{ $style['dark_inactive'] }} hover:scale-[1.02] font-bold'" 
@@ -397,11 +397,11 @@
                         </p>
                         <!-- Fast Action Shortcuts -->
                         <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-rose-300/40 dark:border-rose-700/40">
-                            <button type="button" @click="typeId = 5; calculateFees();" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+                            <button type="button" @click="selectType(5)" class="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer">
                                 <i class="fa-solid fa-ban"></i>
                                 <span>گۆڕین بۆ مامەڵەی پووچەڵکردنەوە</span>
                             </button>
-                            <button type="button" @click="typeId = 2; calculateFees();" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+                            <button type="button" @click="selectType(2)" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer">
                                 <i class="fa-solid fa-rotate"></i>
                                 <span>گۆڕین بۆ مامەڵەی تازەکردنەوە</span>
                             </button>
@@ -655,17 +655,17 @@
                 <!-- LOST BOOKLET OPTION (حاڵەتی ونبوونی دەفتەر لەکاتی پووچەڵکردنەوەدا) -->
                 <div class="pt-1">
                     <div class="rounded-xl border transition p-2.5"
-                         :class="isBookletLost ? 'bg-amber-500/15 border-amber-500/80 text-amber-950 dark:text-amber-100 ring-1 ring-amber-500/40' : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'">
+                         :class="(typeId == 5 || isBookletLost) ? 'bg-amber-500/15 border-amber-500/80 text-amber-950 dark:text-amber-100 ring-1 ring-amber-500/40' : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'">
                         <label class="flex items-center justify-between cursor-pointer select-none">
                             <div class="flex items-center gap-2">
                                 <div class="w-7 h-7 rounded-lg flex items-center justify-center transition"
-                                     :class="isBookletLost ? 'bg-amber-500 text-white shadow-sm' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'">
+                                     :class="(typeId == 5 || isBookletLost) ? 'bg-amber-500 text-white shadow-sm' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'">
                                     <i class="fa-solid fa-file-circle-question text-xs"></i>
                                 </div>
                                 <div>
                                     <span class="text-xs font-black block flex items-center gap-1.5">
-                                        <span>دەفتەرەکەی ونبووە؟ (نووسراوی ونبووەکان)</span>
-                                        <span x-show="typeId == 5" class="text-[9px] px-1.5 py-0.2 bg-amber-500 text-white rounded font-bold">تایبەت بە پووچەڵکردنەوە</span>
+                                        <span>دەفتەرەکەی ونبووە؟ (زانیاری ونبوونەکان)</span>
+                                        <span x-show="typeId == 5" class="text-[9px] px-1.5 py-0.2 bg-rose-600 text-white rounded font-bold">تایبەت بە پووچەڵکردنەوە</span>
                                     </span>
                                     <span class="text-[10px] text-slate-500 dark:text-slate-400">بۆ تۆمارکردنی نووسراوی بەڕێوەبەرایەتی ونبووەکان لەسەر فیشەکە</span>
                                 </div>
@@ -679,9 +679,9 @@
                         </label>
 
                         <!-- Lost Letter Input Fields -->
-                        <div x-show="isBookletLost" x-cloak class="mt-2.5 pt-2 border-t border-amber-500/30 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div x-show="typeId == 5 || isBookletLost" x-cloak class="mt-2.5 pt-2 border-t border-amber-500/30 grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div>
-                                <label class="block text-[10px] font-black text-slate-700 dark:text-slate-300 mb-0.5">ژمارەی نووسراوی ونبووەکان *</label>
+                                <label class="block text-[10px] font-black text-slate-700 dark:text-slate-300 mb-0.5">ژمارەی نووسراوی ونبووەکان <span x-show="typeId == 5" class="text-amber-500">*</span></label>
                                 <input type="text" 
                                        name="lost_letter_number" 
                                        x-model="lostLetterNumber" 
@@ -690,7 +690,7 @@
                                        class="w-full bg-white dark:bg-slate-950 border border-amber-500/60 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-100 font-mono font-bold focus:border-amber-500">
                             </div>
                             <div>
-                                <label class="block text-[10px] font-black text-slate-700 dark:text-slate-300 mb-0.5">بەرواری نووسراوی ونبووەکان *</label>
+                                <label class="block text-[10px] font-black text-slate-700 dark:text-slate-300 mb-0.5">بەرواری نووسراوی ونبووەکان <span x-show="typeId == 5" class="text-amber-500">*</span></label>
                                 <input type="date" 
                                        name="lost_letter_date" 
                                        x-model="lostLetterDate" 
@@ -942,7 +942,7 @@
                 </div>
 
                 <!-- Validity Duration (Years) -->
-                <div x-show="isFullBookletForm()" class="space-y-1">
+                <div x-show="isFullBookletForm()" class="space-y-1.5">
                     <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300">ماوەی دەفتەر (ساڵ)</label>
                     <div class="grid grid-cols-3 gap-1.5">
                         <button type="button" 
@@ -963,6 +963,24 @@
                                 class="py-1 rounded-lg text-xs transition cursor-pointer">
                             ٣ ساڵ
                         </button>
+                    </div>
+
+                    <!-- بەرواری دەستپێکردن و بەسەرچوون بەپێی ڕۆژەکان -->
+                    <div class="grid grid-cols-2 gap-2 pt-1 text-xs">
+                        <div>
+                            <span class="block text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">دەستپێکردن:</span>
+                            <input type="date" x-model="startDate" @change="updateDates(); calculateFees();" 
+                                   class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1 text-xs font-mono font-bold text-slate-800 dark:text-slate-200">
+                        </div>
+                        <div>
+                            <span class="block text-[10px] text-slate-500 dark:text-slate-400 mb-0.5">بەسەرچوون (ڕۆژ):</span>
+                            <input type="date" x-model="endDate" @change="calculateFees();" 
+                                   class="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-lg px-2 py-1 text-xs font-mono font-bold text-amber-600 dark:text-amber-400">
+                        </div>
+                    </div>
+                    <div class="text-[10px] font-mono text-slate-500 flex items-center justify-between px-1">
+                        <span>ماوە بەپێی ڕۆژەکان:</span>
+                        <span class="font-bold text-sky-600 dark:text-sky-400" x-text="calculateDaysBetween() + ' ڕۆژ'"></span>
                     </div>
                 </div>
 
@@ -1370,9 +1388,9 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
         editingColorEnglish: '',
 
         // Lost Booklet State (حاڵەتی ونبوونی دەفتەر)
-        isBookletLost: initialTx ? Boolean(initialTx.is_booklet_lost) : false,
+        isBookletLost: initialTx ? Boolean(initialTx.is_booklet_lost) : ((targetTypeId == 5) ? true : false),
         lostLetterNumber: initialTx ? (initialTx.lost_letter_number || '') : '',
-        lostLetterDate: initialTx ? (initialTx.lost_letter_date ? String(initialTx.lost_letter_date).substring(0, 10) : '') : '',
+        lostLetterDate: initialTx ? (initialTx.lost_letter_date ? String(initialTx.lost_letter_date).substring(0, 10) : '{{ date("Y-m-d") }}') : '{{ date("Y-m-d") }}',
         lostDirectorateName: initialTx ? (initialTx.lost_directorate_name || 'بەڕێوەبەرایەتی ونبووەکان') : 'بەڕێوەبەرایەتی ونبووەکان',
 
         // Customs Letter for Cancellation (نووسراوی گومرگ بۆ پووچەڵکردنەوە)
@@ -1432,6 +1450,11 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
         },
 
         init() {
+            if (parseInt(this.typeId) === 5) {
+                this.isBookletLost = true;
+                if (!this.lostLetterDate) this.lostLetterDate = '{{ date("Y-m-d") }}';
+                if (!this.lostDirectorateName) this.lostDirectorateName = 'بەڕێوەبەرایەتی ونبووەکان';
+            }
             // Initialize selected make Kurdish name if already set
             if (this.carMakeId) {
                 const found = this.allMakes.find(m => m.id == this.carMakeId);
@@ -1451,6 +1474,17 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
                 this.onPlateInput(this.plateNumber);
             }
             this.calculateFees();
+        },
+
+        selectType(id) {
+            this.typeId = id;
+            if (parseInt(id) === 5) {
+                this.isBookletLost = true;
+                if (!this.lostLetterDate) this.lostLetterDate = '{{ date("Y-m-d") }}';
+                if (!this.lostDirectorateName) this.lostDirectorateName = 'بەڕێوەبەرایەتی ونبووەکان';
+            }
+            this.calculateFees();
+            this.validationError = '';
         },
 
         onPlateInput(e) {
@@ -1564,11 +1598,23 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             return [1, 2, 3, 4, 7].includes(parseInt(this.typeId));
         },
 
+        calculateDaysBetween() {
+            if (!this.startDate || !this.endDate) return 0;
+            const start = new Date(this.startDate);
+            const end = new Date(this.endDate);
+            const diffTime = end - start;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays > 0 ? diffDays : 0;
+        },
+
         updateDates() {
-            const now = new Date();
-            const y = now.getFullYear() + parseInt(this.numYears);
-            const m = String(now.getMonth() + 1).padStart(2, '0');
-            const d = String(now.getDate()).padStart(2, '0');
+            let start = this.startDate ? new Date(this.startDate) : new Date();
+            if (isNaN(start.getTime())) start = new Date();
+            const end = new Date(start.getTime());
+            end.setFullYear(end.getFullYear() + parseInt(this.numYears));
+            const y = end.getFullYear();
+            const m = String(end.getMonth() + 1).padStart(2, '0');
+            const d = String(end.getDate()).padStart(2, '0');
             this.endDate = `${y}-${m}-${d}`;
         },
 

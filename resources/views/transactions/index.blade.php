@@ -901,6 +901,16 @@
                                         <span>بینین</span>
                                         <i class="fa-solid fa-arrow-left text-[10px]"></i>
                                     </a>
+
+                                    @if(auth()->check() && auth()->user()->isAdmin())
+                                        <form action="{{ route('transactions.destroy', $tx->id) }}" method="POST" class="inline" onsubmit="return confirm('ئایا دڵنیایت لە سڕینەوەی ئەم مامەڵەیە؟ (بارکۆد: {{ $tx->barcode }})');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition" title="سڕینەوەی مامەڵە (ئەدمین)">
+                                                <i class="fa-solid fa-trash-can text-xs"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
