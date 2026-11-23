@@ -354,6 +354,44 @@
             </div>
         </div>
 
+        <!-- Bottom Committee Signatures (لیژنە: ئەندام - ئەندام - سەرۆکی لیژنە) -->
+        <div class="border-t-2 border-black pt-2.5 my-2">
+            <div class="grid grid-cols-3 gap-6 text-center">
+                <!-- Right: ئەندام -->
+                <div class="space-y-1 flex flex-col items-center">
+                    <p class="text-xs font-black text-gray-900">ئەندام</p>
+                    <div class="h-6 flex items-center justify-center">
+                        <!-- بۆشایی واژۆ -->
+                    </div>
+                    <p class="text-xs font-mono font-bold text-gray-800" dir="ltr">
+                        <span>{{ date('Y') }}</span>&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    </p>
+                </div>
+
+                <!-- Middle: ئەندام -->
+                <div class="space-y-1 flex flex-col items-center">
+                    <p class="text-xs font-black text-gray-900">ئەندام</p>
+                    <div class="h-6 flex items-center justify-center">
+                        <!-- بۆشایی واژۆ -->
+                    </div>
+                    <p class="text-xs font-mono font-bold text-gray-800" dir="ltr">
+                        <span>{{ date('Y') }}</span>&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    </p>
+                </div>
+
+                <!-- Left: سەرۆکی لیژنە -->
+                <div class="space-y-1 flex flex-col items-center">
+                    <p class="text-xs font-black text-gray-900">سەرۆکی لیژنە</p>
+                    <div class="h-6 flex items-center justify-center">
+                        <!-- بۆشایی واژۆ -->
+                    </div>
+                    <p class="text-xs font-mono font-bold text-gray-800" dir="ltr">
+                        <span>{{ date('Y') }}</span>&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <!-- Footer Notice -->
         <div class="pt-2 border-t border-black flex items-center justify-between text-[10px] font-bold text-gray-600">
             <span>سیستەمی ئەلیکترۆنی بەڕێوەبردنی دەفتەری ئۆتۆمبێلی گەشتیاری - بەڕێوەبەرایەتی گومرگی سلێمانی</span>

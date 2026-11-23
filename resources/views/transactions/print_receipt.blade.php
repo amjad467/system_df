@@ -391,51 +391,25 @@
                 </div>
             @endif
 
-            <!-- Bottom Signatures Section (لیژنەی کەشف و پشکنین) -->
-            <div class="border-t-2 border-black pt-2.5 mt-auto">
-                <div class="grid grid-cols-3 gap-6 text-center">
-                    <!-- Right Signature (لای ڕاست): ئەندام -->
-                    <div class="space-y-1 flex flex-col items-center">
-                        <p class="text-sm font-black text-gray-900">ئەندام</p>
-                        <div class="h-6 flex items-center justify-center">
-                            <!-- بۆشایی واژۆ -->
-                        </div>
-                        <p class="text-xs font-black text-gray-900">ئەندام</p>
-                        <p class="text-xs font-mono font-bold text-gray-800" dir="ltr">
-                            <span>/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>/</span>&nbsp;{{ date('Y') }}
-                        </p>
+            <!-- Bottom Signatures Section -->
+            <div class="grid grid-cols-2 gap-12 pt-6 text-center text-base font-black border-t-2 border-black mt-auto">
+                <!-- Left Signature: Estimator (خەمڵێنەر) -->
+                <div class="space-y-2 flex flex-col items-center">
+                    <p class="text-lg text-gray-900 font-black">خەمڵێنەر</p>
+                    <div class="bg-white border-2 border-black px-8 py-1.5 font-black text-center min-w-[220px] text-gray-900 text-base">
+                        {{ $transaction->inspected_by ?? (auth()->user()?->name ?? 'امجد صالح عبدالله') }}
                     </div>
-
-                    <!-- Middle Signature (ناوەڕاست): ئەندام -->
-                    <div class="space-y-1 flex flex-col items-center">
-                        <p class="text-sm font-black text-gray-900">ئەندام</p>
-                        <div class="h-6 flex items-center justify-center">
-                            <!-- بۆشایی واژۆ -->
-                        </div>
-                        <p class="text-xs font-black text-gray-900">ئەندام</p>
-                        <p class="text-xs font-mono font-bold text-gray-800" dir="ltr">
-                            <span>/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>/</span>&nbsp;{{ date('Y') }}
-                        </p>
-                    </div>
-
-                    <!-- Left Signature (لای چەپ): سەرۆکی لیژنە -->
-                    <div class="space-y-1 flex flex-col items-center">
-                        <p class="text-sm font-black text-gray-900">سەرۆکی لیژنە</p>
-                        <div class="h-6 flex items-center justify-center">
-                            <!-- بۆشایی واژۆ -->
-                        </div>
-                        <p class="text-xs font-black text-gray-900">سەرۆکی لیژنە</p>
-                        <p class="text-xs font-mono font-bold text-gray-800" dir="ltr">
-                            <span>/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>/</span>&nbsp;{{ date('Y') }}
-                        </p>
+                    <div class="bg-white border-2 border-black px-6 py-1 font-mono font-black text-center min-w-[160px] text-gray-900 text-base">
+                        {{ $transaction->inspected_at ? $transaction->inspected_at->format('Y-m-d') : date('Y-m-d') }}
                     </div>
                 </div>
 
-                <!-- Sub-bar Estimator & Auditor info -->
-                <div class="flex items-center justify-between text-[10px] text-gray-600 font-bold border-t border-dotted border-gray-400 mt-2 pt-1 px-1">
-                    <span>خەمڵێنەر: {{ $transaction->inspected_by ?? (auth()->user()?->name ?? 'امجد صالح عبدالله') }}</span>
-                    <span>ووردبین: {{ $transaction->audited_at ? $transaction->audited_at->format('Y-m-d') : ($transaction->is_audited ? 'تەواوکراوە' : '............') }}</span>
-                    <span class="font-mono">کاتی چاپ: {{ date('Y-m-d H:i') }}</span>
+                <!-- Right Signature: Auditor (ووردبین) -->
+                <div class="space-y-2 flex flex-col items-center">
+                    <p class="text-lg text-gray-900 font-black">ووردبین</p>
+                    <div class="bg-white border-2 border-black px-6 py-1.5 font-mono font-black text-center min-w-[180px] text-gray-900 text-base mt-10">
+                        {{ $transaction->audited_at ? $transaction->audited_at->format('Y-m-d') : ($transaction->is_audited ? date('Y-m-d') : ' ') }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -603,51 +577,25 @@
                 </div>
             @endif
 
-            <!-- Bottom Signatures Section (لیژنەی کەشف و پشکنین) -->
-            <div class="border-t-2 border-black pt-2.5 mt-auto">
-                <div class="grid grid-cols-3 gap-6 text-center">
-                    <!-- Right Signature (لای ڕاست): ئەندام -->
-                    <div class="space-y-1 flex flex-col items-center">
-                        <p class="text-sm font-black text-gray-900">ئەندام</p>
-                        <div class="h-6 flex items-center justify-center">
-                            <!-- بۆشایی واژۆ -->
-                        </div>
-                        <p class="text-xs font-black text-gray-900">ئەندام</p>
-                        <p class="text-xs font-mono font-bold text-gray-800" dir="ltr">
-                            <span>/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>/</span>&nbsp;{{ date('Y') }}
-                        </p>
+            <!-- Bottom Signatures Section -->
+            <div class="grid grid-cols-2 gap-12 pt-6 text-center text-base font-black border-t-2 border-black mt-auto">
+                <!-- Left Signature: Estimator (خەمڵێنەر) -->
+                <div class="space-y-2 flex flex-col items-center">
+                    <p class="text-lg text-gray-900 font-black">خەمڵێنەر</p>
+                    <div class="bg-white border-2 border-black px-8 py-1.5 font-black text-center min-w-[220px] text-gray-900 text-base">
+                        {{ $linkedPledge->inspected_by ?? ($transaction->inspected_by ?? (auth()->user()?->name ?? 'امجد صالح عبدالله')) }}
                     </div>
-
-                    <!-- Middle Signature (ناوەڕاست): ئەندام -->
-                    <div class="space-y-1 flex flex-col items-center">
-                        <p class="text-sm font-black text-gray-900">ئەندام</p>
-                        <div class="h-6 flex items-center justify-center">
-                            <!-- بۆشایی واژۆ -->
-                        </div>
-                        <p class="text-xs font-black text-gray-900">ئەندام</p>
-                        <p class="text-xs font-mono font-bold text-gray-800" dir="ltr">
-                            <span>/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>/</span>&nbsp;{{ date('Y') }}
-                        </p>
-                    </div>
-
-                    <!-- Left Signature (لای چەپ): سەرۆکی لیژنە -->
-                    <div class="space-y-1 flex flex-col items-center">
-                        <p class="text-sm font-black text-gray-900">سەرۆکی لیژنە</p>
-                        <div class="h-6 flex items-center justify-center">
-                            <!-- بۆشایی واژۆ -->
-                        </div>
-                        <p class="text-xs font-black text-gray-900">سەرۆکی لیژنە</p>
-                        <p class="text-xs font-mono font-bold text-gray-800" dir="ltr">
-                            <span>/</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span>/</span>&nbsp;{{ date('Y') }}
-                        </p>
+                    <div class="bg-white border-2 border-black px-6 py-1 font-mono font-black text-center min-w-[160px] text-gray-900 text-base">
+                        {{ $linkedPledge->inspected_at ? $linkedPledge->inspected_at->format('Y-m-d') : date('Y-m-d') }}
                     </div>
                 </div>
 
-                <!-- Sub-bar Estimator & Auditor info -->
-                <div class="flex items-center justify-between text-[10px] text-gray-600 font-bold border-t border-dotted border-gray-400 mt-2 pt-1 px-1">
-                    <span>خەمڵێنەر: {{ $linkedPledge->inspected_by ?? ($transaction->inspected_by ?? (auth()->user()?->name ?? 'امجد صالح عبدالله')) }}</span>
-                    <span>ووردبین: {{ $linkedPledge->audited_at ? $linkedPledge->audited_at->format('Y-m-d') : ($linkedPledge->is_audited ? 'تەواوکراوە' : '............') }}</span>
-                    <span class="font-mono">کاتی چاپ: {{ date('Y-m-d H:i') }}</span>
+                <!-- Right Signature: Auditor (ووردبین) -->
+                <div class="space-y-2 flex flex-col items-center">
+                    <p class="text-lg text-gray-900 font-black">ووردبین</p>
+                    <div class="bg-white border-2 border-black px-6 py-1.5 font-mono font-black text-center min-w-[180px] text-gray-900 text-base mt-10">
+                        {{ $linkedPledge->audited_at ? $linkedPledge->audited_at->format('Y-m-d') : ($linkedPledge->is_audited ? date('Y-m-d') : ' ') }}
+                    </div>
                 </div>
             </div>
         </div>
