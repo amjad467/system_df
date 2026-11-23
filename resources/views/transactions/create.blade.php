@@ -833,17 +833,19 @@
                                 <input type="text" 
                                        name="no_nusraw_puchal" 
                                        x-model="noNusrawPuchal" 
+                                       :disabled="typeId != 5"
                                        placeholder="نموونە: 29357" 
                                        dir="ltr" 
-                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30">
+                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30 disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-800">
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">بەرواری نووسراوی گومرگ</label>
                                 <input type="date" 
                                        name="date_nusraw_puchal" 
                                        x-model="dateNusrawPuchal" 
+                                       :disabled="typeId != 5"
                                        dir="ltr" 
-                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30">
+                                       class="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-rose-500/30 disabled:opacity-50 disabled:bg-slate-100 dark:disabled:bg-slate-800">
                             </div>
                         </div>
                     </div>
@@ -1934,18 +1936,23 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             if (record.lost_letter_date) this.lostLetterDate = String(record.lost_letter_date).substring(0, 10);
             if (record.lost_directorate_name) this.lostDirectorateName = record.lost_directorate_name;
 
-            // Auto-populate customs letter for cancellation if available
-            if (record.no_nusraw_gumrg) {
-                this.noNusrawPuchal = record.no_nusraw_gumrg;
-            } else if (record.no_nusraw_puchal) {
-                this.noNusrawPuchal = record.no_nusraw_puchal;
-            }
-            if (record.date_nusraw_gumrg) {
-                this.dateNusrawPuchal = String(record.date_nusraw_gumrg).substring(0, 10);
-            } else if (record.date_nusraw_puchal) {
-                this.dateNusrawPuchal = String(record.date_nusraw_puchal).substring(0, 10);
-            } else if (record.transaction_date) {
-                this.dateNusrawPuchal = String(record.transaction_date).substring(0, 10);
+            // Auto-populate customs letter ONLY for cancellation (Type 5)
+            if (parseInt(this.typeId) === 5) {
+                if (record.no_nusraw_gumrg) {
+                    this.noNusrawPuchal = record.no_nusraw_gumrg;
+                } else if (record.no_nusraw_puchal) {
+                    this.noNusrawPuchal = record.no_nusraw_puchal;
+                }
+                if (record.date_nusraw_gumrg) {
+                    this.dateNusrawPuchal = String(record.date_nusraw_gumrg).substring(0, 10);
+                } else if (record.date_nusraw_puchal) {
+                    this.dateNusrawPuchal = String(record.date_nusraw_puchal).substring(0, 10);
+                } else if (record.transaction_date) {
+                    this.dateNusrawPuchal = String(record.transaction_date).substring(0, 10);
+                }
+            } else {
+                this.noNusrawPuchal = '';
+                this.dateNusrawPuchal = '';
             }
 
             this.calculateFees();

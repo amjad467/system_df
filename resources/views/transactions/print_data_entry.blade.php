@@ -193,7 +193,7 @@
                             @endif
                         </td>
                     </tr>
-                    @if($mainTx->isCancellation() || $mainTx->no_nusraw_puchal)
+                    @if($mainTx->isCancellation())
                     <tr>
                         <td class="black-cell-border gray-label-bg p-1.5">ژمارەی نووسراوی گومرگ:</td>
                         <td class="black-cell-border p-1.5 font-mono font-black text-sm">{{ $mainTx->no_nusraw_puchal ?? '-' }}</td>
@@ -203,11 +203,8 @@
                     @endif
                     <tr>
                         <td class="black-cell-border gray-label-bg p-1.5">ژمارەی تابلۆ:</td>
-                        <td class="black-cell-border p-1.5 font-mono font-black text-sm">
-                            {{ $mainTx->plate_number }} 
-                            <span class="font-sans text-xs font-bold text-gray-800">
-                                ({{ $mainTx->trafficDirectorate->name_kurdish ?? '' }} - {{ $mainTx->plateType->clean_kurdish_name ?? $mainTx->plateType->name_kurdish ?? 'تایبەت' }})
-                            </span>
+                        <td class="black-cell-border p-1.5 font-mono font-black text-base">
+                            {{ $mainTx->plate_number }}
                         </td>
                         <td class="black-cell-border gray-label-bg p-1.5">مارکە و مۆدێل:</td>
                         <td class="black-cell-border p-1.5 font-bold">

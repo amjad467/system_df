@@ -2483,7 +2483,7 @@
                         <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
                             <span class="text-slate-400 text-[10px] block">تابلۆ:</span>
                             <strong class="font-mono text-white text-xs block" dir="ltr">{{ $transaction->plate_number }}</strong>
-                            <span class="text-[10px] text-slate-400 font-bold">({{ $transaction->trafficDirectorate->name_kurdish ?? '' }} - {{ $transaction->plateType->clean_kurdish_name ?? $transaction->plateType->name_kurdish ?? 'تایبەت' }})</span>
+                            <span class="text-[10px] text-slate-400 font-bold">({{ $transaction->plateType->clean_kurdish_name ?? $transaction->plateType->name_kurdish ?? 'تایبەت' }})</span>
                         </div>
                         <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
                             <span class="text-slate-400 text-[10px] block">مارکە:</span>

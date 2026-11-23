@@ -1551,6 +1551,12 @@ class TransactionController extends Controller
                 'is_returned' => false,
             ]);
 
+            // Enforce customs letter (no_nusraw_puchal) is ONLY saved for Cancellation (Type 5)
+            if ((int)$typeId !== 5) {
+                $transactionData['no_nusraw_puchal'] = null;
+                $transactionData['date_nusraw_puchal'] = null;
+            }
+
             $tx = Transaction::create($transactionData);
 
             // Auto-resolve customs letter from previous booklet for Cancellation if not explicitly provided
@@ -1825,6 +1831,12 @@ class TransactionController extends Controller
         }
 
         $keepInspection = ($transaction->returned_from_stage === 'audit' && $transaction->is_inspected);
+
+        // Enforce customs letter (no_nusraw_puchal) is ONLY saved for Cancellation (Type 5)
+        if ((int)$transaction->transaction_type_id !== 5) {
+            $validated['no_nusraw_puchal'] = null;
+            $validated['date_nusraw_puchal'] = null;
+        }
 
         $transaction->update(array_merge($validated, [
             'is_bus' => $isBus,

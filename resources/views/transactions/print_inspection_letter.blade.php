@@ -145,7 +145,7 @@
                     </tr>
                     <tr>
                         <td class="border-2 border-black p-2.5 bg-gray-100">ژمارەی ئۆتۆمبێل</td>
-                        <td class="border-2 border-black p-2.5 font-mono text-base font-black">{{ $transaction->plate_number }} ({{ $transaction->plateType->name_kurdish ?? '' }})</td>
+                        <td class="border-2 border-black p-2.5 font-mono text-base font-black">{{ $transaction->plate_number }}</td>
                     </tr>
                     <tr>
                         <td class="border-2 border-black p-2.5 bg-gray-100">جۆری ئۆتۆمبێل</td>
