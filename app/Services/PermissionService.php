@@ -79,6 +79,7 @@ class PermissionService
         ],
         'inspector' => [
             'transactions.inspect',
+            'transactions.return',
             'prints.inspection',
         ],
         'legal' => [

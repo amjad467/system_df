@@ -1916,7 +1916,7 @@ class TransactionController extends Controller
 
     public function returnTransaction(Request $request, Transaction $transaction)
     {
-        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('transactions.return')) {
+        if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('transactions.return') && !auth()->user()->hasPermission('transactions.inspect') && !auth()->user()->hasPermission('transactions.audit')) {
             return redirect()->back()->with('error', 'دەسەڵاتی گەڕاندنەوەی مامەڵەت نییە بەپێی پێرمشنەکان!');
         }
 
@@ -1925,6 +1925,12 @@ class TransactionController extends Controller
         ], [
             'return_reason.required' => 'تکایە هۆکاری گەڕاندنەوەکە بە ڕوونی بنووسە.'
         ]);
+
+        $hadApprovedStages = ($transaction->is_inspected || $transaction->is_audited);
+        $stageNames = [];
+        if ($transaction->is_inspected) $stageNames[] = 'تەخمین';
+        if ($transaction->is_audited) $stageNames[] = 'وردبینی';
+        $stagesText = implode(' و ', $stageNames);
 
         $transaction->update([
             'is_returned' => true,
@@ -1952,23 +1958,26 @@ class TransactionController extends Controller
                 'audited_by' => null,
                 'audited_at' => null,
             ]);
-            AuditLogger::log('گەڕاندنەوەی مامەڵەی بەستراو', Transaction::class, $linked->id, "هۆکار: {$validated['return_reason']}");
+            AuditLogger::log('گەڕاندنەوەی مامەڵەی بەستراو', Transaction::class, $linked->id, "هۆکار: {$validated['return_reason']}" . ($hadApprovedStages ? " (قۆناغەکانی {$stagesText} هەڵوەشێنرانەوە)" : ""));
         }
 
-        AuditLogger::log('گەڕاندنەوەی مامەڵە بۆ چاککردنەوە', Transaction::class, $transaction->id, "هۆکار: {$validated['return_reason']}");
+        AuditLogger::log('گەڕاندنەوەی مامەڵە بۆ چاککردنەوە', Transaction::class, $transaction->id, "هۆکار: {$validated['return_reason']}" . ($hadApprovedStages ? " (قۆناغەکانی {$stagesText} هەڵوەشێنرانەوە)" : ""));
 
         NotificationService::send(
             $transaction->created_by,
             'data_entry',
             'ئاگاداری: مامەڵە گەڕێنراوەتەوە',
-            "مامەڵەی ({$transaction->visitor_name}) بە بارکۆدی {$transaction->barcode} بەهۆی هەڵەوە گەڕێنراوەتەوە. هۆکار: {$validated['return_reason']}",
+            "مامەڵەی ({$transaction->visitor_name}) بە بارکۆدی {$transaction->barcode} بەهۆی هەڵەوە گەڕێنراوەتەوە. هۆکار: {$validated['return_reason']}" . ($hadApprovedStages ? " (قۆناغەکانی {$stagesText} هەڵوەشێنرانەوە و دەبێت دووبارە پەسەند بکرێنەوە)" : ""),
             route('transactions.show', $transaction->id)
         );
 
-        return redirect()->route('transactions.show', $transaction->id)
-            ->with('warning', 'مامەڵەکە گەڕێنراوەتەوە بۆ بەشی تەخمین/داتائەنتەری بۆ ڕاستکردنەوە.');
-    }
+        $warningMsg = $hadApprovedStages 
+            ? "مامەڵەکە بە سەرکەوتوویی بەهۆی هەڵەوە گەڕێندرایەوە بۆ داتائەنتەری. قۆناغەکانی ({$stagesText}) هەڵوەشێنرانەوە و پێویستە دوای چاککردنی هەڵەکە دووبارە پەسەند بکرێنەوە."
+            : 'مامەڵەکە گەڕێندرایەوە بۆ بەشی تەخمین/داتائەنتەری بۆ ڕاستکردنەوە.';
 
+        return redirect()->route('transactions.show', $transaction->id)
+            ->with('warning', $warningMsg);
+    }
 
     public function show(Transaction $transaction)
     {

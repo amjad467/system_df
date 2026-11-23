@@ -2245,6 +2245,28 @@
 
             <form action="{{ route('transactions.return', $transaction->id) }}" method="POST" class="space-y-4">
                 @csrf
+
+                @if($transaction->is_inspected || $transaction->is_audited)
+                    <!-- ئاگاداری و پەسەندکردنی هەڵوەشاندنەوەی ستێپ/قۆناغ لە کاتی هەڵەدا -->
+                    <div class="p-3.5 bg-amber-500/10 border-2 border-amber-500/40 rounded-xl space-y-2 text-amber-200">
+                        <div class="font-black flex items-center gap-2 text-amber-300 text-xs">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-sm animate-pulse"></i>
+                            <span>ئاگاداری لەسەر هەڵوەشاندنەوەی قۆناغە پەسەندکراوەکان:</span>
+                        </div>
+                        <p class="text-[11px] leading-relaxed text-slate-200">
+                            ئەم مامەڵەیە پێشتر قۆناغی 
+                            <strong class="text-amber-300">{{ ($transaction->is_inspected && $transaction->is_audited) ? 'تەخمین و وردبینی' : ($transaction->is_audited ? 'وردبینی' : 'تەخمین') }}</strong> 
+                            بۆ پەسەند کراوە. بە گەڕاندنەوەی بۆ داتائەنتەری، 
+                            <span class="text-rose-400 font-bold underline">ئەم قۆناغانە هەڵدەوەشێنەوە (Cancel/Reset دەبن)</span>، 
+                            و پێویستە دوای چاککردنی هەڵەکە لەلایەن داتائەنتەری، دووبارە لە سەرەتاوە قۆناغی ({{ ($transaction->is_inspected && $transaction->is_audited) ? 'تەخمین و وردبینی' : ($transaction->is_audited ? 'وردبینی' : 'تەخمین') }}) پەسەند بکرێتەوە.
+                        </p>
+                        <label class="flex items-center gap-2.5 pt-1.5 p-2 bg-slate-900/90 rounded-lg border border-amber-500/30 text-white font-bold cursor-pointer hover:bg-slate-800 transition">
+                            <input type="checkbox" name="confirm_revoke" value="1" required class="w-4 h-4 rounded bg-slate-800 border-amber-500 text-amber-500 focus:ring-0 cursor-pointer">
+                            <span class="text-[11px] text-amber-200">بەڵێ، ڕازیم قۆناغەکە هەڵدەوەشێتەوە و دووبارە دەبێت پەسەند بکرێتەوە</span>
+                        </label>
+                    </div>
+                @endif
+
                 <div>
                     <label class="block text-xs font-bold text-slate-300 mb-1.5">تکایە هۆکاری گەڕاندنەوە و هەڵەکە بە ڕوونی بنووسە *</label>
                     <textarea name="return_reason" required rows="3" placeholder="مثلاً: ناوی هاووڵاتی یان ژمارەی شاسی بە هەڵە داخڵکراوە..." 
@@ -2766,7 +2788,7 @@
                                 <span>پەسەندکردنی تەخمین</span>
                             </button>
                         </form>
-                        @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.return'))
+                        @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.return') || auth()->user()->hasPermission('transactions.inspect'))
                             <button type="button" @click="showReturnModal = true" class="px-3 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-1">
                                 <i class="fa-solid fa-rotate-left"></i> گەڕاندنەوە
                             </button>
@@ -2786,7 +2808,7 @@
                             <i class="fa-solid fa-clipboard-check"></i>
                             <span>پەسەندکردنی وردبینی</span>
                         </button>
-                        @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.return'))
+                        @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.return') || auth()->user()->hasPermission('transactions.audit'))
                             <button type="button" @click="showReturnModal = true" class="px-3 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-1">
                                 <i class="fa-solid fa-rotate-left"></i> گەڕاندنەوە
                             </button>
@@ -2817,6 +2839,11 @@
                         <button type="button" @click="showPayModal = true" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center gap-1.5">
                             <i class="fa-solid fa-receipt"></i>
                             <span>وەرگرتنی پارە (۳۷/أ)</span>
+                        </button>
+                    @endif
+                    @if($transaction->is_audited && !$transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.return') || auth()->user()->hasPermission('transactions.audit')))
+                        <button type="button" @click="showReturnModal = true" class="px-3 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 shadow">
+                            <i class="fa-solid fa-rotate-left"></i> گەڕاندنەوە بەهۆی هەڵە
                         </button>
                     @endif
 
