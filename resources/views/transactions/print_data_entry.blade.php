@@ -135,29 +135,29 @@
                 <div class="grid grid-cols-2 gap-3 text-center">
                     <!-- Barcode 1: Booklet Issue -->
                     <div class="bg-white border-2 border-black p-2 rounded flex flex-col items-center justify-between">
-                        <div class="w-full bg-blue-700 text-white text-xs font-black py-1 px-2 rounded mb-1.5 flex items-center justify-center gap-1">
+                        <div class="w-full bg-blue-700 text-white text-xs font-black py-1 px-2 rounded mb-1 flex items-center justify-center gap-1">
                             <span>جۆری مامەڵە:</span>
                             <span class="text-amber-200 font-black">دەرهێنانی دەفتەر</span>
                         </div>
-                        <svg id="barcodeSvgBooklet" class="max-h-12 w-full"></svg>
+                        <svg id="barcodeSvgBooklet" class="h-20 w-full max-w-[340px]"></svg>
                     </div>
 
                     <!-- Barcode 2: Legal Pledge -->
                     <div class="bg-white border-2 border-black p-2 rounded flex flex-col items-center justify-between">
-                        <div class="w-full bg-amber-600 text-white text-xs font-black py-1 px-2 rounded mb-1.5 flex items-center justify-center gap-1">
+                        <div class="w-full bg-amber-600 text-white text-xs font-black py-1 px-2 rounded mb-1 flex items-center justify-center gap-1">
                             <span>جۆری مامەڵە:</span>
                             <span class="text-white font-black">بەڵێننامەی یاسایی</span>
                         </div>
-                        <svg id="barcodeSvgPledge" class="max-h-12 w-full"></svg>
+                        <svg id="barcodeSvgPledge" class="h-20 w-full max-w-[340px]"></svg>
                     </div>
                 </div>
             @else
                 <!-- Single Barcode for Standalone Transaction -->
                 <div class="max-w-md mx-auto bg-white border-2 border-black p-2 rounded text-center">
-                    <div class="bg-slate-900 text-white text-xs font-black py-1 px-3 rounded mb-1.5 inline-block">
+                    <div class="bg-slate-900 text-white text-xs font-black py-1 px-3 rounded mb-1 inline-block">
                         جۆری مامەڵە: {{ $transaction->transactionType->name_kurdish ?? 'مامەڵەی گومرگی' }}
                     </div>
-                    <svg id="barcodeSvgMain" class="max-h-12 mx-auto"></svg>
+                    <svg id="barcodeSvgMain" class="h-20 mx-auto max-w-[340px]"></svg>
                 </div>
             @endif
         </div>
@@ -255,11 +255,7 @@
         @endif
 
         <!-- Section 2: Physical Stage Checkpoints Grid -->
-        <div class="space-y-1 pt-1">
-            <h4 class="text-xs font-black border-b border-black pb-0.5">
-                مەحەل و ستێپەکانی ڕایی کردنی مامەڵە (مۆر و ئیمزای بەشەکان)
-            </h4>
-
+        <div class="space-y-1 pt-0.5">
             <div class="grid grid-cols-4 gap-2 text-xs">
                 
                 <!-- Box 1: Inspection & Estimation Stage -->
@@ -404,26 +400,26 @@
                     JsBarcode("#barcodeSvgBooklet", "{{ $bookletTx->barcode }}", {
                         format: "CODE128",
                         lineColor: "#000",
-                        width: 2,
-                        height: 38,
+                        width: 2.3,
+                        height: 54,
                         displayValue: true,
-                        fontSize: 12,
+                        fontSize: 14,
                         fontOptions: "bold",
                         font: "Vazirmatn",
-                        textMargin: 2
+                        textMargin: 3
                     });
                 }
                 if (document.querySelector("#barcodeSvgPledge")) {
                     JsBarcode("#barcodeSvgPledge", "{{ $pledgeTx->barcode }}", {
                         format: "CODE128",
                         lineColor: "#000",
-                        width: 2,
-                        height: 38,
+                        width: 2.3,
+                        height: 54,
                         displayValue: true,
-                        fontSize: 12,
+                        fontSize: 14,
                         fontOptions: "bold",
                         font: "Vazirmatn",
-                        textMargin: 2
+                        textMargin: 3
                     });
                 }
             @else
@@ -431,13 +427,13 @@
                     JsBarcode("#barcodeSvgMain", "{{ $transaction->barcode }}", {
                         format: "CODE128",
                         lineColor: "#000",
-                        width: 2,
-                        height: 40,
+                        width: 2.5,
+                        height: 58,
                         displayValue: true,
-                        fontSize: 13,
+                        fontSize: 15,
                         fontOptions: "bold",
                         font: "Vazirmatn",
-                        textMargin: 2
+                        textMargin: 3
                     });
                 }
             @endif
