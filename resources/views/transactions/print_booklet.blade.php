@@ -403,6 +403,12 @@
                 <span>ڕاستە</span>
             </button>
 
+            <!-- Auto-save Status Indicator -->
+            <span id="autoSaveStatusBadge" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 transition">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="autoSaveStatusText">سێتینگەکان خەزنکراون</span>
+            </span>
+
             <!-- Save To Server (Primary Action) -->
             <button onclick="saveTemplateToServer()" id="saveServerBtn" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-amber-600/30 transition flex items-center gap-1.5" title="پاشەکەوتکردنی تەواوی ئەم دیزاینە لەسەر سێرڤەر بۆ هەموو کۆمپیوتەرەکان">
                 <span>💾</span>
@@ -437,6 +443,12 @@
                 </svg>
                 <span>چاپکردن</span>
             </button>
+
+            <!-- Back to Transaction -->
+            <a href="{{ route('transactions.show', $transaction->id) }}" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white text-xs font-bold rounded-xl border border-slate-700 transition flex items-center gap-1" title="گەڕانەوە بۆ بینینی مامەڵە">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                <span>گەڕانەوە</span>
+            </a>
 
             <!-- Close Button -->
             <button onclick="window.close()" class="px-2.5 py-1.5 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-bold rounded-xl transition">
@@ -1039,6 +1051,7 @@
             if (sumEl) sumEl.textContent = `${offsetX}mm, ${offsetY}mm`;
             localStorage.setItem('booklet_offset_x', offsetX);
             localStorage.setItem('booklet_offset_y', offsetY);
+            autoSaveTemplate();
         }
 
         // Apply background template offsets
@@ -1051,6 +1064,7 @@
             if (yDisp) yDisp.textContent = `${bgOffsetY > 0 ? '+' : ''}${bgOffsetY} mm`;
             localStorage.setItem('booklet_bg_offset_x', bgOffsetX);
             localStorage.setItem('booklet_bg_offset_y', bgOffsetY);
+            autoSaveTemplate();
         }
 
         function nudgeBgOffset(axis, delta) {
@@ -1067,6 +1081,7 @@
             if (valEl) valEl.textContent = `${bgOpacity}%`;
             if (sliderEl) sliderEl.value = bgOpacity;
             localStorage.setItem('booklet_bg_opacity', bgOpacity);
+            autoSaveTemplate();
         }
 
         // Template Overlay Toggle
@@ -1370,6 +1385,7 @@
                 fontWeight: field.style.fontWeight || null
             };
             localStorage.setItem('booklet_custom_positions', JSON.stringify(customPositions));
+            autoSaveTemplate();
         }
 
         // =========================================================================
@@ -1538,12 +1554,32 @@
         }
 
         // =========================================================================
-        // SERVER TEMPLATE SAVE & RESET (AJAX)
+        // SERVER TEMPLATE SAVE & RESET (AJAX) + AUTO-SAVE PERSISTENCE
         // =========================================================================
-        async function saveTemplateToServer() {
+        let isInitialized = false;
+        let autoSaveTimer = null;
+
+        function autoSaveTemplate() {
+            if (!isInitialized) return;
+            const badge = document.getElementById('autoSaveStatusBadge');
+            const text = document.getElementById('autoSaveStatusText');
+            if (badge && text) {
+                badge.className = 'hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/30 transition';
+                text.textContent = 'خەزن دەکرێت...';
+            }
+
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                saveTemplateToServer(true);
+            }, 500);
+        }
+
+        async function saveTemplateToServer(isSilent = false) {
             const btn = document.getElementById('saveServerBtn');
-            const origText = btn.innerHTML;
-            btn.innerHTML = '<span>⏳ پاشەکەوتکردن...</span>';
+            const origText = btn ? btn.innerHTML : '';
+            if (btn && !isSilent) {
+                btn.innerHTML = '<span>⏳ پاشەکەوتکردن...</span>';
+            }
 
             const payload = {
                 template: {
@@ -1563,6 +1599,8 @@
             localStorage.setItem('booklet_offset_y', offsetY);
             localStorage.setItem('booklet_bg_offset_x', bgOffsetX);
             localStorage.setItem('booklet_bg_offset_y', bgOffsetY);
+            localStorage.setItem('booklet_bg_opacity', bgOpacity);
+            localStorage.setItem('booklet_font_size', defaultFontSize);
 
             try {
                 const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -1577,23 +1615,42 @@
                 });
 
                 const data = await response.json();
+                const badge = document.getElementById('autoSaveStatusBadge');
+                const text = document.getElementById('autoSaveStatusText');
+
                 if (response.ok) {
-                    btn.innerHTML = '<span>✅ پاشەکەوتکرا لە سێرڤەر!</span>';
-                    btn.classList.remove('bg-amber-600', 'hover:bg-amber-500');
-                    btn.classList.add('bg-emerald-600');
-                    setTimeout(() => {
-                        btn.innerHTML = origText;
-                        btn.classList.add('bg-amber-600', 'hover:bg-amber-500');
-                        btn.classList.remove('bg-emerald-600');
-                    }, 2500);
+                    if (badge && text) {
+                        badge.className = 'hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 transition';
+                        text.textContent = 'سێتینگەکان خەزنکراون ✓';
+                    }
+                    if (btn && !isSilent) {
+                        btn.innerHTML = '<span>✅ پاشەکەوتکرا لە سێرڤەر!</span>';
+                        btn.classList.remove('bg-amber-600', 'hover:bg-amber-500');
+                        btn.classList.add('bg-emerald-600');
+                        setTimeout(() => {
+                            btn.innerHTML = origText;
+                            btn.classList.add('bg-amber-600', 'hover:bg-amber-500');
+                            btn.classList.remove('bg-emerald-600');
+                        }, 2500);
+                    }
                 } else {
-                    alert('هەڵەیەک ڕوویدا لە پاشەکەوتکردن: ' + (data.message || 'Error'));
-                    btn.innerHTML = origText;
+                    if (!isSilent) {
+                        alert('هەڵەیەک ڕوویدا لە پاشەکەوتکردن: ' + (data.message || 'Error'));
+                        if (btn) btn.innerHTML = origText;
+                    }
                 }
             } catch (err) {
                 console.error(err);
-                btn.innerHTML = '<span>💾 پاشەکەوتکرا (ناوخۆیی)!</span>';
-                setTimeout(() => { btn.innerHTML = origText; }, 2000);
+                const badge = document.getElementById('autoSaveStatusBadge');
+                const text = document.getElementById('autoSaveStatusText');
+                if (badge && text) {
+                    badge.className = 'hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold bg-blue-500/10 text-blue-300 border border-blue-500/30 transition';
+                    text.textContent = 'خەزنکراوە (ناوخۆیی) ✓';
+                }
+                if (btn && !isSilent) {
+                    btn.innerHTML = '<span>💾 پاشەکەوتکرا (ناوخۆیی)!</span>';
+                    setTimeout(() => { btn.innerHTML = origText; }, 2000);
+                }
             }
         }
 
@@ -1673,6 +1730,9 @@
 
         // Print Trigger
         function triggerPrint() {
+            // Save state immediately before printing
+            saveTemplateToServer(true);
+
             // Guarantee that only the active tab sheet is visible during print
             if (currentTab !== 'all-sheets') {
                 document.querySelectorAll('.booklet-sheet').forEach(sheet => {
@@ -1691,6 +1751,16 @@
             loadInitialState();
             initDragAndDrop();
             buildFieldsExplorerList();
+            isInitialized = true;
+
+            // Auto print if requested via query parameter ?autoprint=1
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('autoprint') === '1') {
+                // View first on screen, then trigger print dialog!
+                setTimeout(() => {
+                    triggerPrint();
+                }, 1000);
+            }
         });
     </script>
 </body>

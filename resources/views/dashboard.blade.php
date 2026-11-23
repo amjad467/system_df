@@ -620,11 +620,21 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
                         @foreach($pendingPaymentList->take(4) as $pTx)
+                            @php
+                                $pLinked = $pTx->getLinkedPledgeOrParent();
+                                $pHasLinked = $pLinked && !$pLinked->is_paid;
+                                $pTotal = $pTx->total_pay + ($pHasLinked ? $pLinked->total_pay : 0);
+                            @endphp
                             <div class="bg-slate-950 p-3 rounded-xl border border-amber-500/30 flex items-center justify-between text-xs gap-2 shadow-sm">
                                 <div class="min-w-0">
                                     <span class="font-mono text-sky-400 font-bold block">{{ $pTx->barcode }}</span>
                                     <span class="font-bold text-white block truncate">{{ $pTx->visitor_name }}</span>
-                                    <span class="font-mono text-emerald-400 font-black block mt-0.5">{{ number_format($pTx->total_pay) }} د.ع</span>
+                                    <span class="font-mono text-emerald-400 font-black block mt-0.5">
+                                        {{ number_format($pTotal) }} د.ع
+                                        @if($pHasLinked)
+                                            <span class="text-[9px] text-amber-400 font-sans font-bold">(کۆی ۲ مامەڵە)</span>
+                                        @endif
+                                    </span>
                                 </div>
                                 <a href="{{ route('transactions.show', $pTx->id) }}" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white font-black text-xs rounded-lg shadow shrink-0 transition flex items-center gap-1">
                                     <i class="fa-solid fa-cash-register text-[10px]"></i>

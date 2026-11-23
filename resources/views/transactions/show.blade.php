@@ -103,7 +103,15 @@
     $linkedPledge = $linkedPledge ?? $transaction->getLinkedPledgeOrParent();
     $isArchiverOrAdmin = auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('transactions.submit'));
     $canSubmitThisType = in_array($typeId, [1, 2, 3, 4, 5, 7, 8]);
-    $auditCombinedPay = (int)($transaction->total_pay + ($linkedPledge ? $linkedPledge->total_pay : 0));
+
+    $isPledgeDirect = ($typeId === 6);
+    $bookletTx = $isPledgeDirect ? $linkedPledge : $transaction;
+    $pledgeTx = $isPledgeDirect ? $transaction : $linkedPledge;
+    $hasCompanion = (bool)($bookletTx && $pledgeTx);
+    $bookletFee = $bookletTx ? (float)$bookletTx->total_pay : 0;
+    $pledgeFee = $pledgeTx ? (float)$pledgeTx->total_pay : 0;
+    $totalCombinedPay = $hasCompanion ? ($bookletFee + $pledgeFee) : (float)$transaction->total_pay;
+    $auditCombinedPay = (int)$totalCombinedPay;
 @endphp
 
 <div class="max-w-5xl mx-auto space-y-6 pb-24" x-data="{ 
@@ -123,7 +131,8 @@
     showDataEntryPromptModal: {{ session('data_entry_completed_prompt_print') ? 'true' : 'false' }},
     mainReceipt: '',
     linkedReceipt: '',
-    hasLinked: {{ ($linkedPledge && !$linkedPledge->is_paid) ? 'true' : 'false' }},
+    hasLinked: {{ ($hasCompanion && !$pledgeTx->is_paid) ? 'true' : 'false' }},
+    printChoice: '{{ session('payment_print_choice', 'both') }}',
     confirmAuditAmount: '',
     expectedAuditAmount: '{{ $auditCombinedPay }}',
     expectedSingleAuditAmount: '{{ (int)$transaction->total_pay }}'
@@ -189,12 +198,12 @@
                     <i class="fa-solid fa-passport text-xs"></i>
                     <span>چاپی دەفتەر</span>
                 </a>
-            @elseif(!$transaction->is_cancelled && $transaction->is_paid && (!$transaction->is_submitted || auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.receipt')) && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier' || auth()->user()->hasPermission('prints.receipt')))
-                <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" 
+            @elseif(!$transaction->is_cancelled && ($transaction->is_paid || ($hasCompanion && $bookletTx->is_paid)) && (!$transaction->is_submitted || auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.receipt')) && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier' || auth()->user()->hasPermission('prints.receipt')))
+                <a href="{{ route('transactions.print_payment_receipt', $hasCompanion ? [$bookletTx->id, 'mode' => 'both'] : $transaction->id) }}" target="_blank" 
                    class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center gap-1.5 shrink-0" 
                    title="چاپی وەسڵی فەرمی پارەدان">
                     <i class="fa-solid fa-receipt text-xs"></i>
-                    <span>{{ ($linkedPledge && $linkedPledge->is_paid) ? 'چاپی هەردوو ۳۷/أ (۲ پەڕە)' : 'چاپی ۳۷/أ' }}</span>
+                    <span>{{ ($hasCompanion && $bookletTx->is_paid && $pledgeTx->is_paid) ? 'چاپی هەردوو ۳۷/أ (پێکەوە)' : 'چاپی ۳۷/أ' }}</span>
                 </a>
             @elseif((!$transaction->is_submitted || auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.data_entry')) && (auth()->user()->isAdmin() || in_array(auth()->user()->role, ['data_entry', 'inspector']) || auth()->user()->hasPermission('prints.data_entry')))
                 <a href="{{ route('transactions.print_data_entry', ['transaction' => $transaction->id, 'mode' => 'both']) }}" target="_blank" 
@@ -296,24 +305,24 @@
                     </div>
 
                     <!-- قۆناغی دارایی و وەسڵ -->
-                    @if(!$transaction->is_cancelled && $transaction->is_paid)
+                    @if(!$transaction->is_cancelled && ($transaction->is_paid || ($hasCompanion && $bookletTx->is_paid)))
                         <div class="space-y-1 pt-1.5 border-t border-slate-800">
                             <span class="text-[10px] font-bold text-slate-400 px-2 block">دارایی و وەسڵ:</span>
-                            @if($linkedPledge && $linkedPledge->is_paid)
-                                <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" 
+                            @if($hasCompanion && $bookletTx->is_paid && $pledgeTx->is_paid)
+                                <a href="{{ route('transactions.print_payment_receipt', [$bookletTx->id, 'mode' => 'both']) }}" target="_blank" 
                                    class="flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-emerald-300 font-bold hover:bg-slate-800 hover:text-white transition">
                                     <i class="fa-solid fa-receipt text-emerald-400 w-4 text-center"></i>
-                                    <span>چاپی هەردوو پسوولەی ۳۷/أ (۲ پەڕە)</span>
+                                    <span>چاپی هەردوو پسوولەی ۳۷/أ (پێکەوە)</span>
                                 </a>
-                                <a href="{{ route('transactions.print_payment_receipt', [$transaction->id, 'mode' => 'main']) }}" target="_blank" 
-                                   class="flex items-center gap-2.5 px-2.5 py-1 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition text-[11px] pr-6">
-                                    <i class="fa-solid fa-angle-left text-slate-500"></i>
-                                    <span>تەنها وەسڵی دەرهێنان ({{ $transaction->receipt_37a_number }})</span>
+                                <a href="{{ route('transactions.print_payment_receipt', [$bookletTx->id, 'mode' => 'main']) }}" target="_blank" 
+                                   class="flex items-center gap-2.5 px-2.5 py-1 rounded-xl text-sky-300 hover:bg-slate-800 hover:text-white transition text-[11px] pr-6">
+                                    <i class="fa-solid fa-angle-left text-sky-500"></i>
+                                    <span>تەنها وەسڵی دەرهێنان ({{ $bookletTx->receipt_37a_number }})</span>
                                 </a>
-                                <a href="{{ route('transactions.print_payment_receipt', [$transaction->id, 'mode' => 'pledge']) }}" target="_blank" 
+                                <a href="{{ route('transactions.print_payment_receipt', [$bookletTx->id, 'mode' => 'pledge']) }}" target="_blank" 
                                    class="flex items-center gap-2.5 px-2.5 py-1 rounded-xl text-amber-300 hover:bg-slate-800 hover:text-white transition text-[11px] pr-6">
                                     <i class="fa-solid fa-angle-left text-amber-500"></i>
-                                    <span>تەنها وەسڵی بەڵێننامە ({{ $linkedPledge->receipt_37a_number }})</span>
+                                    <span>تەنها وەسڵی بەڵێننامە ({{ $pledgeTx->receipt_37a_number }})</span>
                                 </a>
                             @else
                                 <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" 
@@ -1386,12 +1395,29 @@
                     @endif
 
                     <!-- قۆناغی پارەدان - چاپی پسوولە -->
-                    @if($transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier' || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.receipt')))
+                    @if(($transaction->is_paid || ($hasCompanion && $bookletTx->is_paid)) && (auth()->user()->isAdmin() || auth()->user()->role === 'cashier' || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.receipt')))
                         @if(!$transaction->is_submitted || auth()->user()->isAdmin() || auth()->user()->role === 'archiver' || auth()->user()->hasPermission('prints.receipt'))
                             @if(auth()->user()->isAdmin() || auth()->user()->role === 'cashier' || auth()->user()->hasPermission('prints.receipt'))
-                                <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center">
-                                    <i class="fa-solid fa-receipt ml-1.5"></i> {{ ($linkedPledge && $linkedPledge->is_paid) ? 'چاپی هەردوو پسوولەی ۳۷/أ (۲ پەڕە)' : 'چاپی پسوولەی ۳۷/أ' }}
-                                </a>
+                                @if($hasCompanion && $bookletTx->is_paid && $pledgeTx->is_paid)
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <a href="{{ route('transactions.print_payment_receipt', [$bookletTx->id, 'mode' => 'both']) }}" target="_blank" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center gap-1.5" title="چاپی هەردوو پسوولەی ۳۷/أ پێکەوە">
+                                            <i class="fa-solid fa-receipt"></i>
+                                            <span>چاپی هەردوو ۳۷/أ (پێکەوە)</span>
+                                        </a>
+                                        <a href="{{ route('transactions.print_payment_receipt', [$bookletTx->id, 'mode' => 'main']) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white text-xs font-bold rounded-xl border border-sky-500/30 transition flex items-center gap-1" title="تەنها وەسڵی دەرهێنان">
+                                            <i class="fa-solid fa-book-open text-[11px]"></i>
+                                            <span>وەسڵی دەرهێنان</span>
+                                        </a>
+                                        <a href="{{ route('transactions.print_payment_receipt', [$bookletTx->id, 'mode' => 'pledge']) }}" target="_blank" class="px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-white text-xs font-bold rounded-xl border border-amber-500/30 transition flex items-center gap-1" title="تەنها وەسڵی بەڵێننامە">
+                                            <i class="fa-solid fa-file-contract text-[11px]"></i>
+                                            <span>وەسڵی بەڵێننامە</span>
+                                        </a>
+                                    </div>
+                                @else
+                                    <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg transition flex items-center">
+                                        <i class="fa-solid fa-receipt ml-1.5"></i> چاپی پسوولەی ۳۷/أ
+                                    </a>
+                                @endif
                             @endif
                         @endif
                     @endif
@@ -1697,18 +1723,18 @@
                     <span class="text-slate-400">کەشف و تەخمین:</span>
                     <span class="font-mono text-slate-200">{{ number_format($transaction->pay_inspection) }} د.ع</span>
                 </div>
-                @if($linkedPledge)
+                @if($hasCompanion)
                     <div class="flex justify-between py-1 text-xs border-t border-slate-700/60 text-slate-300">
-                        <span>رسوماتی دەفتەر:</span>
-                        <span class="font-mono">{{ number_format($transaction->total_pay) }} د.ع</span>
+                        <span>رسوماتی دەرهێنانی دەفتەر:</span>
+                        <span class="font-mono text-sky-400 font-bold">{{ number_format($bookletFee) }} د.ع</span>
                     </div>
                     <div class="flex justify-between py-1 text-xs text-amber-300">
-                        <span>رسوماتی بەڵێننامە:</span>
-                        <span class="font-mono">{{ number_format($linkedPledge->total_pay) }} د.ع</span>
+                        <span>رسوماتی بەڵێننامەی یاسایی:</span>
+                        <span class="font-mono font-bold">{{ number_format($pledgeFee) }} د.ع</span>
                     </div>
                     <div class="flex justify-between py-2 font-black text-base border-t border-slate-700 text-emerald-400">
-                        <span>کۆی گشتی (دەفتەر + بەڵێننامە):</span>
-                        <span class="font-mono text-lg font-black">{{ number_format($transaction->total_pay + $linkedPledge->total_pay) }} د.ع</span>
+                        <span>کۆی گشتی هەردوو مامەڵە:</span>
+                        <span class="font-mono text-xl font-black text-emerald-300">{{ number_format($totalCombinedPay) }} د.ع</span>
                     </div>
                 @else
                     <div class="flex justify-between py-2 font-bold text-base border-t border-slate-700">
@@ -1730,7 +1756,7 @@
 
     <!-- MODAL 1: Payment Modal (Cashier) -->
     <div x-show="showPayModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-700 pb-2">
                 <h3 class="text-lg font-bold text-white flex items-center">
                     <i class="fa-solid fa-receipt ml-2 text-emerald-400"></i> تۆمارکردنی وەسڵی ۳۷/أ و پارەدان
@@ -1754,45 +1780,153 @@
                 </span>
             </div>
 
-            <form action="{{ route('transactions.pay', $transaction->id) }}" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">
-                        ژمارەی پسوولەی ۳۷/أ (مامەڵەی سەرەکی) *
-                    </label>
-                    <input type="text" name="receipt_37a_number" required placeholder="مثلاً: 100234" dir="ltr"
-                           x-model="mainReceipt"
-                           @input="if(hasLinked) { linkedReceipt = (!isNaN(parseInt(mainReceipt)) ? (parseInt(mainReceipt) + 1) : '') }"
-                           class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-emerald-500 focus:outline-none">
-                </div>
-
-                @if($linkedPledge && !$linkedPledge->is_paid)
-                <div class="p-3 bg-amber-950/40 border border-amber-500/40 rounded-xl space-y-2">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-xs font-bold text-amber-300">
-                            <i class="fa-solid fa-link ml-1"></i> پسوولەی ۳۷/أ بۆ بەڵێننامەی یاسایی ({{ $linkedPledge->barcode }})
-                        </label>
-                        <span class="text-[11px] font-mono font-bold text-amber-400">{{ number_format($linkedPledge->total_pay) }} د.ع</span>
+            <!-- کارتی گەورەی پیشاندانی پارەی هەردوو مامەڵە و کۆی گشتی بە گەورەیی -->
+            @if($hasCompanion)
+                <div class="p-4 bg-gradient-to-b from-slate-950 to-slate-900 border-2 border-emerald-500/60 rounded-2xl space-y-3 shadow-xl">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-calculator text-emerald-400"></i>
+                            وردەکاری بڕی پارەی پێویست بۆ وەرگرتن:
+                        </span>
+                        <span class="text-[11px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                            ۲ مامەڵەی هاوبەش
+                        </span>
                     </div>
-                    <input type="text" name="linked_receipt_37a_number" placeholder="ژمارەی پسوولەی بەڵێننامە (ئۆتۆماتیک پێشنیاز دەکرێت)" dir="ltr"
-                           x-model="linkedReceipt"
-                           class="w-full bg-slate-900 border border-amber-500/50 rounded-xl px-3 py-2 text-sm text-amber-200 font-mono focus:border-amber-400 focus:outline-none">
-                    <p class="text-[10px] text-amber-300/80">بە یەک کردار هەردوو وەسڵەکە یەک لەدوای یەک تۆمار دەکرێن و بەڵێننامەکەش پارەدار دەبێت.</p>
+
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <!-- بڕی پارەی دەرهێنانی دەفتەر -->
+                        <div class="p-3 bg-slate-900/90 border border-sky-500/30 rounded-xl flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[11px] font-bold text-sky-300">١. دەرهێنانی دەفتەر:</span>
+                                <span class="font-mono text-[10px] text-slate-400">{{ $bookletTx->barcode }}</span>
+                            </div>
+                            <div class="mt-2 text-right">
+                                <span class="font-mono text-xl font-black text-sky-400">{{ number_format($bookletFee) }}</span>
+                                <span class="text-[11px] font-bold text-slate-400 mr-1">د.ع</span>
+                            </div>
+                        </div>
+
+                        <!-- بڕی پارەی بەڵێننامەی یاسایی -->
+                        <div class="p-3 bg-slate-900/90 border border-amber-500/30 rounded-xl flex flex-col justify-between">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[11px] font-bold text-amber-300">٢. بەڵێننامەی یاسایی:</span>
+                                <span class="font-mono text-[10px] text-slate-400">{{ $pledgeTx->barcode }}</span>
+                            </div>
+                            <div class="mt-2 text-right">
+                                <span class="font-mono text-xl font-black text-amber-400">{{ number_format($pledgeFee) }}</span>
+                                <span class="text-[11px] font-bold text-slate-400 mr-1">د.ع</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- کۆی گشتی بە گەورەیی و بەرچاوی -->
+                    <div class="p-3.5 bg-gradient-to-r from-emerald-950/90 via-emerald-900/40 to-teal-950/90 border-2 border-emerald-400/80 rounded-xl flex items-center justify-between shadow-lg">
+                        <div>
+                            <span class="text-xs font-black text-emerald-200 block">کۆی گشتی هەردوو پارەکە:</span>
+                            <span class="text-[10px] text-emerald-300/80 font-medium">وەسڵبڕ لێرەوە کۆی گشتی وەردەگرێت</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-3xl sm:text-4xl font-black text-emerald-300 font-mono tracking-tight drop-shadow-md">
+                                {{ number_format($totalCombinedPay) }}
+                            </span>
+                            <span class="text-xs font-black text-emerald-200 block mt-0.5">دیناری عێراقی</span>
+                        </div>
+                    </div>
                 </div>
+            @else
+                <div class="p-4 bg-gradient-to-r from-emerald-950/90 to-teal-950/90 border-2 border-emerald-500/80 rounded-xl flex items-center justify-between shadow-lg">
+                    <div>
+                        <span class="text-xs font-black text-emerald-200 block">بڕی پارەی پێویست بۆ وەرگرتن:</span>
+                        <span class="text-[10px] text-slate-400">مامەڵەی {{ $typeName }}</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-3xl font-black text-emerald-300 font-mono">
+                            {{ number_format($transaction->total_pay) }}
+                        </span>
+                        <span class="text-xs font-black text-emerald-200 block">دیناری عێراقی</span>
+                    </div>
+                </div>
+            @endif
+
+            <form action="{{ route('transactions.pay', $hasCompanion ? $bookletTx->id : $transaction->id) }}" method="POST" class="space-y-4">
+                @csrf
+                
+                @if($hasCompanion)
+                    <!-- ژمارەی وەسڵی دەرهێنانی دەفتەر -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-bold text-sky-300">
+                                <i class="fa-solid fa-book-open ml-1"></i> ژمارەی پسوولەی ۳۷/أ بۆ دەرهێنانی دەفتەر ({{ $bookletTx->barcode }}) *
+                            </label>
+                            <span class="text-[11px] font-mono font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">{{ number_format($bookletFee) }} د.ع</span>
+                        </div>
+                        <input type="text" name="receipt_37a_number" required placeholder="مثلاً: 100234" dir="ltr"
+                               x-model="mainReceipt"
+                               @input="if(hasLinked) { linkedReceipt = (!isNaN(parseInt(mainReceipt)) ? (parseInt(mainReceipt) + 1) : '') }"
+                               class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-sky-500 focus:outline-none">
+                    </div>
+
+                    @if($pledgeTx && !$pledgeTx->is_paid)
+                    <!-- ژمارەی وەسڵی بەڵێننامەی یاسایی -->
+                    <div class="p-3 bg-amber-950/40 border border-amber-500/40 rounded-xl space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-bold text-amber-300">
+                                <i class="fa-solid fa-file-contract ml-1"></i> پسوولەی ۳۷/أ بۆ بەڵێننامەی یاسایی ({{ $pledgeTx->barcode }})
+                            </label>
+                            <span class="text-[11px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{{ number_format($pledgeFee) }} د.ع</span>
+                        </div>
+                        <input type="text" name="linked_receipt_37a_number" placeholder="ژمارەی پسوولەی بەڵێننامە (ئۆتۆماتیک پێشنیاز دەکرێت)" dir="ltr"
+                               x-model="linkedReceipt"
+                               class="w-full bg-slate-900 border border-amber-500/50 rounded-xl px-3 py-2 text-sm text-amber-200 font-mono focus:border-amber-400 focus:outline-none">
+                        <p class="text-[10px] text-amber-300/80">بە یەک کردار هەردوو وەسڵەکە یەک لەدوای یەک تۆمار دەکرێن و بەڵێننامەکەش پارەدار دەبێت.</p>
+                    </div>
+                    @endif
+
+                    <!-- هەڵبژاردنی شێوازی چاپی پسوولە لە مۆداڵی پارەدان (خاڵی داواکراوی بەکارهێنەر) -->
+                    <div class="p-3 bg-slate-950/80 border border-slate-700/80 rounded-xl space-y-2">
+                        <label class="block text-xs font-black text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-print text-emerald-400"></i>
+                            ئایا بەجیا پسوولەکان چاپ دەکەیت یان هەردووکیان پێکەوە؟
+                        </label>
+                        <div class="grid grid-cols-2 gap-2 pt-0.5">
+                            <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition select-none"
+                                   :class="printChoice === 'both' ? 'bg-emerald-500/20 border-emerald-500 ring-1 ring-emerald-500 text-white shadow-md' : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:bg-slate-850'">
+                                <input type="radio" name="payment_print_choice" value="both" x-model="printChoice" class="text-emerald-500 focus:ring-0">
+                                <div class="text-right">
+                                    <span class="text-xs font-bold block" :class="printChoice === 'both' ? 'text-emerald-300' : 'text-slate-200'">هەردووکیان پێکەوە</span>
+                                    <span class="text-[10px] text-slate-400 block">چاپی ۲ پسوولە لە یەک کرداردا</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition select-none"
+                                   :class="printChoice === 'separate' ? 'bg-amber-500/20 border-amber-500 ring-1 ring-amber-500 text-white shadow-md' : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:bg-slate-850'">
+                                <input type="radio" name="payment_print_choice" value="separate" x-model="printChoice" class="text-amber-500 focus:ring-0">
+                                <div class="text-right">
+                                    <span class="text-xs font-bold block" :class="printChoice === 'separate' ? 'text-amber-300' : 'text-slate-200'">بەجیا (سەربەخۆ)</span>
+                                    <span class="text-[10px] text-slate-400 block">چاپی دەرهێنان یان بەڵێننامە</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                @else
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-semibold text-slate-300">
+                                ژمارەی پسوولەی ۳۷/أ (مامەڵەی سەرەکی) *
+                            </label>
+                            <span class="text-[11px] font-mono font-bold text-emerald-400">{{ number_format($transaction->total_pay) }} د.ع</span>
+                        </div>
+                        <input type="text" name="receipt_37a_number" required placeholder="مثلاً: 100234" dir="ltr"
+                               x-model="mainReceipt"
+                               class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-emerald-500 focus:outline-none">
+                    </div>
                 @endif
 
-                <div class="p-3 bg-emerald-950/50 border border-emerald-500/30 rounded-xl text-xs space-y-1">
-                    <p class="text-emerald-300 font-bold">
-                        کۆی گشتی پارەی پێویست: {{ number_format($transaction->total_pay) }} د.ع
-                        @if($linkedPledge && !$linkedPledge->is_paid)
-                            + {{ number_format($linkedPledge->total_pay) }} د.ع (بەڵێننامە) = <span class="text-white font-extrabold underline">{{ number_format($transaction->total_pay + $linkedPledge->total_pay) }} د.ع</span>
-                        @endif
-                    </p>
-                    <p class="text-slate-400">تێبینی: دوای تۆمارکردنی ژمارەی پسوولە، پارەدانەکە بە سەرکەوتوویی ئەنجام دەدرێت.</p>
-                </div>
                 <div class="flex justify-end space-x-2 space-x-reverse pt-2">
                     <button type="button" @click="showPayModal = false" class="px-4 py-2 bg-slate-800 text-slate-400 hover:text-slate-200 text-xs font-bold rounded-xl">پاشگەزبوونەوە</button>
-                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg">تۆمار و وەرگرتن</button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i>
+                        <span>تۆمار و وەرگرتن</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -1869,53 +2003,78 @@
 
             <div class="p-4 bg-emerald-950/40 border border-emerald-500/40 rounded-xl space-y-2">
                 <p class="text-sm font-bold text-white">
-                    پارەی مامەڵەکە وەرگیرا و ژمارەی پسوولەکان بە سەرکەوتوویی تۆمارکران.
+                    پارەی مامەڵەکە بە سەرکەوتوویی وەرگیرا و ژمارەی پسوولەکان تۆمارکران:
                 </p>
                 <div class="text-xs text-emerald-200/90 space-y-1 font-mono">
-                    <p>• وەسڵی سەرەکی ({{ $typeName }}): <strong class="text-white">{{ $transaction->receipt_37a_number }}</strong></p>
-                    @if($linkedPledge && $linkedPledge->is_paid)
-                        <p>• وەسڵی بەڵێننامەی یاسایی: <strong class="text-amber-300">{{ $linkedPledge->receipt_37a_number }}</strong></p>
+                    @if($bookletTx && $bookletTx->is_paid)
+                        <p>• وەسڵی دەرهێنانی دەفتەر ({{ number_format($bookletFee) }} د.ع): <strong class="text-white">{{ $bookletTx->receipt_37a_number }}</strong></p>
+                    @endif
+                    @if($pledgeTx && $pledgeTx->is_paid)
+                        <p>• وەسڵی بەڵێننامەی یاسایی ({{ number_format($pledgeFee) }} د.ع): <strong class="text-amber-300">{{ $pledgeTx->receipt_37a_number }}</strong></p>
+                    @endif
+                    @if(!$hasCompanion)
+                        <p>• وەسڵی سەرەکی ({{ $typeName }}): <strong class="text-white">{{ $transaction->receipt_37a_number }}</strong></p>
                     @endif
                 </div>
             </div>
 
-            <div class="space-y-2.5">
-                @if($linkedPledge && $linkedPledge->is_paid)
-                    <!-- چاپی هەردوو پسوولە بە دوو پەڕە -->
-                    <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank"
-                       @click="showPaymentPromptModal = false"
-                       class="w-full px-4 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-between">
-                        <span class="flex items-center gap-2">
-                            <i class="fa-solid fa-print text-base"></i>
-                            <span>چاپی هەردوو پسوولەی ۳۷/أ بەیەکەوە (۲ پەڕەی جیا)</span>
-                        </span>
-                        <span class="px-2 py-0.5 rounded bg-black/30 text-[11px] font-mono">دەرهێنان + بەڵێننامە</span>
-                    </a>
-
-                    <div class="grid grid-cols-2 gap-2 pt-1">
-                        <a href="{{ route('transactions.print_payment_receipt', [$transaction->id, 'mode' => 'main']) }}" target="_blank"
-                           @click="showPaymentPromptModal = false"
-                           class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold rounded-xl border border-slate-700 transition text-center">
-                            تەنها وەسڵی {{ $typeName }}
-                        </a>
-                        <a href="{{ route('transactions.print_payment_receipt', [$transaction->id, 'mode' => 'pledge']) }}" target="_blank"
-                           @click="showPaymentPromptModal = false"
-                           class="px-3 py-2 bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 text-[11px] font-bold rounded-xl border border-amber-600/40 transition text-center">
-                            تەنها وەسڵی بەڵێننامە
-                        </a>
+            @if($hasCompanion && $bookletTx->is_paid && $pledgeTx->is_paid)
+                <!-- هەڵبژاردنی شێوازی چاپی پسوولەکان: بەجیا یان پێکەوە (خاڵی داواکراوی بەکارهێنەر) -->
+                <div class="p-4 bg-slate-950 rounded-2xl border-2 border-emerald-500/40 space-y-3.5 shadow-inner">
+                    <div class="text-center space-y-0.5">
+                        <span class="text-sm font-black text-white block">ئایا بەجیا پسوولەکان چاپ دەکەیت یان هەردووکیان پێکەوە؟</span>
+                        <span class="text-[11px] text-slate-400 block">شێوازی چاپی دڵخوازی خۆت دیاری بکە:</span>
                     </div>
-                @else
-                    <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank"
-                       @click="showPaymentPromptModal = false"
-                       class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-between">
-                        <span class="flex items-center gap-2">
-                            <i class="fa-solid fa-print text-base"></i>
-                            <span>چاپی پسوولەی فەرمی ۳۷/أ</span>
-                        </span>
-                        <i class="fa-solid fa-arrow-left"></i>
-                    </a>
-                @endif
-            </div>
+
+                    <div class="space-y-2.5">
+                        <!-- هەڵبژاردنی ١: چاپی هەردووکیان پێکەوە -->
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-bold text-emerald-400 block px-1">بژاردەی یەکەم (پێشنیارکراو):</span>
+                            <a href="{{ route('transactions.print_payment_receipt', [$bookletTx->id, 'mode' => 'both']) }}" target="_blank"
+                               @click="showPaymentPromptModal = false"
+                               class="w-full px-4 py-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-900/40 transition flex items-center justify-between border border-emerald-400/40">
+                                <span class="flex items-center gap-2">
+                                    <i class="fa-solid fa-copy text-base text-emerald-200"></i>
+                                    <span>چاپی هەردووکیان پێکەوە (۲ پەڕەی جیا)</span>
+                                </span>
+                                <span class="px-2 py-0.5 rounded bg-black/40 text-[11px] font-mono text-emerald-200">دەرهێنان + بەڵێننامە</span>
+                            </a>
+                        </div>
+
+                        <!-- هەڵبژاردنی ٢: چاپی پسوولەکان بەجیا -->
+                        <div class="space-y-1 pt-1.5 border-t border-slate-800">
+                            <span class="text-[10px] font-bold text-amber-300 block px-1 flex items-center gap-1">
+                                <i class="fa-solid fa-scissors text-[9px]"></i>
+                                بژاردەی دووەم (چاپی بەجیا و سەربەخۆ):
+                            </span>
+                            <div class="grid grid-cols-2 gap-2">
+                                <a href="{{ route('transactions.print_payment_receipt', [$bookletTx->id, 'mode' => 'main']) }}" target="_blank"
+                                   @click="showPaymentPromptModal = false"
+                                   class="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-sky-300 hover:text-white text-[11px] font-black rounded-xl border border-sky-500/40 transition text-center flex flex-col items-center justify-center gap-0.5 shadow">
+                                    <span>تەنها وەسڵی دەرهێنان</span>
+                                    <span class="text-[10px] text-slate-400 font-mono">{{ number_format($bookletFee) }} د.ع</span>
+                                </a>
+                                <a href="{{ route('transactions.print_payment_receipt', [$bookletTx->id, 'mode' => 'pledge']) }}" target="_blank"
+                                   @click="showPaymentPromptModal = false"
+                                   class="px-3 py-2.5 bg-amber-950/60 hover:bg-amber-900/70 text-amber-300 hover:text-white text-[11px] font-black rounded-xl border border-amber-500/40 transition text-center flex flex-col items-center justify-center gap-0.5 shadow">
+                                    <span>تەنها وەسڵی بەڵێننامە</span>
+                                    <span class="text-[10px] text-amber-200/80 font-mono">{{ number_format($pledgeFee) }} د.ع</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <a href="{{ route('transactions.print_payment_receipt', $transaction->id) }}" target="_blank"
+                   @click="showPaymentPromptModal = false"
+                   class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg transition flex items-center justify-between">
+                    <span class="flex items-center gap-2">
+                        <i class="fa-solid fa-print text-base"></i>
+                        <span>چاپی پسوولەی فەرمی ۳۷/أ</span>
+                    </span>
+                    <i class="fa-solid fa-arrow-left"></i>
+                </a>
+            @endif
 
             <div class="flex justify-end pt-2 border-t border-slate-700/60">
                 <button type="button" @click="showPaymentPromptModal = false" class="px-5 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition">

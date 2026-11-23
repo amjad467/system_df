@@ -2279,6 +2279,20 @@ class TransactionController extends Controller
             return redirect()->back()->with('error', 'تەنها ژمێریار / وەسڵبڕ (Cashier) دەتوانێت پارە وەربگرێت و وەسڵ ببڕێت!');
         }
 
+        // Normalization for companion transactions:
+        // If accessed with pledge transaction (Type 6) and has parent booklet (Type 1), normalize so $transaction is the booklet
+        if ((int)$transaction->transaction_type_id === 6) {
+            $parent = $transaction->getLinkedPledgeOrParent();
+            if ($parent && (int)$parent->transaction_type_id === 1) {
+                $linked = $transaction;
+                $transaction = $parent;
+            } else {
+                $linked = null;
+            }
+        } else {
+            $linked = $transaction->getLinkedPledgeOrParent();
+        }
+
         if (!$transaction->is_audited) {
             return redirect()->back()->with('error', 'مامەڵەکە هێشتا وردبینی بۆ نەکراوە! وەسڵ‌بڕ ناتوانێت پارە وەربگیرێت تا وردبینی نەکرێت.');
         }
@@ -2316,7 +2330,6 @@ class TransactionController extends Controller
         AuditLogger::log('وەرگرتنی پارە و بڕینی وەسڵ', Transaction::class, $transaction->id, "وەسڵی ۳۷/أ: {$receiptNum} - کۆی پارە: {$transaction->total_pay} د.ع");
 
         // Sequential/Dual payment for linked companion pledge if Booklet Issue
-        $linked = $transaction->getLinkedPledgeOrParent();
         $linkedPaidInfo = '';
         if ($linked && !$linked->is_paid && $request->filled('linked_receipt_37a_number')) {
             $linkedReceiptNum = trim($request->linked_receipt_37a_number);
@@ -2349,6 +2362,9 @@ class TransactionController extends Controller
             route('transactions.show', $transaction->id)
         );
 
+        if ($request->filled('payment_print_choice')) {
+            session()->flash('payment_print_choice', $request->input('payment_print_choice'));
+        }
         session()->flash('payment_completed_prompt_receipt', true);
 
         return redirect()->back()->with('success', "پارەدانی مامەڵەکە و وەسڵی ۳۷/أ ({$receiptNum}){$linkedPaidInfo} بە سەرکەوتوویی تۆمارکرا.");
@@ -2414,7 +2430,8 @@ class TransactionController extends Controller
             route('transactions.show', $transaction->id)
         );
 
-        return redirect()->back()->with('success', "ژمارەی دەفتەر ({$bookletNum}) بە سەرکەوتوویی تۆمارکرا و چاپی دەفتەر ئەکتیڤ بوو.");
+        return redirect()->route('transactions.print_booklet', ['transaction' => $transaction->id, 'autoprint' => 1])
+            ->with('success', "ژمارەی دەفتەر ({$bookletNum}) بە سەرکەوتوویی تۆمارکرا.");
     }
 
     public function printPaymentReceipt(Request $request, Transaction $transaction)
@@ -2432,9 +2449,17 @@ class TransactionController extends Controller
             return redirect()->back()->with('error', 'پسوولەی پارەدان شایەنی چاپکردن نییە چونکە مامەڵەکە پارەدانی بۆ ئەنجام نەدراوە.');
         }
 
+        $linkedPledge = $transaction->getLinkedPledgeOrParent();
+
+        // If accessed with pledge transaction (Type 6), swap so $transaction is Booklet (Type 1) and $linkedPledge is Pledge (Type 6)
+        if ((int)$transaction->transaction_type_id === 6 && $linkedPledge && (int)$linkedPledge->transaction_type_id === 1) {
+            $temp = $transaction;
+            $transaction = $linkedPledge;
+            $linkedPledge = $temp;
+        }
+
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director', 'parentTransaction', 'relatedTransactions']);
 
-        $linkedPledge = $transaction->getLinkedPledgeOrParent();
         if ($linkedPledge && $linkedPledge->is_paid) {
             $linkedPledge->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
         } else {
