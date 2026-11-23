@@ -28,14 +28,29 @@ docker cp "$APP_DIR/config/." tourist-app:/var/www/config/
 docker cp "$APP_DIR/public/." tourist-app:/var/www/public/
 docker cp "$APP_DIR/database/migrations/." tourist-app:/var/www/database/migrations/
 
-echo "[3/5] Syncing 17,424 records database (with 21/22/23/24 prefixes and zero spaces)..."
-if [ -f "$APP_DIR/database/database_seed.sqlite" ]; then
-    docker cp "$APP_DIR/database/database_seed.sqlite" tourist-app:/var/www/database/database.sqlite
-    docker exec tourist-app chmod 777 /var/www/database/database.sqlite
-    echo "Database file copied successfully."
-else
-    echo "Warning: database_seed.sqlite not found!"
-fi
+echo "[3/5] Protecting live database and creating automatic backup..."
+# 1. Create a timestamped backup of the live database inside container if it exists
+docker exec tourist-app sh -c "
+    mkdir -p /var/www/database/backups
+    if [ -s /var/www/database/database.sqlite ]; then
+        BACKUP_FILE=\"/var/www/database/backups/backup_\$(date +%Y%m%d_%H%M%S).sqlite\"
+        cp /var/www/database/database.sqlite \"\$BACKUP_FILE\"
+        echo \"Live database safely backed up to \$BACKUP_FILE\"
+    fi
+" || true
+
+# 2. NEVER overwrite live database! Only initialize if database.sqlite is missing or empty
+docker exec tourist-app sh -c "
+    if [ ! -s /var/www/database/database.sqlite ]; then
+        if [ -f /var/www/database/database_seed.sqlite ]; then
+            echo 'Initializing database from database_seed.sqlite...'
+            cp /var/www/database/database_seed.sqlite /var/www/database/database.sqlite
+            chmod 777 /var/www/database/database.sqlite
+        fi
+    else
+        echo 'Live database exists. PRESERVING ALL LIVE TRANSACTIONS (Will never overwrite)!'
+    fi
+" || true
 
 echo "[4/5] Clearing view, config, route and application caches..."
 docker exec tourist-app chmod -R 777 /var/www/storage /var/www/bootstrap/cache /var/www/database
