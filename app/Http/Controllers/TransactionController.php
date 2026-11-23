@@ -3110,15 +3110,31 @@ class TransactionController extends Controller
         }
 
         $barcode = $transaction->barcode;
-        $name = $transaction->visitor_name;
+        $companion = $transaction->getLinkedPledgeOrParent();
+
         $transaction->delete(); // Soft Delete
 
-        AuditLogger::log('سڕینەوەی کاتی (Soft Delete)', Transaction::class, $transaction->id, "مامەڵەی بارکۆد {$barcode} خرایە ئەرشیفی سڕدراوەکان");
+        if ($companion && !$companion->trashed()) {
+            $companionBarcode = $companion->barcode;
+            $companion->delete();
+
+            $isBooklet = ((int)$transaction->transaction_type_id === 1);
+            $bookletBarcode = $isBooklet ? $barcode : $companionBarcode;
+            $pledgeBarcode = $isBooklet ? $companionBarcode : $barcode;
+
+            AuditLogger::log('سڕینەوەی کاتی (Soft Delete)', Transaction::class, $transaction->id, "مامەڵەی بارکۆد {$barcode} و مامەڵەی هاوپێچی بارکۆد {$companionBarcode} پێکەوە خرانە ئەرشیفی سڕدراوەکان");
+            AuditLogger::log('سڕینەوەی کاتی (Soft Delete)', Transaction::class, $companion->id, "مامەڵەی بارکۆد {$companionBarcode} لەگەڵ هاوپێچەکەی {$barcode} خرایە ئەرشیفی سڕدراوەکان");
+
+            $successMsg = "هەردوو مامەڵەی دەرهێنان (بارکۆد: {$bookletBarcode}) و بەڵێننامەی یاسایی (بارکۆد: {$pledgeBarcode}) پێکەوە بە سەرکەوتوویی سڕانەوە و خرانە ئەرشیفی سڕدراوەکانەوە (تەنەکەخۆڵ).";
+        } else {
+            AuditLogger::log('سڕینەوەی کاتی (Soft Delete)', Transaction::class, $transaction->id, "مامەڵەی بارکۆد {$barcode} خرایە ئەرشیفی سڕدراوەکان");
+            $successMsg = "مامەڵەی بارکۆد ({$barcode}) بە سەرکەوتوویی خرایە ئەرشیفی سڕدراوەکانەوە (تەنەکەخۆڵ).";
+        }
 
         if (auth()->check() && (auth()->user()->isAdmin() || auth()->user()->role === 'archiver')) {
-            return redirect()->route('transactions.index')->with('success', "مامەڵەی بارکۆد ({$barcode}) بە سەرکەوتوویی خرایە ئەرشیفی سڕدراوەکانەوە (تەنەکەخۆڵ).");
+            return redirect()->route('transactions.index')->with('success', $successMsg);
         }
-        return redirect()->route('dashboard')->with('success', "مامەڵەی بارکۆد ({$barcode}) بە سەرکەوتوویی خرایە ئەرشیفی سڕدراوەکانەوە.");
+        return redirect()->route('dashboard')->with('success', $successMsg);
     }
 
     public function restore($id)
@@ -3129,6 +3145,20 @@ class TransactionController extends Controller
 
         $transaction = Transaction::onlyTrashed()->findOrFail($id);
         $transaction->restore();
+
+        $companion = $transaction->getLinkedPledgeOrParent(true);
+        if ($companion && $companion->trashed()) {
+            $companion->restore();
+
+            $isBooklet = ((int)$transaction->transaction_type_id === 1);
+            $bookletBarcode = $isBooklet ? $transaction->barcode : $companion->barcode;
+            $pledgeBarcode = $isBooklet ? $companion->barcode : $transaction->barcode;
+
+            AuditLogger::log('گەڕاندنەوەی مامەڵەی سڕدراوە لە تەنەکەخۆڵ', Transaction::class, $transaction->id, "بارکۆد: {$transaction->barcode} لەگەڵ هاوپێچی بارکۆد: {$companion->barcode}");
+            AuditLogger::log('گەڕاندنەوەی مامەڵەی سڕدراوە لە تەنەکەخۆڵ', Transaction::class, $companion->id, "بارکۆد: {$companion->barcode} لەگەڵ هاوپێچی بارکۆد: {$transaction->barcode}");
+
+            return redirect()->route('transactions.trash')->with('success', "هەردوو مامەڵەی دەرهێنان (بارکۆد: {$bookletBarcode}) و بەڵێننامەی یاسایی (بارکۆد: {$pledgeBarcode}) پێکەوە بە سەرکەوتوویی گەڕێنرانەوە بۆ ناو سیستم.");
+        }
 
         AuditLogger::log('گەڕاندنەوەی مامەڵەی سڕدراوە لە تەنەکەخۆڵ', Transaction::class, $transaction->id, "بارکۆد: {$transaction->barcode} - ناوی هاووڵاتی: {$transaction->visitor_name}");
 
@@ -3145,9 +3175,24 @@ class TransactionController extends Controller
         $barcode = $transaction->barcode;
         $name = $transaction->visitor_name;
 
-        AuditLogger::log('سڕینەوەی بنەڕەتی لە داتابەیس (Force Delete)', Transaction::class, $transaction->id, "مامەڵەی بارکۆد: {$barcode} - هاووڵاتی: {$name} بە یەکجاری سڕایەوە");
+        $companion = $transaction->getLinkedPledgeOrParent(true);
 
         $transaction->forceDelete();
+
+        if ($companion && $companion->trashed()) {
+            $companionBarcode = $companion->barcode;
+            $companion->forceDelete();
+
+            $isBooklet = ((int)$transaction->transaction_type_id === 1);
+            $bookletBarcode = $isBooklet ? $barcode : $companionBarcode;
+            $pledgeBarcode = $isBooklet ? $companionBarcode : $barcode;
+
+            AuditLogger::log('سڕینەوەی بنەڕەتی لە داتابەیس (Force Delete)', Transaction::class, $transaction->id, "هەردوو مامەڵەی دەرهێنان {$bookletBarcode} و بەڵێننامەی {$pledgeBarcode} بە یەکجاری لە داتابەیس سڕانەوە");
+
+            return redirect()->route('transactions.trash')->with('success', "هەردوو مامەڵەی دەرهێنان (بارکۆد: {$bookletBarcode}) و بەڵێننامەی یاسایی (بارکۆد: {$pledgeBarcode}) بە یەکجاری و بنەڕەتی لە داتابەیس سڕانەوە.");
+        }
+
+        AuditLogger::log('سڕینەوەی بنەڕەتی لە داتابەیس (Force Delete)', Transaction::class, $transaction->id, "مامەڵەی بارکۆد: {$barcode} - هاووڵاتی: {$name} بە یەکجاری سڕایەوە");
 
         return redirect()->route('transactions.trash')->with('success', "مامەڵەی بارکۆد ({$barcode}) بە یەکجاری و بنەڕەتی لە داتابەیس سڕایەوە.");
     }

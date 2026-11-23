@@ -59,13 +59,22 @@ class Transaction extends Model
     /**
      * Get the companion transaction (Booklet <-> Pledge)
      */
-    public function getLinkedPledgeOrParent(): ?Transaction
+    public function getLinkedPledgeOrParent(bool $withTrashed = false): ?Transaction
     {
         if ((int)$this->transaction_type_id === 1) {
-            return $this->relatedTransactions->firstWhere('transaction_type_id', 6)
-                ?? $this->relatedTransactions()->where('transaction_type_id', 6)->first();
+            $query = $this->relatedTransactions();
+            if ($withTrashed) {
+                $query = $query->withTrashed();
+            } else {
+                $found = $this->relatedTransactions->firstWhere('transaction_type_id', 6);
+                if ($found) return $found;
+            }
+            return $query->where('transaction_type_id', 6)->first();
         }
         if ((int)$this->transaction_type_id === 6 && $this->parent_transaction_id) {
+            if ($withTrashed) {
+                return Transaction::withTrashed()->find($this->parent_transaction_id);
+            }
             return $this->parentTransaction;
         }
         return null;

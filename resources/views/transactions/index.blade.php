@@ -903,10 +903,17 @@
                                     </a>
 
                                     @if(auth()->check() && auth()->user()->isAdmin())
-                                        <form action="{{ route('transactions.destroy', $tx->id) }}" method="POST" class="inline" onsubmit="return confirm('ئایا دڵنیایت لە سڕینەوەی ئەم مامەڵەیە؟ (بارکۆد: {{ $tx->barcode }})');">
+                                        @php
+                                            $comp = $tx->getLinkedPledgeOrParent();
+                                            $isPair = (bool)$comp;
+                                            $confirmText = $isPair 
+                                                ? "ئەم مامەڵەیە دەرهێنان و بەڵێننامەی پێکەوەییە! بە سڕینەوەی، هەردووکیان پێکەوە دەسڕدرێنەوە:\\n- بارکۆدی ١: {$tx->barcode}\\n- بارکۆدی ٢: {$comp->barcode}\\nئایا دڵنیایت لە سڕینەوەی هەردووکیان؟"
+                                                : "ئایا دڵنیایت لە سڕینەوەی ئەم مامەڵەیە؟ (بارکۆد: {$tx->barcode})";
+                                        @endphp
+                                        <form action="{{ route('transactions.destroy', $tx->id) }}" method="POST" class="inline" onsubmit="return confirm('{{ $confirmText }}');">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition" title="سڕینەوەی مامەڵە (ئەدمین)">
+                                            <button type="submit" class="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition" title="{{ $isPair ? 'سڕینەوەی هەردوو مامەڵە (دەرهێنان + بەڵێننامە)' : 'سڕینەوەی مامەڵە (ئەدمین)' }}">
                                                 <i class="fa-solid fa-trash-can text-xs"></i>
                                             </button>
                                         </form>

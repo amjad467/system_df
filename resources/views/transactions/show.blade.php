@@ -439,9 +439,9 @@
             @if(auth()->check() && auth()->user()->isAdmin())
                 <button type="button" @click="showDeleteModal = true" 
                         class="px-2.5 py-1.5 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 text-xs font-bold rounded-xl shadow transition flex items-center gap-1.5 shrink-0" 
-                        title="سڕینەوەی ئەم مامەڵەیە (تەنها بۆ بەڕێوەبەر)">
+                        title="{{ $hasCompanion ? 'سڕینەوەی دەرهێنان و بەڵێننامە پێکەوە' : 'سڕینەوەی ئەم مامەڵەیە (تەنها بۆ بەڕێوەبەر)' }}">
                     <i class="fa-solid fa-trash-can text-xs text-rose-400"></i>
-                    <span>سڕینەوە</span>
+                    <span>{{ $hasCompanion ? 'سڕینەوەی هەردووکیان' : 'سڕینەوە' }}</span>
                 </button>
 
                 <!-- 7. Admin Actions Dropdown (Reset & Soft Delete) -->
@@ -462,7 +462,7 @@
                         <button type="button" @click="showDeleteModal = true; openAdminMenu = false" 
                                 class="w-full text-right flex items-center gap-2 p-2 rounded-lg text-rose-400 hover:bg-rose-950/50 transition">
                             <i class="fa-solid fa-trash-can w-4 text-center"></i>
-                            <span>سڕینەوەی مامەڵە</span>
+                            <span>{{ $hasCompanion ? 'سڕینەوەی هەردوو مامەڵە' : 'سڕینەوەی مامەڵە' }}</span>
                         </button>
                     </div>
                 </div>
@@ -2591,16 +2591,38 @@
                 </button>
             </div>
 
-            <div class="p-3.5 bg-rose-950/40 border border-rose-500/40 rounded-xl space-y-2 text-xs">
-                <div class="text-rose-200 font-bold leading-relaxed">
-                    ئایا دڵنیایت لە سڕینەوەی ئەم مامەڵەیە؟ ئەگەر بە هەڵە تۆمارکرابێت یان پێویست نەبێت لێرەوە دەسڕدرێتەوە.
-                </div>
-                <div class="text-slate-300 font-mono text-[11px] bg-slate-950/80 p-2.5 rounded-lg border border-slate-800 space-y-1">
-                    <div>بارکۆد: <strong class="text-sky-400">{{ $transaction->barcode }}</strong></div>
-                    <div>هاووڵاتی: <strong class="text-white">{{ $transaction->visitor_name }}</strong></div>
-                    <div>تابلۆ: <strong class="text-amber-400">{{ $transaction->plate_number }}</strong></div>
-                    <div>جۆری مامەڵە: <strong class="text-slate-200">{{ $typeName }}</strong></div>
-                </div>
+            <div class="p-3.5 bg-rose-950/40 border border-rose-500/40 rounded-xl space-y-2.5 text-xs">
+                @if($hasCompanion)
+                    <div class="text-rose-200 font-bold leading-relaxed flex items-center gap-1.5">
+                        <i class="fa-solid fa-link text-amber-400"></i>
+                        <span>ئەم مامەڵەیە دەرهێنان و بەڵێننامەی پێکەوەییە (۲ لە ۱)!</span>
+                    </div>
+                    <div class="p-3 bg-amber-500/10 border border-amber-500/40 rounded-xl space-y-2 text-xs text-amber-200">
+                        <p class="text-[11px] font-bold leading-relaxed">
+                            بە سڕینەوەی ئەم مامەڵەیە، <strong>هەردوو مامەڵەکە پێکەوە دەسڕدرێنەوە</strong>:
+                        </p>
+                        <div class="space-y-1.5 font-mono text-xs">
+                            <div class="flex items-center justify-between p-2 bg-slate-950/80 rounded-lg border border-slate-800">
+                                <span class="text-sky-300 font-bold">١. دەرهێنانی دەفتەر:</span>
+                                <span class="text-white font-black bg-sky-950/70 border border-sky-600/40 px-2 py-0.5 rounded">{{ $bookletTx->barcode }}</span>
+                            </div>
+                            <div class="flex items-center justify-between p-2 bg-slate-950/80 rounded-lg border border-slate-800">
+                                <span class="text-amber-300 font-bold">٢. بەڵێننامەی یاسایی:</span>
+                                <span class="text-white font-black bg-amber-950/70 border border-amber-600/40 px-2 py-0.5 rounded">{{ $pledgeTx->barcode }}</span>
+                            </div>
+                        </div>
+                    </div>
+                @else
+                    <div class="text-rose-200 font-bold leading-relaxed">
+                        ئایا دڵنیایت لە سڕینەوەی ئەم مامەڵەیە؟ ئەگەر بە هەڵە تۆمارکرابێت یان پێویست نەبێت لێرەوە دەسڕدرێتەوە.
+                    </div>
+                    <div class="text-slate-300 font-mono text-[11px] bg-slate-950/80 p-2.5 rounded-lg border border-slate-800 space-y-1">
+                        <div>بارکۆد: <strong class="text-sky-400">{{ $transaction->barcode }}</strong></div>
+                        <div>هاووڵاتی: <strong class="text-white">{{ $transaction->visitor_name }}</strong></div>
+                        <div>تابلۆ: <strong class="text-amber-400">{{ $transaction->plate_number }}</strong></div>
+                        <div>جۆری مامەڵە: <strong class="text-slate-200">{{ $typeName }}</strong></div>
+                    </div>
+                @endif
                 <p class="text-slate-400 text-[11px] leading-relaxed">
                     تێبینی: ئەم مامەڵەیە دەخرێتە ئەرشیفی سڕدراوەکان (تەنەکەخۆڵ) و لە هەموو لیستەکان نامێنێت.
                 </p>
@@ -2615,7 +2637,7 @@
                     </button>
                     <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/30 transition flex items-center gap-1.5">
                         <i class="fa-solid fa-trash-can"></i>
-                        <span>بەڵێ، مامەڵەکە بسڕەوە</span>
+                        <span>{{ $hasCompanion ? 'بەڵێ، هەردوو مامەڵەکە بسڕەوە' : 'بەڵێ، مامەڵەکە بسڕەوە' }}</span>
                     </button>
                 </div>
             </form>
