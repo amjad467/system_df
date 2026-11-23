@@ -855,7 +855,6 @@ class TransactionController extends Controller
             'no_nusraw_puchal.required' => 'تکایە ژمارەی نووسراوی گومرگ بنووسە.',
             'date_nusraw_puchal.required' => 'تکایە بەرواری نووسراوی گومرگ دیاری بکە.',
         ]);
-
         $transaction->update([
             'no_nusraw_puchal' => trim($validated['no_nusraw_puchal']),
             'date_nusraw_puchal' => $validated['date_nusraw_puchal'],
@@ -1825,6 +1824,8 @@ class TransactionController extends Controller
             unset($validated['NO_boxfile_puchal']);
         }
 
+        $keepInspection = ($transaction->returned_from_stage === 'audit' && $transaction->is_inspected);
+
         $transaction->update(array_merge($validated, [
             'is_bus' => $isBus,
             'num_years' => $fees['num_years'],
@@ -1840,7 +1841,8 @@ class TransactionController extends Controller
             'user_edit_date' => now(),
             'is_returned' => false,
             'return_reason' => null,
-            'is_inspected' => false, // Require re-inspection/re-audit after fix
+            'returned_from_stage' => null,
+            'is_inspected' => $keepInspection ? true : false,
             'is_audited' => false,
         ]));
 
@@ -1872,7 +1874,8 @@ class TransactionController extends Controller
                 'user_edit_date'         => now(),
                 'is_returned'            => false,
                 'return_reason'          => null,
-                'is_inspected'           => false,
+                'returned_from_stage'    => null,
+                'is_inspected'           => ($keepInspection && $linkedPledge->is_inspected) ? true : false,
                 'is_audited'             => false,
             ];
             $linkedPledge->update($sharedFields);
@@ -1922,33 +1925,36 @@ class TransactionController extends Controller
 
         $validated = $request->validate([
             'return_reason' => 'required|string|max:1000',
+            'return_stage' => 'nullable|string|in:inspection,audit',
         ], [
             'return_reason.required' => 'تکایە هۆکاری گەڕاندنەوەکە بە ڕوونی بنووسە.'
         ]);
 
-        $hadApprovedStages = ($transaction->is_inspected || $transaction->is_audited);
-        $stageNames = [];
-        if ($transaction->is_inspected) $stageNames[] = 'تەخمین';
-        if ($transaction->is_audited) $stageNames[] = 'وردبینی';
-        $stagesText = implode(' و ', $stageNames);
+        // پشکنین: ئایا گەڕانەوەکە لە ستێپی وردبینییە یان تەخمین؟
+        $stage = $request->input('return_stage');
+        if (empty($stage)) {
+            $stage = $transaction->is_inspected ? 'audit' : 'inspection';
+        }
 
-        $transaction->update([
-            'is_returned' => true,
-            'return_reason' => $validated['return_reason'],
-            'returned_by_user_id' => auth()->id(),
-            'is_inspected' => false,
-            'inspected_by' => null,
-            'inspected_at' => null,
-            'is_audited' => false,
-            'audited_by' => null,
-            'audited_at' => null,
-        ]);
-
-        // Auto-return companion pledge or booklet so both move together
-        $linked = $transaction->getLinkedPledgeOrParent();
-        if ($linked) {
-            $linked->update([
+        if ($stage === 'audit') {
+            // ئەگەر گەڕانەوەی هەڵەکە لە ستێپی وردبینی بوو: با بەس قۆناغی وردبینی هەڵوەشێتەوە و تەخمین وەک خۆی پارێزراو بێت
+            $updateData = [
                 'is_returned' => true,
+                'returned_from_stage' => 'audit',
+                'return_reason' => $validated['return_reason'],
+                'returned_by_user_id' => auth()->id(),
+                'is_audited' => false,
+                'audited_by' => null,
+                'audited_at' => null,
+                // is_inspected stays true
+            ];
+            $stageKurdish = 'وردبینی';
+            $warningMsg = "مامەڵەکە بەهۆی هەڵەوە لە قۆناغی وردبینی گەڕێندرایەوە بۆ داتائەنتەری. تەنها قۆناغی وردبینی هەڵوەشێنرایەوە و تەخمین وەک خۆی بە پەسەندکراوی ماوەتەوە.";
+        } else {
+            // ئەگەر گەڕانەوەی هەڵەکە لە ستێپی تەخمین بوو: تەنها قۆناغی تەخمین هەڵدەوەشێتەوە
+            $updateData = [
+                'is_returned' => true,
+                'returned_from_stage' => 'inspection',
                 'return_reason' => $validated['return_reason'],
                 'returned_by_user_id' => auth()->id(),
                 'is_inspected' => false,
@@ -1957,23 +1963,33 @@ class TransactionController extends Controller
                 'is_audited' => false,
                 'audited_by' => null,
                 'audited_at' => null,
-            ]);
-            AuditLogger::log('گەڕاندنەوەی مامەڵەی بەستراو', Transaction::class, $linked->id, "هۆکار: {$validated['return_reason']}" . ($hadApprovedStages ? " (قۆناغەکانی {$stagesText} هەڵوەشێنرانەوە)" : ""));
+            ];
+            $stageKurdish = 'تەخمین';
+            $warningMsg = "مامەڵەکە بەهۆی هەڵەوە لە قۆناغی تەخمین گەڕێندرایەوە بۆ داتائەنتەری. قۆناغی تەخمین هەڵوەشێنرایەوە و دوای چاککردنی هەڵەکە دووبارە دەبێت تەخمین بۆ بکرێتەوە.";
         }
 
-        AuditLogger::log('گەڕاندنەوەی مامەڵە بۆ چاککردنەوە', Transaction::class, $transaction->id, "هۆکار: {$validated['return_reason']}" . ($hadApprovedStages ? " (قۆناغەکانی {$stagesText} هەڵوەشێنرانەوە)" : ""));
+        $transaction->update($updateData);
+
+        // Auto-return companion pledge or booklet so both move together
+        $linked = $transaction->getLinkedPledgeOrParent();
+        if ($linked) {
+            $linkedUpdateData = $updateData;
+            if ($stage === 'audit') {
+                unset($linkedUpdateData['is_inspected'], $linkedUpdateData['inspected_by'], $linkedUpdateData['inspected_at']);
+            }
+            $linked->update($linkedUpdateData);
+            AuditLogger::log('گەڕاندنەوەی مامەڵەی بەستراو', Transaction::class, $linked->id, "گەڕێنرایەوە لە قۆناغی {$stageKurdish} بەهۆی: {$validated['return_reason']}");
+        }
+
+        AuditLogger::log('گەڕاندنەوەی مامەڵە بۆ چاککردنەوە', Transaction::class, $transaction->id, "گەڕێنرایەوە لە قۆناغی {$stageKurdish} بەهۆی: {$validated['return_reason']}");
 
         NotificationService::send(
             $transaction->created_by,
             'data_entry',
             'ئاگاداری: مامەڵە گەڕێنراوەتەوە',
-            "مامەڵەی ({$transaction->visitor_name}) بە بارکۆدی {$transaction->barcode} بەهۆی هەڵەوە گەڕێنراوەتەوە. هۆکار: {$validated['return_reason']}" . ($hadApprovedStages ? " (قۆناغەکانی {$stagesText} هەڵوەشێنرانەوە و دەبێت دووبارە پەسەند بکرێنەوە)" : ""),
+            "مامەڵەی ({$transaction->visitor_name}) بە بارکۆدی {$transaction->barcode} لە قۆناغی {$stageKurdish} بەهۆی هەڵەوە گەڕێنراوەتەوە. هۆکار: {$validated['return_reason']}",
             route('transactions.show', $transaction->id)
         );
-
-        $warningMsg = $hadApprovedStages 
-            ? "مامەڵەکە بە سەرکەوتوویی بەهۆی هەڵەوە گەڕێندرایەوە بۆ داتائەنتەری. قۆناغەکانی ({$stagesText}) هەڵوەشێنرانەوە و پێویستە دوای چاککردنی هەڵەکە دووبارە پەسەند بکرێنەوە."
-            : 'مامەڵەکە گەڕێندرایەوە بۆ بەشی تەخمین/داتائەنتەری بۆ ڕاستکردنەوە.';
 
         return redirect()->route('transactions.show', $transaction->id)
             ->with('warning', $warningMsg);
@@ -2081,7 +2097,6 @@ class TransactionController extends Controller
         if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('transactions.inspect')) {
             return redirect()->back()->with('error', 'تەنها کارمەندی کەشف و تەخمین (Inspector) دەتوانێت تێپەڕاندنی قۆناغی تەخمین ئەنجام بدات!');
         }
-
         $transaction->update([
             'is_inspected' => true,
             'inspected_by' => auth()->user()?->name ?? 'ئەندازیاری کەشف',
@@ -2130,7 +2145,6 @@ class TransactionController extends Controller
         if ($transaction->is_audited) {
             return redirect()->route('transactions.show', $transaction->id)->with('error', 'ئەم مامەڵەیە وردبینی بۆ کراوە و لە قۆناغی وردبینییە یان دواتر! ناتوانرێت هەڵبوەشێنرێتەوە.');
         }
-
         $transaction->update([
             'is_inspected' => false,
             'inspected_by' => null,
@@ -2176,7 +2190,6 @@ class TransactionController extends Controller
                 return redirect()->back()->with('error', 'بڕی پارەی دووپاتکراوە (' . number_format($entered) . ' د.ع) یەکسان نییە لەگەڵ کۆی گشتی مامەڵەکە (' . number_format($actual) . ' د.ع)!');
             }
         }
-
         $transaction->update([
             'is_audited' => true,
             'audited_by' => auth()->user()?->name ?? 'وردبین',
@@ -2229,7 +2242,6 @@ class TransactionController extends Controller
         if ($transaction->is_paid) {
             return redirect()->route('transactions.show', $transaction->id)->with('error', 'ناتوانرێت وردبینی هەڵوەشێنرێتەوە چونکە وەسڵی پارەدان ۳۷/أ بۆ بڕاوە و پارە دراوە! (تەنها ئەدمین دەتوانێت لە ڕێگەی Reset قۆناغی پارەدان ڕێکبخاتەوە).');
         }
-
         $transaction->update([
             'is_audited' => false,
             'audited_by' => null,
@@ -2285,7 +2297,6 @@ class TransactionController extends Controller
             $typeName = $existing->transactionType->name_kurdish ?? 'دیاری نەکراو';
             return redirect()->back()->with('error', "ئەم ژمارەی پسوولەیە ({$receiptNum}) پێشتر دراوە بە مامەڵەی بەناوی ({$visitorName}) و ژمارەی تابلۆی ({$plateNumber}) و جۆری مامەڵەی ({$typeName})!");
         }
-
         $transaction->update([
             'is_paid' => true,
             'receipt_37a_number' => $receiptNum,
@@ -2377,7 +2388,6 @@ class TransactionController extends Controller
             $typeName = $existing->transactionType->name_kurdish ?? 'دیاری نەکراو';
             return redirect()->back()->with('error', "ئەم ژمارەی دەفتەرە ({$bookletNum}) پێشتر دراوە بە مامەڵەی بەناوی ({$visitorName}) و ژمارەی تابلۆی ({$plateNumber}) و جۆری مامەڵەی ({$typeName})!");
         }
-
         $transaction->update([
             'is_booklet_completed' => true,
             'booklet_number' => $bookletNum,
@@ -2581,7 +2591,7 @@ class TransactionController extends Controller
 
             // خاڵی ٦.١: هەڵوەشاندنەوەی پارەدان وردبینی چالاک دەکاتەوە بۆ سەرلەنوێ وردبینیکردن
             // خاڵی ٦.٤: هەڵوەشاندنەوەی سەبمیت ئەگەر پێشتر سەبمیت کرابوو
-            $transaction->update([
+        $transaction->update([
                 'is_paid' => false,
                 'receipt_37a_number' => null,
                 'paid_by' => null,
@@ -2633,7 +2643,7 @@ class TransactionController extends Controller
             }
 
             // خاڵی ٦.٤: هەڵوەشاندنەوەی سەبمیت ئەگەر گەشتبووە سەبمیت
-            $transaction->update([
+        $transaction->update([
                 'is_booklet_completed' => false,
                 'booklet_number' => null,
                 'booklet_by' => null,
@@ -2656,8 +2666,7 @@ class TransactionController extends Controller
                 'is_audited' => $transaction->is_audited,
                 'is_submitted' => $transaction->is_submitted,
             ];
-
-            $transaction->update([
+        $transaction->update([
                 'is_audited' => false,
                 'audited_by' => null,
                 'audited_at' => null,
@@ -2674,8 +2683,7 @@ class TransactionController extends Controller
                 'is_inspected' => $transaction->is_inspected,
                 'is_submitted' => $transaction->is_submitted,
             ];
-
-            $transaction->update([
+        $transaction->update([
                 'is_inspected' => false,
                 'inspected_by' => null,
                 'inspected_at' => null,
@@ -2693,8 +2701,7 @@ class TransactionController extends Controller
                 'submitted_by' => $transaction->submitted_by,
                 'submitted_at' => $transaction->submitted_at,
             ];
-
-            $transaction->update([
+        $transaction->update([
                 'is_submitted' => false,
                 'submitted_by' => null,
                 'submitted_at' => null,
@@ -2735,8 +2742,7 @@ class TransactionController extends Controller
                     ]
                 );
             }
-
-            $transaction->update([
+        $transaction->update([
                 'is_inspected' => false,
                 'inspected_by' => null,
                 'inspected_at' => null,
@@ -2856,7 +2862,6 @@ class TransactionController extends Controller
                 \Illuminate\Support\Facades\DB::statement('ALTER TABLE transactions ADD COLUMN is_cancelled INTEGER NOT NULL DEFAULT 0');
             } catch (\Throwable $e) {}
         }
-
         $transaction->update([
             'is_cancelled' => true,
             'cancellation_code' => 'CNCL-' . strtoupper(Str::random(6)),
@@ -3213,7 +3218,6 @@ class TransactionController extends Controller
         if ($transaction->requiresBooklet() && empty($transaction->booklet_number)) {
             return redirect()->back()->with('error', 'ناتوانرێت مامەڵەکە تەواو و ئەرشیف بکرێت! سەرەتا دەبێت ژمارەی دەفتەر تۆمار بکرێت پاشان چاپ بکرێت.');
         }
-
         $transaction->update([
             'is_printed' => true,
             'is_submitted' => true,
@@ -3236,7 +3240,6 @@ class TransactionController extends Controller
         if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.cancellation')) {
             return redirect()->back()->with('error', 'دەسەڵاتی چاپی نووسراوی پووچەڵکردنەوەت نییە بەپێی پێرمشنەکان!');
         }
-
         $transaction->update(['is_printed' => true]);
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
         return view('transactions.print_cancellation', compact('transaction'));
@@ -3252,7 +3255,6 @@ class TransactionController extends Controller
         if (!auth()->user()->isAdmin() && !auth()->user()->hasPermission('prints.restriction')) {
             return redirect()->back()->with('error', 'دەسەڵاتی چاپی نووسراوی ڕەفتارنەکردنت نییە بەپێی پێرمشنەکان!');
         }
-
         $transaction->update(['is_printed' => true]);
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
         return view('transactions.print_restriction', compact('transaction'));
@@ -3274,7 +3276,6 @@ class TransactionController extends Controller
             return redirect()->route('transactions.show', $transaction->id)
                 ->with('error', 'نووسراوی پشکنین تەنها لە قۆناغی پارەدان چاپ دەکرێت دوای وەرگرتنی پارە، لەبەر تۆمارکردنی ژمارەی پسوولەی ۳۷/أ و بەرواری پارەدان.');
         }
-
         $transaction->update(['is_printed' => true]);
         $transaction->load(['transactionType', 'trafficDirectorate', 'plateType', 'carMake', 'carColor', 'director']);
         return view('transactions.print_inspection_letter', compact('transaction'));

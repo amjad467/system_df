@@ -110,6 +110,7 @@
     showBookletModal: false, 
     showCancelModal: false, 
     showReturnModal: false, 
+    returnStage: '{{ $transaction->is_inspected ? 'audit' : 'inspection' }}', 
     showRevertModal: false,
     showAuditModal: false,
     showSubmitModal: false,
@@ -416,7 +417,7 @@
                         <span>هەڵوەشاندنەوە</span>
                     </button>
                 </form>
-                <button type="button" @click="showReturnModal = true" class="px-2.5 py-2 bg-rose-600/80 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1 shrink-0" title="گەڕاندنەوە بۆ پێشتر">
+                <button type="button" @click="returnStage = 'audit'; showReturnModal = true" class="px-2.5 py-2 bg-rose-600/80 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow transition flex items-center gap-1 shrink-0" title="گەڕاندنەوە بۆ پێشتر">
                     <i class="fa-solid fa-arrow-turn-down-left"></i>
                     <span>گەڕاندنەوە</span>
                 </button>
@@ -751,15 +752,25 @@
 
     <!-- Alert Banner for Returned Transactions -->
     @if($transaction->is_returned)
+        @php
+            $isReturnedFromAudit = ($transaction->returned_from_stage === 'audit' || ($transaction->is_inspected && $transaction->returned_from_stage !== 'inspection'));
+        @endphp
         <div class="bg-rose-950/80 border-2 border-rose-500/80 rounded-2xl p-4 shadow-2xl flex items-start space-x-3 space-x-reverse animate-pulse">
             <i class="fa-solid fa-triangle-exclamation text-rose-400 text-2xl mt-0.5"></i>
             <div class="space-y-1">
-                <h4 class="text-sm font-extrabold text-rose-200">ئەم مامەڵەیە لەلایەن وردبینەوە گەڕێنراوەتەوە (Returned Status):</h4>
+                <h4 class="text-sm font-extrabold text-rose-200">
+                    ئەم مامەڵەیە بەهۆی هەڵەوە لە قۆناغی ({{ $isReturnedFromAudit ? 'وردبینی' : 'تەخمین' }}) گەڕێنراوەتەوە:
+                </h4>
                 <p class="text-xs text-rose-300 leading-relaxed font-bold">
                     هۆکاری گەڕاندنەوە: <span class="bg-rose-900/90 text-white px-2 py-0.5 rounded border border-rose-700 font-mono">{{ $transaction->return_reason }}</span>
                 </p>
-                <p class="text-[11px] text-rose-400">
-                    * کات و بەکارهێنەر: {{ $transaction->returnedBy->name ?? 'وردبین' }} ({{ $transaction->updated_at->diffForHumans() }}) - بەشی داتائەنتەری دەتوانێت گۆڕانکاری بکات و بێنێرێتەوە.
+                <p class="text-[11px] text-rose-300">
+                    * کات و بەکارهێنەر: {{ $transaction->returnedBy->name ?? 'کارمەند' }} ({{ $transaction->updated_at->diffForHumans() }})
+                    @if($isReturnedFromAudit)
+                        — <strong class="text-emerald-300">قۆناغی تەخمین پارێزراوە؛</strong> دوای چاککردنی هەڵەکە لەلایەن داتائەنتەری، ڕاستەوخۆ دەگەڕێتەوە بۆ بەردەستی وردبین.
+                    @else
+                        — دوای چاککردنی هەڵەکە لەلایەن داتائەنتەری، پێویستە سەرەتا تەخمین و پاشان وردبینی بۆ بکرێتەوە.
+                    @endif
                 </p>
             </div>
         </div>
@@ -1049,7 +1060,7 @@
                 </form>
 
                 <!-- دوگمەی گەڕاندنەوە بۆ تەخمین لە کاتی بوونی هەڵە -->
-                <button type="button" @click="showReturnModal = true" class="w-full py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-600/50 text-rose-300 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5">
+                <button type="button" @click="returnStage = 'audit'; showReturnModal = true" class="w-full py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-600/50 text-rose-300 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1.5">
                     <i class="fa-solid fa-rotate-left"></i>
                     <span>گەڕاندنەوە بۆ تەخمین (هەڵەی زانیاری)</span>
                 </button>
@@ -1298,7 +1309,7 @@
                                     <i class="fa-solid fa-magnifying-glass ml-1.5"></i> ستێپی ٢: پەسەندکردنی کەشف و تەخمین
                                 </button>
                             </form>
-                            <button type="button" @click="showReturnModal = true" class="px-4 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/20 transition flex items-center">
+                            <button type="button" @click="returnStage = 'inspection'; showReturnModal = true" class="px-4 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/20 transition flex items-center">
                                 <i class="fa-solid fa-rotate-left ml-1.5"></i> گەڕاندنەوە بۆ داتائەنتەری (هەڵەی زانیاری)
                             </button>
                         @else
@@ -1346,8 +1357,8 @@
                                 </a>
                             @endif
 
-                            <button type="button" @click="showReturnModal = true" class="px-4 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/20 transition flex items-center">
-                                <i class="fa-solid fa-rotate-left ml-1.5"></i> گەڕاندنەوە بۆ تەخمین (هەڵە هەیە)
+                            <button type="button" @click="returnStage = 'audit'; showReturnModal = true" class="px-4 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/20 transition flex items-center">
+                                <i class="fa-solid fa-rotate-left ml-1.5"></i> گەڕاندنەوە بەهۆی بوونی هەڵە
                             </button>
                         @else
                             <span class="px-3 py-1.5 bg-purple-500/10 text-purple-300 border border-purple-500/30 rounded-xl text-xs font-bold flex items-center">
@@ -1376,8 +1387,8 @@
                             </button>
                         </form>
 
-                        <button type="button" @click="showReturnModal = true" class="px-4 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/20 transition flex items-center">
-                            <i class="fa-solid fa-arrow-turn-down-left ml-1.5"></i> گەڕاندنەوەی هەڵە بۆ ستێپی پێشتر (تەخمین / داتائەنتەری)
+                        <button type="button" @click="returnStage = 'audit'; showReturnModal = true" class="px-4 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/20 transition flex items-center">
+                            <i class="fa-solid fa-arrow-turn-down-left ml-1.5"></i> گەڕاندنەوەی هەڵە بۆ داتائەنتەری (هەڵوەشاندنەوەی وردبینی)
                         </button>
                     @endif
 
@@ -2245,27 +2256,41 @@
 
             <form action="{{ route('transactions.return', $transaction->id) }}" method="POST" class="space-y-4">
                 @csrf
+                <input type="hidden" name="return_stage" :value="returnStage">
 
-                @if($transaction->is_inspected || $transaction->is_audited)
-                    <!-- ئاگاداری و پەسەندکردنی هەڵوەشاندنەوەی ستێپ/قۆناغ لە کاتی هەڵەدا -->
-                    <div class="p-3.5 bg-amber-500/10 border-2 border-amber-500/40 rounded-xl space-y-2 text-amber-200">
-                        <div class="font-black flex items-center gap-2 text-amber-300 text-xs">
-                            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-sm animate-pulse"></i>
-                            <span>ئاگاداری لەسەر هەڵوەشاندنەوەی قۆناغە پەسەندکراوەکان:</span>
-                        </div>
-                        <p class="text-[11px] leading-relaxed text-slate-200">
-                            ئەم مامەڵەیە پێشتر قۆناغی 
-                            <strong class="text-amber-300">{{ ($transaction->is_inspected && $transaction->is_audited) ? 'تەخمین و وردبینی' : ($transaction->is_audited ? 'وردبینی' : 'تەخمین') }}</strong> 
-                            بۆ پەسەند کراوە. بە گەڕاندنەوەی بۆ داتائەنتەری، 
-                            <span class="text-rose-400 font-bold underline">ئەم قۆناغانە هەڵدەوەشێنەوە (Cancel/Reset دەبن)</span>، 
-                            و پێویستە دوای چاککردنی هەڵەکە لەلایەن داتائەنتەری، دووبارە لە سەرەتاوە قۆناغی ({{ ($transaction->is_inspected && $transaction->is_audited) ? 'تەخمین و وردبینی' : ($transaction->is_audited ? 'وردبینی' : 'تەخمین') }}) پەسەند بکرێتەوە.
-                        </p>
-                        <label class="flex items-center gap-2.5 pt-1.5 p-2 bg-slate-900/90 rounded-lg border border-amber-500/30 text-white font-bold cursor-pointer hover:bg-slate-800 transition">
-                            <input type="checkbox" name="confirm_revoke" value="1" required class="w-4 h-4 rounded bg-slate-800 border-amber-500 text-amber-500 focus:ring-0 cursor-pointer">
-                            <span class="text-[11px] text-amber-200">بەڵێ، ڕازیم قۆناغەکە هەڵدەوەشێتەوە و دووبارە دەبێت پەسەند بکرێتەوە</span>
-                        </label>
+                <!-- ئاگاداری تایبەت بە گەڕاندنەوە لە ستێپی وردبینی (تەنها قۆناغی وردبینی هەڵدەوەشێتەوە، تەخمین پارێزراوە) -->
+                <div x-show="returnStage === 'audit' || (!returnStage && {{ $transaction->is_inspected ? 'true' : 'false' }})" class="p-3.5 bg-purple-500/15 border-2 border-purple-500/40 rounded-xl space-y-2 text-purple-200">
+                    <div class="font-black flex items-center gap-2 text-purple-300 text-xs">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-400 text-sm animate-pulse"></i>
+                        <span>ئاگاداری: گەڕاندنەوە لە ستێپی وردبینی</span>
                     </div>
-                @endif
+                    <p class="text-[11px] leading-relaxed text-slate-200">
+                        ئەم مامەڵەیە لە قۆناغی <strong>وردبینی</strong> دایە. بە گەڕاندنەوەی بۆ داتائەنتەری، 
+                        <span class="text-rose-400 font-bold underline">تەنها قۆناغی وردبینی هەڵدەوەشێتەوە</span>، 
+                        و <span class="text-emerald-300 font-bold underline">قۆناغی تەخمین وەک خۆی پارێزراو دەبێت</span>. دوای ئەوەی داتائەنتەری هەڵەکە چاک دەکاتەوە، مامەڵەکە ڕاستەوخۆ دەگەڕێتەوە بەردەستی وردبین بۆ پەسەندکردن.
+                    </p>
+                    <label class="flex items-center gap-2.5 pt-1.5 p-2 bg-slate-900/90 rounded-lg border border-purple-500/30 text-white font-bold cursor-pointer hover:bg-slate-800 transition">
+                        <input type="checkbox" name="confirm_revoke_audit" value="1" required class="w-4 h-4 rounded bg-slate-800 border-purple-500 text-purple-500 focus:ring-0 cursor-pointer">
+                        <span class="text-[11px] text-purple-200">بەڵێ، ڕازیم بەس قۆناغی وردبینی هەڵدەوەشێتەوە و تەخمین پارێزراو بێت</span>
+                    </label>
+                </div>
+
+                <!-- ئاگاداری تایبەت بە گەڕاندنەوە لە ستێپی تەخمین (قۆناغی تەخمین هەڵدەوەشێتەوە) -->
+                <div x-show="returnStage === 'inspection' || (!returnStage && !{{ $transaction->is_inspected ? 'true' : 'false' }})" class="p-3.5 bg-amber-500/15 border-2 border-amber-500/40 rounded-xl space-y-2 text-amber-200">
+                    <div class="font-black flex items-center gap-2 text-amber-300 text-xs">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-400 text-sm animate-pulse"></i>
+                        <span>ئاگاداری: گەڕاندنەوە لە ستێپی تەخمین</span>
+                    </div>
+                    <p class="text-[11px] leading-relaxed text-slate-200">
+                        ئەم مامەڵەیە لە قۆناغی <strong>تەخمین</strong> دایە. بە گەڕاندنەوەی بۆ داتائەنتەری، 
+                        <span class="text-rose-400 font-bold underline">قۆناغی تەخمین هەڵدەوەشێتەوە</span>، 
+                        و پێویستە دوای چاککردنی هەڵەکە لەلایەن داتائەنتەری، دووبارە لە سەرەتاوە تەخمین بۆ بکرێتەوە.
+                    </p>
+                    <label class="flex items-center gap-2.5 pt-1.5 p-2 bg-slate-900/90 rounded-lg border border-amber-500/30 text-white font-bold cursor-pointer hover:bg-slate-800 transition">
+                        <input type="checkbox" name="confirm_revoke_inspection" value="1" :required="returnStage === 'inspection'" class="w-4 h-4 rounded bg-slate-800 border-amber-500 text-amber-500 focus:ring-0 cursor-pointer">
+                        <span class="text-[11px] text-amber-200">بەڵێ، ڕازیم قۆناغی تەخمین هەڵدەوەشێتەوە و دووبارە پەسەند دەکرێتەوە</span>
+                    </label>
+                </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-300 mb-1.5">تکایە هۆکاری گەڕاندنەوە و هەڵەکە بە ڕوونی بنووسە *</label>
@@ -2569,7 +2594,7 @@
                                 <span>پەسەندکردنی کۆتایی وردبینی</span>
                             </button>
 
-                            <button type="button" @click="showAuditModal = false; showReturnModal = true;" class="w-full py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-600/50 text-rose-300 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1">
+                            <button type="button" @click="returnStage = 'audit'; showAuditModal = false; showReturnModal = true;" class="w-full py-2 bg-rose-950/60 hover:bg-rose-900 border border-rose-600/50 text-rose-300 font-bold text-xs rounded-xl transition flex items-center justify-center gap-1">
                                 <i class="fa-solid fa-rotate-left"></i>
                                 <span>گەڕاندنەوە بۆ تەخمین (هەڵەی زانیاری)</span>
                             </button>
@@ -2789,7 +2814,7 @@
                             </button>
                         </form>
                         @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.return') || auth()->user()->hasPermission('transactions.inspect'))
-                            <button type="button" @click="showReturnModal = true" class="px-3 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-1">
+                            <button type="button" @click="returnStage = 'inspection'; showReturnModal = true" class="px-3 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-1">
                                 <i class="fa-solid fa-rotate-left"></i> گەڕاندنەوە
                             </button>
                         @endif
@@ -2809,7 +2834,7 @@
                             <span>پەسەندکردنی وردبینی</span>
                         </button>
                         @if(auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.return') || auth()->user()->hasPermission('transactions.audit'))
-                            <button type="button" @click="showReturnModal = true" class="px-3 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-1">
+                            <button type="button" @click="returnStage = 'audit'; showReturnModal = true" class="px-3 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-1">
                                 <i class="fa-solid fa-rotate-left"></i> گەڕاندنەوە
                             </button>
                         @endif
@@ -2842,7 +2867,7 @@
                         </button>
                     @endif
                     @if($transaction->is_audited && !$transaction->is_paid && (auth()->user()->isAdmin() || auth()->user()->hasPermission('transactions.return') || auth()->user()->hasPermission('transactions.audit')))
-                        <button type="button" @click="showReturnModal = true" class="px-3 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 shadow">
+                        <button type="button" @click="returnStage = 'audit'; showReturnModal = true" class="px-3 py-2 bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 shadow">
                             <i class="fa-solid fa-rotate-left"></i> گەڕاندنەوە بەهۆی هەڵە
                         </button>
                     @endif
