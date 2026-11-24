@@ -1779,176 +1779,145 @@
     </div>
 
     <!-- MODAL 1: Payment Modal (Cashier) -->
-    <div x-show="showPayModal" x-cloak class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
-                <h3 class="text-lg font-bold text-white flex items-center">
-                    <i class="fa-solid fa-receipt ml-2 text-emerald-400"></i> تۆمارکردنی وەسڵی ۳۷/أ و پارەدان
+    <div x-show="showPayModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-700/80 rounded-2xl max-w-lg w-full shadow-2xl max-h-[90vh] flex flex-col overflow-hidden text-right ring-2 ring-emerald-500/20" @click.away="showPayModal = false">
+            <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-950/40 shrink-0">
+                <h3 class="text-base font-black text-white flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-receipt"></i>
+                    </span>
+                    <span>تۆمارکردنی وەسڵی ۳۷/أ و وەرگرتنی پارە</span>
                 </h3>
-                <button type="button" @click="showPayModal = false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                <button type="button" @click="showPayModal = false" class="text-slate-400 hover:text-white p-1 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <!-- جۆری مامەڵە بە بارزی لە مۆداڵی پارەدان -->
-            <div class="p-3 rounded-xl border-2 {{ $typeTheme['border'] ?? 'border-emerald-500/80 shadow-emerald-500/20' }} bg-slate-950/90 flex items-center justify-between shadow-lg">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg {{ $typeTheme['iconBg'] ?? 'bg-emerald-500/20 text-emerald-400' }}">
-                        <i class="{{ $typeTheme['icon'] ?? 'fa-solid fa-receipt' }}"></i>
-                    </div>
-                    <div>
-                        <span class="text-[10px] text-slate-400 block font-bold">جۆری مامەڵە:</span>
-                        <span class="text-base font-black text-white">{{ $typeName }}</span>
-                    </div>
-                </div>
-                <span class="font-mono text-xs font-black px-2.5 py-1 rounded-lg bg-black/50 text-sky-300 border border-slate-700">
-                    {{ $transaction->barcode }}
-                </span>
-            </div>
-
-            <!-- کارتی گەورەی پیشاندانی پارەی هەردوو مامەڵە و کۆی گشتی بە گەورەیی -->
-            @if($hasCompanion)
-                <div class="p-4 bg-gradient-to-b from-slate-950 to-slate-900 border-2 border-emerald-500/60 rounded-2xl space-y-3 shadow-xl">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                        <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                            <i class="fa-solid fa-calculator text-emerald-400"></i>
-                            وردەکاری بڕی پارەی پێویست بۆ وەرگرتن:
-                        </span>
-                        <span class="text-[11px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                            ۲ مامەڵەی هاوبەش
-                        </span>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2.5">
-                        <!-- بڕی پارەی دەرهێنانی دەفتەر -->
-                        <div class="p-3 bg-slate-900/90 border border-sky-500/30 rounded-xl flex flex-col justify-between">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-bold text-sky-300">١. دەرهێنانی دەفتەر:</span>
-                                <span class="font-mono text-[10px] text-slate-400">{{ $bookletTx->barcode }}</span>
-                            </div>
-                            <div class="mt-2 text-right">
-                                <span class="font-mono text-xl font-black text-sky-400">{{ number_format($bookletFee) }}</span>
-                                <span class="text-[11px] font-bold text-slate-400 mr-1">د.ع</span>
-                            </div>
-                        </div>
-
-                        <!-- بڕی پارەی بەڵێننامەی یاسایی -->
-                        <div class="p-3 bg-slate-900/90 border border-amber-500/30 rounded-xl flex flex-col justify-between">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-bold text-amber-300">٢. بەڵێننامەی یاسایی:</span>
-                                <span class="font-mono text-[10px] text-slate-400">{{ $pledgeTx->barcode }}</span>
-                            </div>
-                            <div class="mt-2 text-right">
-                                <span class="font-mono text-xl font-black text-amber-400">{{ number_format($pledgeFee) }}</span>
-                                <span class="text-[11px] font-bold text-slate-400 mr-1">د.ع</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- کۆی گشتی بە گەورەیی و بەرچاوی -->
-                    <div class="p-3.5 bg-gradient-to-r from-emerald-950/90 via-emerald-900/40 to-teal-950/90 border-2 border-emerald-400/80 rounded-xl flex items-center justify-between shadow-lg">
-                        <div>
-                            <span class="text-xs font-black text-emerald-200 block">کۆی گشتی هەردوو پارەکە:</span>
-                            <span class="text-[10px] text-emerald-300/80 font-medium">وەسڵبڕ لێرەوە کۆی گشتی وەردەگرێت</span>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-3xl sm:text-4xl font-black text-emerald-300 font-mono tracking-tight drop-shadow-md">
-                                {{ number_format($totalCombinedPay) }}
-                            </span>
-                            <span class="text-xs font-black text-emerald-200 block mt-0.5">دیناری عێراقی</span>
-                        </div>
-                    </div>
-                </div>
-            @else
-                <div class="p-4 bg-gradient-to-r from-emerald-950/90 to-teal-950/90 border-2 border-emerald-500/80 rounded-xl flex items-center justify-between shadow-lg">
-                    <div>
-                        <span class="text-xs font-black text-emerald-200 block">بڕی پارەی پێویست بۆ وەرگرتن:</span>
-                        <span class="text-[10px] text-slate-400">مامەڵەی {{ $typeName }}</span>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-3xl font-black text-emerald-300 font-mono">
-                            {{ number_format($transaction->total_pay) }}
-                        </span>
-                        <span class="text-xs font-black text-emerald-200 block">دیناری عێراقی</span>
-                    </div>
-                </div>
-            @endif
-
-            <form action="{{ route('transactions.pay', $hasCompanion ? $bookletTx->id : $transaction->id) }}" method="POST" class="space-y-4">
+            <form action="{{ route('transactions.pay', $hasCompanion ? $bookletTx->id : $transaction->id) }}" method="POST" class="flex flex-col flex-1 overflow-hidden">
                 @csrf
-                
-                @if($hasCompanion)
-                    <!-- ژمارەی وەسڵی دەرهێنانی دەفتەر -->
-                    <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-bold text-sky-300">
-                                <i class="fa-solid fa-book-open ml-1"></i> ژمارەی پسوولەی ۳۷/أ بۆ دەرهێنانی دەفتەر ({{ $bookletTx->barcode }}) *
-                            </label>
-                            <span class="text-[11px] font-mono font-bold text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded border border-sky-500/20">{{ number_format($bookletFee) }} د.ع</span>
-                        </div>
-                        <input type="text" name="receipt_37a_number" required placeholder="مثلاً: 100234" dir="ltr"
-                               x-model="mainReceipt"
-                               @input="if(hasLinked) { linkedReceipt = (!isNaN(parseInt(mainReceipt)) ? (parseInt(mainReceipt) + 1) : '') }"
-                               class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-sky-500 focus:outline-none">
-                    </div>
+                <div class="p-5 overflow-y-auto space-y-3.5 flex-1 touch-scroll">
+                    <!-- کارتی سەرەکی پارەدان (پوخت و ڕوون) -->
+                    @if($hasCompanion)
+                        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
+                            <div class="flex items-center justify-between text-xs pb-2 border-b border-slate-800/80">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span class="font-bold text-slate-300">مامەڵەی {{ $typeName }}</span>
+                                </div>
+                                <span class="font-mono text-[11px] text-sky-400 font-bold bg-sky-950/60 px-2.5 py-0.5 rounded-lg border border-sky-800/50">
+                                    {{ $transaction->barcode }}
+                                </span>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 flex flex-col justify-between">
+                                    <div class="text-[11px] text-slate-400 flex items-center justify-between">
+                                        <span>دەرهێنانی دەفتەر:</span>
+                                        <span class="font-mono text-[10px] text-slate-500">{{ $bookletTx->barcode }}</span>
+                                    </div>
+                                    <div class="mt-1 text-left font-mono font-bold text-sky-300 text-sm">
+                                        {{ number_format($bookletFee) }} <span class="text-[10px] text-slate-400 font-sans">د.ع</span>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800 flex flex-col justify-between">
+                                    <div class="text-[11px] text-slate-400 flex items-center justify-between">
+                                        <span>بەڵێننامەی یاسایی:</span>
+                                        <span class="font-mono text-[10px] text-slate-500">{{ $pledgeTx->barcode }}</span>
+                                    </div>
+                                    <div class="mt-1 text-left font-mono font-bold text-amber-300 text-sm">
+                                        {{ number_format($pledgeFee) }} <span class="text-[10px] text-slate-400 font-sans">د.ع</span>
+                                    </div>
+                                </div>
+                            </div>
 
-                    @if($pledgeTx && !$pledgeTx->is_paid)
-                    <!-- ژمارەی وەسڵی بەڵێننامەی یاسایی -->
-                    <div class="p-3 bg-amber-950/40 border border-amber-500/40 rounded-xl space-y-2">
-                        <div class="flex items-center justify-between">
-                            <label class="block text-xs font-bold text-amber-300">
-                                <i class="fa-solid fa-file-contract ml-1"></i> پسوولەی ۳۷/أ بۆ بەڵێننامەی یاسایی ({{ $pledgeTx->barcode }})
-                            </label>
-                            <span class="text-[11px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">{{ number_format($pledgeFee) }} د.ع</span>
+                            <!-- کۆی گشتی پارەی وەرگیراو بە گەورەیی -->
+                            <div class="bg-gradient-to-l from-emerald-950/90 to-teal-950/80 border border-emerald-500/50 rounded-xl p-3 flex items-center justify-between shadow-inner">
+                                <div>
+                                    <span class="text-xs font-black text-emerald-200 block">کۆی گشتی بۆ وەرگرتن:</span>
+                                    <span class="text-[10px] text-emerald-400/80 font-medium">بڕی کۆکراوەی هەردوو مامەڵەکە</span>
+                                </div>
+                                <div class="text-left font-mono">
+                                    <span class="text-2xl sm:text-3xl font-black text-emerald-300 tracking-tight">{{ number_format($totalCombinedPay) }}</span>
+                                    <span class="text-xs font-bold text-emerald-400 mr-1 font-sans">دیناری عێراقی</span>
+                                </div>
+                            </div>
                         </div>
-                        <input type="text" name="linked_receipt_37a_number" placeholder="ژمارەی پسوولەی بەڵێننامە (ئۆتۆماتیک پێشنیاز دەکرێت)" dir="ltr"
-                               x-model="linkedReceipt"
-                               class="w-full bg-slate-900 border border-amber-500/50 rounded-xl px-3 py-2 text-sm text-amber-200 font-mono focus:border-amber-400 focus:outline-none">
-                        <p class="text-[10px] text-amber-300/80">بە یەک کردار هەردوو وەسڵەکە یەک لەدوای یەک تۆمار دەکرێن و بەڵێننامەکەش پارەدار دەبێت.</p>
-                    </div>
+
+                        <!-- ژمارەی وەسڵی دەرهێنانی دەفتەر -->
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between text-xs">
+                                <label class="font-bold text-sky-300 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-receipt text-sky-400"></i>
+                                    <span>ژمارەی وەسڵی ۳۷/أ بۆ دەرهێنانی دەفتەر ({{ $bookletTx->barcode }})</span>
+                                    <span class="text-rose-400">*</span>
+                                </label>
+                                <span class="text-[11px] font-mono text-sky-400 font-bold bg-sky-950/50 px-2 py-0.5 rounded border border-sky-800/40">
+                                    {{ number_format($bookletFee) }} د.ع
+                                </span>
+                            </div>
+                            <input type="text" name="receipt_37a_number" required placeholder="مثلاً: 15222" dir="ltr"
+                                   x-model="mainReceipt"
+                                   @input="if(hasLinked) { linkedReceipt = (!isNaN(parseInt(mainReceipt)) ? (parseInt(mainReceipt) + 1) : '') }"
+                                   class="w-full bg-slate-950 border border-slate-700 focus:border-sky-500 rounded-xl px-3.5 py-2 text-sm text-white font-mono focus:outline-none focus:ring-1 focus:ring-sky-500 transition">
+                        </div>
+
+                        @if($pledgeTx && !$pledgeTx->is_paid)
+                        <!-- ژمارەی وەسڵی بەڵێننامەی یاسایی -->
+                        <div class="space-y-1.5 pt-1">
+                            <div class="flex items-center justify-between text-xs">
+                                <label class="font-bold text-amber-300 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-link text-amber-400"></i>
+                                    <span>ژمارەی وەسڵی ۳۷/أ بۆ بەڵێننامە ({{ $pledgeTx->barcode }})</span>
+                                </label>
+                                <span class="text-[11px] font-mono text-amber-400 font-bold bg-amber-950/50 px-2 py-0.5 rounded border border-amber-800/40">
+                                    {{ number_format($pledgeFee) }} د.ع
+                                </span>
+                            </div>
+                            <input type="text" name="linked_receipt_37a_number" placeholder="مثلاً: 15223" dir="ltr"
+                                   x-model="linkedReceipt"
+                                   class="w-full bg-slate-950 border border-amber-500/50 focus:border-amber-400 rounded-xl px-3.5 py-2 text-sm text-amber-200 font-mono focus:outline-none focus:ring-1 focus:ring-amber-400 transition">
+                            <p class="text-[11px] text-amber-300/80 flex items-center gap-1 pt-0.5">
+                                <i class="fa-solid fa-circle-info text-[10px]"></i>
+                                <span>بە یەک کردار هەردوو وەسڵەکە یەک لەدوای یەک تۆمار دەکرێن و بەڵێننامەکەش پارەدار دەبێت.</span>
+                            </p>
+                        </div>
+                        @endif
+                    @else
+                        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
+                            <div class="flex items-center justify-between text-xs pb-1.5 border-b border-slate-800/80">
+                                <span class="font-bold text-slate-300">مامەڵەی {{ $typeName }}</span>
+                                <span class="font-mono text-[11px] text-emerald-400 font-bold bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/50">
+                                    {{ $transaction->barcode }}
+                                </span>
+                            </div>
+                            <div class="bg-gradient-to-l from-emerald-950/90 to-teal-950/80 border border-emerald-500/50 rounded-xl p-3 flex items-center justify-between">
+                                <span class="text-xs font-black text-emerald-200">بڕی پارەی پێویست بۆ وەرگرتن:</span>
+                                <div class="text-left font-mono">
+                                    <span class="text-2xl font-black text-emerald-300">{{ number_format($transaction->total_pay) }}</span>
+                                    <span class="text-xs font-bold text-emerald-400 mr-1 font-sans">دیناری عێراقی</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between text-xs">
+                                <label class="font-bold text-slate-300">
+                                    ژمارەی پسوولەی ۳۷/أ (مامەڵەی سەرەکی) *
+                                </label>
+                                <span class="text-[11px] font-mono font-bold text-emerald-400">{{ number_format($transaction->total_pay) }} د.ع</span>
+                            </div>
+                            <input type="text" name="receipt_37a_number" required placeholder="مثلاً: 100234" dir="ltr"
+                                   x-model="mainReceipt"
+                                   class="w-full bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2 text-sm text-slate-100 font-mono focus:outline-none focus:ring-1 focus:ring-emerald-500 transition">
+                        </div>
                     @endif
+                </div>
 
-                    <!-- هەڵبژاردنی شێوازی چاپی پسوولە لە مۆداڵی پارەدان (خاڵی داواکراوی بەکارهێنەر) -->
-                    <div class="p-3 bg-slate-950/80 border border-slate-700/80 rounded-xl space-y-2">
-                        <label class="block text-xs font-black text-white flex items-center gap-1.5">
-                            <i class="fa-solid fa-print text-emerald-400"></i>
-                            ئایا بەجیا پسوولەکان چاپ دەکەیت یان هەردووکیان پێکەوە؟
-                        </label>
-                        <div class="grid grid-cols-2 gap-2 pt-0.5">
-                            <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition select-none"
-                                   :class="printChoice === 'both' ? 'bg-emerald-500/20 border-emerald-500 ring-1 ring-emerald-500 text-white shadow-md' : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:bg-slate-850'">
-                                <input type="radio" name="payment_print_choice" value="both" x-model="printChoice" class="text-emerald-500 focus:ring-0">
-                                <div class="text-right">
-                                    <span class="text-xs font-bold block" :class="printChoice === 'both' ? 'text-emerald-300' : 'text-slate-200'">هەردووکیان پێکەوە</span>
-                                    <span class="text-[10px] text-slate-400 block">چاپی ۲ پسوولە لە یەک کرداردا</span>
-                                </div>
-                            </label>
-                            <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition select-none"
-                                   :class="printChoice === 'separate' ? 'bg-amber-500/20 border-amber-500 ring-1 ring-amber-500 text-white shadow-md' : 'bg-slate-900 border-slate-700/80 text-slate-300 hover:bg-slate-850'">
-                                <input type="radio" name="payment_print_choice" value="separate" x-model="printChoice" class="text-amber-500 focus:ring-0">
-                                <div class="text-right">
-                                    <span class="text-xs font-bold block" :class="printChoice === 'separate' ? 'text-amber-300' : 'text-slate-200'">بەجیا (سەربەخۆ)</span>
-                                    <span class="text-[10px] text-slate-400 block">چاپی دەرهێنان یان بەڵێننامە</span>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-                @else
-                    <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-semibold text-slate-300">
-                                ژمارەی پسوولەی ۳۷/أ (مامەڵەی سەرەکی) *
-                            </label>
-                            <span class="text-[11px] font-mono font-bold text-emerald-400">{{ number_format($transaction->total_pay) }} د.ع</span>
-                        </div>
-                        <input type="text" name="receipt_37a_number" required placeholder="مثلاً: 100234" dir="ltr"
-                               x-model="mainReceipt"
-                               class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-100 font-mono focus:border-emerald-500 focus:outline-none">
-                    </div>
-                @endif
-
-                <div class="flex justify-end space-x-2 space-x-reverse pt-2">
-                    <button type="button" @click="showPayModal = false" class="px-4 py-2 bg-slate-800 text-slate-400 hover:text-slate-200 text-xs font-bold rounded-xl">پاشگەزبوونەوە</button>
-                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg flex items-center gap-1.5">
-                        <i class="fa-solid fa-check"></i>
+                <!-- Modal Footer (داککراو و هەمیشە دیار لە خوارەوە بەبێ بڕین) -->
+                <div class="px-5 py-3.5 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between gap-3 shrink-0">
+                    <button type="button" @click="showPayModal = false" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold rounded-xl transition">
+                        پاشگەزبوونەوە
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black rounded-xl shadow-lg shadow-emerald-900/40 hover:shadow-emerald-900/60 transition flex items-center gap-2">
+                        <i class="fa-solid fa-check text-sm"></i>
                         <span>تۆمار و وەرگرتن</span>
                     </button>
                 </div>
@@ -1957,8 +1926,8 @@
     </div>
 
     <!-- MODAL: Prompt Official Letter Print after Audit (قۆناغی وردبینی - داوای چاپی نووسراو بۆ دەرهێنان و پووچەڵکردنەوە) (خاڵی ۲) -->
-    <div x-show="showAuditPromptModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border-2 border-purple-500/60 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl" @click.away="showAuditPromptModal = false">
+    <div x-show="showAuditPromptModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-slate-900 border-2 border-purple-500/60 rounded-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto touch-scroll" @click.away="showAuditPromptModal = false">
             <div class="flex items-center justify-between border-b border-slate-700 pb-3">
                 <h3 class="text-base font-black text-purple-300 flex items-center gap-2">
                     <i class="fa-solid fa-stamp text-purple-400 text-lg"></i>
@@ -2013,8 +1982,8 @@
     </div>
 
     <!-- MODAL: Prompt Payment Receipt Print after Cashier Payment (خاڵی گرنگ: مۆداڵی داوای چاپی پسوولەکان دوای پارەدان) -->
-    <div x-show="showPaymentPromptModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border-2 border-emerald-500/60 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl" @click.away="showPaymentPromptModal = false">
+    <div x-show="showPaymentPromptModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-slate-900 border-2 border-emerald-500/60 rounded-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto touch-scroll" @click.away="showPaymentPromptModal = false">
             <div class="flex items-center justify-between border-b border-slate-700 pb-3">
                 <h3 class="text-base font-black text-emerald-300 flex items-center gap-2">
                     <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
@@ -2109,8 +2078,8 @@
     </div>
 
     <!-- MODAL: Prompt Data Entry Print after Save or Update (خاڵی ۲) -->
-    <div x-show="showDataEntryPromptModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-blue-500/50 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+    <div x-show="showDataEntryPromptModal" x-cloak class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-slate-900 border border-blue-500/50 rounded-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto touch-scroll">
             <div class="flex items-center justify-between border-b border-slate-700 pb-3">
                 <h3 class="text-base font-black text-white flex items-center gap-2">
                     <span class="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
