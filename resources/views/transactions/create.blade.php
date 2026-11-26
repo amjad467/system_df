@@ -1008,6 +1008,15 @@
                             <span>کرێی کەشف:</span>
                             <span class="font-mono font-bold" :class="isBus ? 'text-amber-600 dark:text-amber-400 font-black' : ''" x-text="formatNumber(fees.inspectionPay)"></span>
                         </div>
+                        <div x-show="fees.finePay > 0" class="flex justify-between text-rose-600 dark:text-rose-400 font-bold">
+                            <span>
+                                <span x-show="typeId == 3">سزای ناوگۆڕین:</span>
+                                <span x-show="typeId == 4">سزای دەفتەرگۆڕین:</span>
+                                <span x-show="typeId == 7">سزای ناو و دەفتەرگۆڕین:</span>
+                                <span x-show="typeId != 3 && typeId != 4 && typeId != 7">سزا (غەرامە):</span>
+                            </span>
+                            <span class="font-mono font-black" x-text="formatNumber(fees.finePay)"></span>
+                        </div>
                         <div x-show="typeId == 1" class="flex justify-between text-sky-600 dark:text-sky-400 font-semibold">
                             <span>بەڵێننامەی یاسایی:</span>
                             <span class="font-mono" x-text="formatNumber(fees.pledgeTotal)"></span>
@@ -1418,6 +1427,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             stampPay: 0,
             formPay: 0,
             inspectionPay: 0,
+            finePay: 0,
             pledgeTotal: 8000,
             totalPay: 0
         },
@@ -2059,10 +2069,21 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
                 inspection = this.isBus ? (parseFloat(r.bus_inspection_pay) || 30000) : (parseFloat(r.inspection_pay) || 20000);
             }
 
+            // سزای مامەڵە بەپێی جۆری مامەڵە (ناوگۆڕین: ۲٥ هەزار، دەفتەرگۆڕین: ۲٥ هەزار، ناو و دەفتەرگۆڕین: ٥٠ هەزار)
+            let fine = 0;
+            if (parseInt(this.typeId) === 3 || parseInt(this.typeId) === 4) {
+                fine = 25000;
+            } else if (parseInt(this.typeId) === 7) {
+                fine = 50000;
+            } else {
+                fine = parseFloat(r.fine_pay) || 0;
+            }
+
             this.fees.mainPay = main;
             this.fees.stampPay = stamp;
             this.fees.formPay = form;
             this.fees.inspectionPay = inspection;
+            this.fees.finePay = fine;
 
             const pledgeRate = this.rates[6] || {};
             const pledgeStamp = pledgeRate.stamp_pay !== undefined ? parseFloat(pledgeRate.stamp_pay) : 4000;
@@ -2070,7 +2091,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             const pledgeFee = (pledgeStamp + pledgeForm) > 0 ? (pledgeStamp + pledgeForm) : 8000;
             this.fees.pledgeTotal = (parseInt(this.typeId) === 1) ? pledgeFee : 0;
 
-            this.fees.totalPay = main + stamp + form + inspection;
+            this.fees.totalPay = main + stamp + form + inspection + fine;
         },
 
         formatNumber(n) {

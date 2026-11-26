@@ -1739,10 +1739,22 @@
                     <span class="text-slate-400">فۆڕم:</span>
                     <span class="font-mono text-slate-200">{{ number_format($transaction->pay_form) }} د.ع</span>
                 </div>
+                @if($transaction->pay_fine > 0)
                 <div class="flex justify-between py-1 border-b border-slate-700/40">
-                    <span class="text-slate-400">سزای دواکەوتن:</span>
-                    <span class="font-mono text-amber-400">{{ number_format($transaction->pay_fine) }} د.ع</span>
+                    <span class="text-rose-400 font-bold">
+                        @if((int)$transaction->transaction_type_id === 3)
+                            سزای ناوگۆڕین:
+                        @elseif((int)$transaction->transaction_type_id === 4)
+                            سزای دەفتەرگۆڕین:
+                        @elseif((int)$transaction->transaction_type_id === 7)
+                            سزای ناو و دەفتەرگۆڕین:
+                        @else
+                            سزا (غەرامە):
+                        @endif
+                    </span>
+                    <span class="font-mono text-rose-300 font-bold">{{ number_format($transaction->pay_fine) }} د.ع</span>
                 </div>
+                @endif
                 <div class="flex justify-between py-1 border-b border-slate-700/40">
                     <span class="text-slate-400">کەشف و تەخمین:</span>
                     <span class="font-mono text-slate-200">{{ number_format($transaction->pay_inspection) }} د.ع</span>

@@ -50,6 +50,20 @@ class FeeCalculatorService
             $busPay = (float)($txType->bus_inspection_pay ?: 30000);
             $inspection = $isBus ? $busPay : (float)$txType->inspection_pay;
 
+            // Enforce explicit fine rules per transaction type:
+            // ناو گۆڕین (3): ۲٥ هەزار | دەفتەرگۆڕین (4): ۲٥ هەزار | ناو و دەفتەرگۆڕین (7): ٥٠ هەزار
+            if (in_array($transactionTypeId, [3, 4])) {
+                $fine = 25000;
+                $payYears = 0;
+                $inspection = 0;
+            } elseif ($transactionTypeId == 7) {
+                $fine = 50000;
+                $payYears = 0;
+                $inspection = 0;
+            } else {
+                $fine = (float)$txType->fine_pay;
+            }
+
             // Only Issue Booklet (1) and Renew Booklet (2) multiply fee by years
             if (in_array($transactionTypeId, [1, 2])) {
                 if ($numYears == 1) $payYears = (float)$txType->pay_1_year;
