@@ -684,8 +684,8 @@
 
                 if (typeId === 6) { // بەڵێننامە
                     payYears = 0;
-                    stamp = r ? parseFloat(r.stamp_pay) : 3000;
-                    form = r ? parseFloat(r.form_pay) : 3000;
+                    stamp = r ? parseFloat(r.stamp_pay) : 4000;
+                    form = r ? parseFloat(r.form_pay) : 4000;
                     fine = 0;
                     inspection = 0;
                 } else if (r) {

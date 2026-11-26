@@ -88,7 +88,7 @@ class DatabaseSeeder extends Seeder
             ['id' => 3, 'name_kurdish' => 'ناوگۆڕینی دەفتەر', 'name_english' => 'Name Change'],
             ['id' => 4, 'name_kurdish' => 'دەفتەر گۆڕین', 'name_english' => 'Booklet Replacement'],
             ['id' => 5, 'name_kurdish' => 'پووچەڵکردنەوەی دەفتەر', 'name_english' => 'Booklet Cancellation'],
-            ['id' => 6, 'name_kurdish' => 'بەڵێننامە', 'name_english' => 'Pledge Form'],
+            ['id' => 6, 'name_kurdish' => 'بەڵێننامە', 'name_english' => 'Pledge Form', 'pay_1_year' => 0, 'stamp_pay' => 4000, 'form_pay' => 4000, 'fine_pay' => 0, 'inspection_pay' => 0],
             ['id' => 7, 'name_kurdish' => 'ناوگۆڕین و دەفتەرگۆڕین', 'name_english' => 'Name & Booklet Change'],
             ['id' => 8, 'name_kurdish' => 'پشکنین', 'name_english' => 'Inspection'],
         ];

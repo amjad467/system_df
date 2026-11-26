@@ -34,11 +34,11 @@ class FeeCalculatorService
             $endDate = $customEndDate ? Carbon::parse($customEndDate) : null;
         }
 
-        // Pledge Form (Type 6): Fixed fee rule = 6,000 Dinars (3,000 stamp + 3,000 form)
+        // Pledge Form (Type 6): Fixed fee rule = 8,000 Dinars (4,000 stamp + 4,000 form)
         if ($transactionTypeId == 6 || ($txType && str_contains($txType->name_kurdish, 'بەڵێننامە'))) {
             $payYears = 0;
-            $stamp = 3000;
-            $form = 3000;
+            $stamp = 4000;
+            $form = 4000;
             $fine = 0;
             $inspection = 0;
             $startDate = null;
@@ -107,8 +107,8 @@ class FeeCalculatorService
                     break;
 
                 case 6: // Pledge Form
-                    $stamp = 3000;
-                    $form = 3000;
+                    $stamp = 4000;
+                    $form = 4000;
                     $payYears = 0;
                     $startDate = null;
                     $endDate = null;

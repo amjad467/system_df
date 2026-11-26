@@ -1418,7 +1418,7 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             stampPay: 0,
             formPay: 0,
             inspectionPay: 0,
-            pledgeTotal: 25000,
+            pledgeTotal: 8000,
             totalPay: 0
         },
 
@@ -2063,7 +2063,13 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             this.fees.stampPay = stamp;
             this.fees.formPay = form;
             this.fees.inspectionPay = inspection;
-            this.fees.pledgeTotal = (parseInt(this.typeId) === 1) ? 25000 : 0;
+
+            const pledgeRate = this.rates[6] || {};
+            const pledgeStamp = pledgeRate.stamp_pay !== undefined ? parseFloat(pledgeRate.stamp_pay) : 4000;
+            const pledgeForm = pledgeRate.form_pay !== undefined ? parseFloat(pledgeRate.form_pay) : 4000;
+            const pledgeFee = (pledgeStamp + pledgeForm) > 0 ? (pledgeStamp + pledgeForm) : 8000;
+            this.fees.pledgeTotal = (parseInt(this.typeId) === 1) ? pledgeFee : 0;
+
             this.fees.totalPay = main + stamp + form + inspection;
         },
 
