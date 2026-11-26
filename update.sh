@@ -27,6 +27,7 @@ docker cp "$APP_DIR/routes/." tourist-app:/var/www/routes/
 docker cp "$APP_DIR/config/." tourist-app:/var/www/config/
 docker cp "$APP_DIR/public/." tourist-app:/var/www/public/
 docker cp "$APP_DIR/database/migrations/." tourist-app:/var/www/database/migrations/
+docker cp "$APP_DIR/database/seeders/." tourist-app:/var/www/database/seeders/
 
 echo "[3/5] Protecting live database and creating automatic backup..."
 # 1. Create a timestamped backup of the live database inside container if it exists
