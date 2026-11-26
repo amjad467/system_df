@@ -2061,22 +2061,36 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
 
         calculateFees() {
             const r = this.rates[this.typeId] || {};
-            let main = (parseInt(this.numYears) === 3 ? (r.pay_3_year || 0) : (parseInt(this.numYears) === 2 ? (r.pay_2_year || 0) : (r.pay_1_year || 0)));
-            let stamp = r.stamp_pay || 0;
-            let form = r.form_pay || 0;
-            let inspection = 0;
-            if (this.typeId == 1 || this.typeId == 2 || this.typeId == 5 || this.typeId == 8) {
-                inspection = this.isBus ? (parseFloat(r.bus_inspection_pay) || 30000) : (parseFloat(r.inspection_pay) || 20000);
+            const typeId = parseInt(this.typeId);
+
+            let main = 0;
+            if (typeId === 1 || typeId === 2) {
+                if (parseInt(this.numYears) === 3) {
+                    main = (r.pay_3_year !== undefined && r.pay_3_year !== null && r.pay_3_year !== '') ? parseFloat(r.pay_3_year) : 140000;
+                } else if (parseInt(this.numYears) === 2) {
+                    main = (r.pay_2_year !== undefined && r.pay_2_year !== null && r.pay_2_year !== '') ? parseFloat(r.pay_2_year) : 120000;
+                } else {
+                    main = (r.pay_1_year !== undefined && r.pay_1_year !== null && r.pay_1_year !== '') ? parseFloat(r.pay_1_year) : 80000;
+                }
             }
 
-            // سزای مامەڵە بەپێی جۆری مامەڵە (ناوگۆڕین: ۲٥ هەزار، دەفتەرگۆڕین: ۲٥ هەزار، ناو و دەفتەرگۆڕین: ٥٠ هەزار)
-            let fine = 0;
-            if (parseInt(this.typeId) === 3 || parseInt(this.typeId) === 4) {
-                fine = 25000;
-            } else if (parseInt(this.typeId) === 7) {
-                fine = 50000;
-            } else {
-                fine = parseFloat(r.fine_pay) || 0;
+            let stamp = (r.stamp_pay !== undefined && r.stamp_pay !== null && r.stamp_pay !== '') ? parseFloat(r.stamp_pay) : 3000;
+            let form = (r.form_pay !== undefined && r.form_pay !== null && r.form_pay !== '') ? parseFloat(r.form_pay) : 4000;
+            let fine = (r.fine_pay !== undefined && r.fine_pay !== null && r.fine_pay !== '') ? parseFloat(r.fine_pay) : 0;
+
+            let inspection = 0;
+            if (typeId === 1 || typeId === 2 || typeId === 5 || typeId === 8) {
+                if (this.isBus) {
+                    inspection = (r.bus_inspection_pay !== undefined && r.bus_inspection_pay !== null && r.bus_inspection_pay !== '') ? parseFloat(r.bus_inspection_pay) : 30000;
+                } else {
+                    inspection = (r.inspection_pay !== undefined && r.inspection_pay !== null && r.inspection_pay !== '') ? parseFloat(r.inspection_pay) : 20000;
+                }
+            }
+
+            if (typeId === 6) { // بەڵێننامە
+                main = 0;
+                fine = (r.fine_pay !== undefined && r.fine_pay !== null && r.fine_pay !== '') ? parseFloat(r.fine_pay) : 0;
+                inspection = 0;
             }
 
             this.fees.mainPay = main;
@@ -2085,11 +2099,12 @@ function unifiedTransactionForm(initialTx, targetTypeId, txRates, makesList, col
             this.fees.inspectionPay = inspection;
             this.fees.finePay = fine;
 
+            // نرخ و تێچووی فۆڕمی بەڵێننامە (Type 6) لە ڕێکخستنەکان وەردەگیرێت
             const pledgeRate = this.rates[6] || {};
-            const pledgeStamp = pledgeRate.stamp_pay !== undefined ? parseFloat(pledgeRate.stamp_pay) : 4000;
-            const pledgeForm = pledgeRate.form_pay !== undefined ? parseFloat(pledgeRate.form_pay) : 4000;
-            const pledgeFee = (pledgeStamp + pledgeForm) > 0 ? (pledgeStamp + pledgeForm) : 8000;
-            this.fees.pledgeTotal = (parseInt(this.typeId) === 1) ? pledgeFee : 0;
+            const pledgeStamp = (pledgeRate.stamp_pay !== undefined && pledgeRate.stamp_pay !== null && pledgeRate.stamp_pay !== '') ? parseFloat(pledgeRate.stamp_pay) : 4000;
+            const pledgeForm = (pledgeRate.form_pay !== undefined && pledgeRate.form_pay !== null && pledgeRate.form_pay !== '') ? parseFloat(pledgeRate.form_pay) : 4000;
+            const pledgeFee = pledgeStamp + pledgeForm;
+            this.fees.pledgeTotal = (typeId === 1) ? pledgeFee : 0;
 
             this.fees.totalPay = main + stamp + form + inspection + fine;
         },

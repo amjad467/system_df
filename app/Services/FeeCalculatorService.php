@@ -34,12 +34,12 @@ class FeeCalculatorService
             $endDate = $customEndDate ? Carbon::parse($customEndDate) : null;
         }
 
-        // Pledge Form (Type 6): Fixed fee rule = 8,000 Dinars (4,000 stamp + 4,000 form)
+        // Pledge Form (Type 6): Fee from database settings (default 4,000 stamp + 4,000 form = 8,000)
         if ($transactionTypeId == 6 || ($txType && str_contains($txType->name_kurdish, 'بەڵێننامە'))) {
             $payYears = 0;
-            $stamp = 4000;
-            $form = 4000;
-            $fine = 0;
+            $stamp = $txType ? (float)$txType->stamp_pay : 4000;
+            $form = $txType ? (float)$txType->form_pay : 4000;
+            $fine = $txType ? (float)$txType->fine_pay : 0;
             $inspection = 0;
             $startDate = null;
             $endDate = null;
@@ -47,21 +47,14 @@ class FeeCalculatorService
             $stamp = (float)$txType->stamp_pay;
             $form = (float)$txType->form_pay;
             $fine = (float)$txType->fine_pay;
-            $busPay = (float)($txType->bus_inspection_pay ?: 30000);
-            $inspection = $isBus ? $busPay : (float)$txType->inspection_pay;
-
-            // Enforce explicit fine rules per transaction type:
-            // ناو گۆڕین (3): ۲٥ هەزار | دەفتەرگۆڕین (4): ۲٥ هەزار | ناو و دەفتەرگۆڕین (7): ٥٠ هەزار
-            if (in_array($transactionTypeId, [3, 4])) {
-                $fine = 25000;
-                $payYears = 0;
-                $inspection = 0;
-            } elseif ($transactionTypeId == 7) {
-                $fine = 50000;
-                $payYears = 0;
-                $inspection = 0;
+            
+            // Inspection applies to types 1, 2, 5, 8
+            if (in_array($transactionTypeId, [1, 2, 5, 8])) {
+                $busPay = is_numeric($txType->bus_inspection_pay) ? (float)$txType->bus_inspection_pay : 30000;
+                $normalPay = is_numeric($txType->inspection_pay) ? (float)$txType->inspection_pay : 20000;
+                $inspection = $isBus ? $busPay : $normalPay;
             } else {
-                $fine = (float)$txType->fine_pay;
+                $inspection = 0;
             }
 
             // Only Issue Booklet (1) and Renew Booklet (2) multiply fee by years
@@ -90,6 +83,7 @@ class FeeCalculatorService
 
                     $stamp = 3000;
                     $form = 4000;
+                    $fine = 0;
                     $inspection = $isBus ? 30000 : 20000;
                     $endDate = $startDate ? $startDate->copy()->addYears($numYears) : null;
                     break;
@@ -100,6 +94,7 @@ class FeeCalculatorService
                     $form = 4000;
                     $fine = 25000;
                     $payYears = 0;
+                    $inspection = 0;
                     $endDate = $startDate ? $startDate->copy()->addYears($numYears) : null;
                     break;
 
@@ -108,12 +103,14 @@ class FeeCalculatorService
                     $form = 4000;
                     $fine = 50000;
                     $payYears = 0;
+                    $inspection = 0;
                     $endDate = $startDate ? $startDate->copy()->addYears($numYears) : null;
                     break;
 
                 case 5: // Cancellation
                     $stamp = 3000;
                     $form = 4000;
+                    $fine = 0;
                     $inspection = $isBus ? 30000 : 20000;
                     $payYears = 0;
                     $startDate = null;
@@ -123,6 +120,8 @@ class FeeCalculatorService
                 case 6: // Pledge Form
                     $stamp = 4000;
                     $form = 4000;
+                    $fine = 0;
+                    $inspection = 0;
                     $payYears = 0;
                     $startDate = null;
                     $endDate = null;
@@ -131,6 +130,7 @@ class FeeCalculatorService
                 case 8: // Inspection
                     $stamp = 3000;
                     $form = 4000;
+                    $fine = 0;
                     $inspection = $isBus ? 30000 : 20000;
                     $payYears = 0;
                     $startDate = null;

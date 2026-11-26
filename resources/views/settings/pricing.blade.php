@@ -122,7 +122,7 @@
                             <th class="p-3">١ ساڵ (د.ع)</th>
                             <th class="p-3">٢ ساڵ (د.ع)</th>
                             <th class="p-3">٣ ساڵ (د.ع)</th>
-                            <th class="p-3">پول (d.ع)</th>
+                            <th class="p-3">پول (د.ع)</th>
                             <th class="p-3">فۆڕم (د.ع)</th>
                             <th class="p-3">سزا (د.ع)</th>
                             <th class="p-3">کەشف (د.ع)</th>

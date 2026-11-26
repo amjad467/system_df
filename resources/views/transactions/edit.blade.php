@@ -684,21 +684,28 @@
 
                 if (typeId === 6) { // بەڵێننامە
                     payYears = 0;
-                    stamp = r ? parseFloat(r.stamp_pay) : 4000;
-                    form = r ? parseFloat(r.form_pay) : 4000;
-                    fine = 0;
+                    stamp = (r && r.stamp_pay !== undefined && r.stamp_pay !== null) ? parseFloat(r.stamp_pay) : 4000;
+                    form = (r && r.form_pay !== undefined && r.form_pay !== null) ? parseFloat(r.form_pay) : 4000;
+                    fine = (r && r.fine_pay !== undefined && r.fine_pay !== null) ? parseFloat(r.fine_pay) : 0;
                     inspection = 0;
                 } else if (r) {
-                    stamp = parseFloat(r.stamp_pay);
-                    form = parseFloat(r.form_pay);
-                    fine = parseFloat(r.fine_pay);
-                    inspection = isBus ? parseFloat(r.bus_inspection_pay) : parseFloat(r.inspection_pay);
+                    stamp = (r.stamp_pay !== undefined && r.stamp_pay !== null) ? parseFloat(r.stamp_pay) : 3000;
+                    form = (r.form_pay !== undefined && r.form_pay !== null) ? parseFloat(r.form_pay) : 4000;
+                    fine = (r.fine_pay !== undefined && r.fine_pay !== null) ? parseFloat(r.fine_pay) : 0;
+
+                    if (typeId === 1 || typeId === 2 || typeId === 5 || typeId === 8) {
+                        inspection = isBus 
+                            ? ((r.bus_inspection_pay !== undefined && r.bus_inspection_pay !== null) ? parseFloat(r.bus_inspection_pay) : 30000)
+                            : ((r.inspection_pay !== undefined && r.inspection_pay !== null) ? parseFloat(r.inspection_pay) : 20000);
+                    } else {
+                        inspection = 0;
+                    }
 
                     if (typeId === 1 || typeId === 2) {
-                        if (years === 1) payYears = parseFloat(r.pay_1_year);
-                        else if (years === 2) payYears = parseFloat(r.pay_2_year);
-                        else if (years === 3) payYears = parseFloat(r.pay_3_year);
-                        else payYears = parseFloat(r.pay_1_year) * years;
+                        if (years === 1) payYears = (r.pay_1_year !== undefined && r.pay_1_year !== null) ? parseFloat(r.pay_1_year) : 80000;
+                        else if (years === 2) payYears = (r.pay_2_year !== undefined && r.pay_2_year !== null) ? parseFloat(r.pay_2_year) : 120000;
+                        else if (years === 3) payYears = (r.pay_3_year !== undefined && r.pay_3_year !== null) ? parseFloat(r.pay_3_year) : 140000;
+                        else payYears = ((r.pay_1_year !== undefined && r.pay_1_year !== null) ? parseFloat(r.pay_1_year) : 80000) * years;
                     } else {
                         payYears = 0;
                     }

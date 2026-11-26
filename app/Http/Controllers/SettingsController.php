@@ -16,7 +16,7 @@ class SettingsController extends Controller
             return redirect()->route('dashboard')->with('error', 'دەسەڵاتی دەستکاریکردنی نرخەکانت نییە بەپێی پێرمشنەکان!');
         }
 
-        $transactionTypes = TransactionType::all();
+        $transactionTypes = TransactionType::orderBy('id', 'asc')->get();
         $directors = Director::orderBy('id', 'asc')->get();
         $activeDirector = Director::getActiveDirector();
 
@@ -64,21 +64,26 @@ class SettingsController extends Controller
             $txType = TransactionType::find($id);
             if ($txType) {
                 $txType->update([
-                    'pay_1_year' => $data['pay_1_year'] ?? 0,
-                    'pay_2_year' => $data['pay_2_year'] ?? 0,
-                    'pay_3_year' => $data['pay_3_year'] ?? 0,
-                    'stamp_pay' => $data['stamp_pay'] ?? 0,
-                    'form_pay' => $data['form_pay'] ?? 0,
-                    'fine_pay' => $data['fine_pay'] ?? 0,
-                    'inspection_pay' => $data['inspection_pay'] ?? 0,
-                    'bus_inspection_pay' => $data['bus_inspection_pay'] ?? 0,
+                    'pay_1_year' => isset($data['pay_1_year']) && $data['pay_1_year'] !== '' ? (float)$data['pay_1_year'] : 0,
+                    'pay_2_year' => isset($data['pay_2_year']) && $data['pay_2_year'] !== '' ? (float)$data['pay_2_year'] : 0,
+                    'pay_3_year' => isset($data['pay_3_year']) && $data['pay_3_year'] !== '' ? (float)$data['pay_3_year'] : 0,
+                    'stamp_pay' => isset($data['stamp_pay']) && $data['stamp_pay'] !== '' ? (float)$data['stamp_pay'] : 0,
+                    'form_pay' => isset($data['form_pay']) && $data['form_pay'] !== '' ? (float)$data['form_pay'] : 0,
+                    'fine_pay' => isset($data['fine_pay']) && $data['fine_pay'] !== '' ? (float)$data['fine_pay'] : 0,
+                    'inspection_pay' => isset($data['inspection_pay']) && $data['inspection_pay'] !== '' ? (float)$data['inspection_pay'] : 0,
+                    'bus_inspection_pay' => isset($data['bus_inspection_pay']) && $data['bus_inspection_pay'] !== '' ? (float)$data['bus_inspection_pay'] : 0,
                 ]);
             }
         }
 
+        // Forget cached transaction types so create and edit forms immediately reflect fresh prices
+        Cache::forget('all_transaction_types');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+
         AuditLogger::log('دەستکاریکردنی نرخی مامەڵەکان لایەن سۆپەر ئەدمین', null, null, 'گۆڕانکاری لە سزاکان، ڕسوومات و نرخەکان کرا');
 
-        return redirect()->back()->with('success', 'ڕێکخستنەکان (بەڕێوەبەری سەرەکی نووسراوەکان و نرخەکان) بە سەرکەوتوویی پاشەکەوتکران.');
+        return redirect()->back()->with('success', 'ڕێکخستنەکان (بەڕێوەبەری سەرەکی نووسراوەکان و نرخەکان) بە سەرکەوتوویی پاشەکەوتکران و تەواوی نرخەکان نوێکرانەوە.');
     }
 
     public function lookups()
