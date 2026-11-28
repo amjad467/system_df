@@ -24,10 +24,10 @@
             <h2 class="text-2xl font-bold text-white flex items-center">
                 <i class="fa-solid fa-pen-to-square ml-2 text-amber-400"></i> دەستکاریکردن و ڕاستکردنەوەی مامەڵە
             </h2>
-            <div class="text-xs text-slate-400 flex items-center gap-2 mt-1 flex-wrap">
-                <span>بارکۆد: <strong class="font-mono text-sky-400">{{ $transaction->barcode }}</strong></span>
+            <div class="text-xs text-slate-400 flex items-center gap-2.5 mt-1.5 flex-wrap">
+                <span>بارکۆد: <strong class="font-mono text-sky-400 text-sm">#{{ $transaction->barcode }}</strong></span>
                 <span>|</span>
-                <span class="px-2.5 py-0.5 rounded-lg text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                <span class="px-3.5 py-1 rounded-xl text-sm sm:text-base font-black bg-amber-500/20 text-amber-300 border-2 border-amber-500/50 shadow">
                     جۆری مامەڵە: {{ $transaction->transactionType?->name_kurdish }}
                 </span>
             </div>
